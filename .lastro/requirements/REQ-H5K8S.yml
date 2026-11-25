@@ -1,28 +1,36 @@
 id: REQ-H5K8S
-title: "`lastro sync` reconciles files and database"
+title: "`lastro export` is deterministic and round-trips through `lastro import`"
 type: storage
 status: specified
 package: PKG-D4S8H
 sources:
   - ref: SRC-P4RD7
-    anchor: "@04-domain-model.md#sincronização"
-    quote: "Para a spec, vale o arquivo. Para o histórico, vale o banco."
+    anchor: "@04-domain-model.md#exportação-e-importação"
+    quote: "Duas exportações do mesmo estado são idênticas."
+  - ref: SRC-P4RD7
+    anchor: "@04-domain-model.md#exportação-e-importação"
+    quote: "Importar uma exportação e exportar de novo dá os mesmos arquivos."
 statement: >
-  `lastro sync` makes the database mirror the spec files and keeps run history from the database. When they differ, the file wins for spec entities and the database wins for runs, results and state history. Dashboard events from server mode are applied to the files as ordinary file changes.
-where: "lastro sync"
+  `lastro export` writes the project's spec from the server to .lastro/ in the format of the PRD, with keys and items in a fixed order and no generation date inside the files. `lastro import` loads a .lastro/ snapshot into the server through the same core services as the API, shows first what will change, and applies human actions found in the snapshot only with a person's token.
+where: "lastro export, lastro import"
 examples:
-  - given: "requirement title edited in the file and different in the database"
-    expect: "after sync, the database has the file's title"
-  - given: "approval recorded in the server dashboard"
-    expect: "after sync, the requirement file has status approved and the change shows in git diff"
+  - given: "lastro export run twice with no change on the server"
+    expect: "both runs produce byte-identical files; git diff is empty"
+  - given: "this repository's .lastro/ imported into an empty project, then exported to another folder"
+    expect: "the two folders are identical"
+  - given: "a snapshot where a requirement was edited by hand to status approved, imported with an agent token"
+    expect: "the approval is refused and reported; every other change is applied"
 acceptance:
   - id: AC-1
-    text: "Given a requirement whose file and database copy differ, when `lastro sync` runs, then the database matches the file."
+    text: "Given a project with no changes between two runs of `lastro export`, then the written files are byte-identical."
     tests: []
   - id: AC-2
-    text: "Given an approval event recorded in server mode, when `lastro sync` runs, then the requirement file shows the approval and git reports the file as modified."
+    text: "Given this repository's .lastro/ imported into an empty project, when it is exported again, then every file matches the original."
     tests: []
-decisions: []
-questions: []
-depends_on: []
+  - id: AC-3
+    text: "Given a snapshot whose only change is a hand-made approval, when `lastro import` runs with an agent token, then the requirement is not approved and the output names the refused human action."
+    tests: []
+decisions: [DEC-F2H5P]
+questions: [Q-R9T2Z]
+depends_on: [REQ-F7H2Q]
 touches: []

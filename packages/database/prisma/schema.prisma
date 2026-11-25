@@ -1,0 +1,728 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated"
+  moduleFormat = "esm"
+  previewFeatures = ["relationJoins"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Access ─────────────────────────────────────────────────────────────────
+
+/// better-auth tables.
+model User {
+  id            String       @id
+  name          String
+  email         String       @unique
+  emailVerified Boolean      @default(false)
+  image         String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+  memberships   Membership[]
+
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+enum MemberRole {
+  owner
+  admin
+  member
+}
+
+model Workspace {
+  id          String       @id @default(uuid(7)) @db.Uuid
+  name        String
+  slug        String       @unique
+  createdAt   DateTime     @default(now())
+  memberships Membership[]
+  projects    Project[]
+  tokens      ApiToken[]
+}
+
+model Membership {
+  id          String     @id @default(uuid(7)) @db.Uuid
+  workspaceId String     @db.Uuid
+  workspace   Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role        MemberRole @default(member)
+  createdAt   DateTime   @default(now())
+
+  @@unique([workspaceId, userId])
+}
+
+/// API, CLI, CI and MCP tokens. Only the SHA-256 hash is stored; the prefix identifies it in lists.
+model ApiToken {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  workspaceId String    @db.Uuid
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  projectId   String?   @db.Uuid
+  project     Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name        String
+  prefix      String
+  hash        String    @unique
+  scopes      String[]
+  createdById String
+  lastUsedAt  DateTime?
+  expiresAt   DateTime?
+  revokedAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([workspaceId])
+}
+
+// ─── Project ────────────────────────────────────────────────────────────────
+
+model Project {
+  id             String          @id @default(uuid(7)) @db.Uuid
+  workspaceId    String          @db.Uuid
+  workspace      Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  key            String
+  name           String
+  description    String?
+  repositoryUrl  String?
+  language       String          @default("en")
+  /// The lastro.yml configuration: types, required fields, QA flows, conditions, commands, gate.
+  config         Json
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  archivedAt     DateTime?
+  tokens         ApiToken[]
+  sources        Source[]
+  packages       Package[]
+  requirements   Requirement[]
+  decisions      Decision[]
+  questions      Question[]
+  incidents      Incident[]
+  glossaryTerms  GlossaryTerm[]
+  invariants     Invariant[]
+  designContract DesignContract?
+  tests          Test[]
+  runs           Run[]
+  artifacts      Artifact[]
+  stateEvents    StateEvent[]
+  agentSessions  AgentSession[]
+  docBuilds      DocBuild[]
+
+  @@unique([workspaceId, key])
+}
+
+// ─── Sources ────────────────────────────────────────────────────────────────
+
+enum SourceKind {
+  docx
+  pdf
+  chat
+  audio
+  video
+  image
+  meeting
+  text
+}
+
+enum Role {
+  client
+  dev
+  team
+}
+
+model Source {
+  id                String          @id @default(uuid(7)) @db.Uuid
+  projectId         String          @db.Uuid
+  project           Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  code              String
+  kind              SourceKind
+  title             String
+  from              Role
+  receivedAt        DateTime
+  machineTranscript Boolean         @default(false)
+  createdAt         DateTime        @default(now())
+  versions          SourceVersion[]
+  citations         Citation[]
+  packages          PackageSource[]
+
+  @@unique([projectId, code])
+}
+
+model SourceVersion {
+  id            String    @id @default(uuid(7)) @db.Uuid
+  sourceId      String    @db.Uuid
+  source        Source    @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  version       Int
+  final         Boolean   @default(false)
+  hash          String
+  /// Where the original binary lives (artifact storage), when there is one.
+  storageKey    String?
+  /// For sources that live in the repository itself: file or folder path.
+  path          String?
+  extractedText String
+  createdAt     DateTime  @default(now())
+  passages      Passage[]
+
+  @@unique([sourceId, version])
+}
+
+/// One anchored passage of a source version: a paragraph, a page block, a message, a timestamp.
+model Passage {
+  id              String        @id @default(uuid(7)) @db.Uuid
+  sourceVersionId String        @db.Uuid
+  sourceVersion   SourceVersion @relation(fields: [sourceVersionId], references: [id], onDelete: Cascade)
+  anchor          String
+  label           String?
+  heading         String?
+  position        Int
+  text            String
+
+  @@unique([sourceVersionId, anchor])
+  @@index([sourceVersionId, position])
+}
+
+// ─── Spec ───────────────────────────────────────────────────────────────────
+
+enum RequirementStatus {
+  captured
+  specified
+  approved
+  building
+  verified
+  previewed
+  delivered
+  accepted
+  reopened
+  dropped
+}
+
+model Package {
+  id           String          @id @default(uuid(7)) @db.Uuid
+  projectId    String          @db.Uuid
+  project      Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  code         String
+  title        String
+  report       Boolean         @default(true)
+  openedAt     DateTime        @default(now())
+  closedAt     DateTime?
+  sources      PackageSource[]
+  requirements Requirement[]
+
+  @@unique([projectId, code])
+}
+
+model PackageSource {
+  packageId String  @db.Uuid
+  package   Package @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  sourceId  String  @db.Uuid
+  source    Source  @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  @@id([packageId, sourceId])
+}
+
+model Requirement {
+  id          String                  @id @default(uuid(7)) @db.Uuid
+  projectId   String                  @db.Uuid
+  project     Project                 @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  code        String
+  packageId   String?                 @db.Uuid
+  package     Package?                @relation(fields: [packageId], references: [id], onDelete: SetNull)
+  position    Int                     @default(0)
+  title       String
+  type        String
+  status      RequirementStatus       @default(captured)
+  statement   String
+  where       String?
+  who         Json?
+  dataSource  String?
+  period      String?
+  reach       Json?
+  whenMissing String?
+  examples    Json                    @default("[]")
+  visualRefs  String[]
+  touches     String[]
+  branch      String?
+  createdAt   DateTime                @default(now())
+  updatedAt   DateTime                @updatedAt
+  citations   Citation[]
+  criteria    Criterion[]
+  decisions   DecisionRequirement[]
+  questions   QuestionRequirement[]
+  incidents   Incident[]
+  stateEvents StateEvent[]
+  evidence    Evidence[]
+  dependsOn   RequirementDependency[] @relation("dependent")
+  dependents  RequirementDependency[] @relation("dependency")
+
+  @@unique([projectId, code])
+  @@index([projectId, status])
+}
+
+model RequirementDependency {
+  requirementId String      @db.Uuid
+  requirement   Requirement @relation("dependent", fields: [requirementId], references: [id], onDelete: Cascade)
+  dependsOnId   String      @db.Uuid
+  dependsOn     Requirement @relation("dependency", fields: [dependsOnId], references: [id], onDelete: Cascade)
+
+  @@id([requirementId, dependsOnId])
+}
+
+model Citation {
+  id            String      @id @default(uuid(7)) @db.Uuid
+  requirementId String      @db.Uuid
+  requirement   Requirement @relation(fields: [requirementId], references: [id], onDelete: Cascade)
+  sourceId      String      @db.Uuid
+  source        Source      @relation(fields: [sourceId], references: [id], onDelete: Restrict)
+  anchor        String
+  label         String?
+  quote         String
+  position      Int
+  /// Set when the quote is found literally in the latest version of the source.
+  found         Boolean     @default(false)
+  passageAnchor String?
+  /// Quotes from machine transcripts need a person to confirm them.
+  confirmed     Boolean     @default(false)
+
+  @@index([requirementId])
+}
+
+model Criterion {
+  id            String          @id @default(uuid(7)) @db.Uuid
+  requirementId String          @db.Uuid
+  requirement   Requirement     @relation(fields: [requirementId], references: [id], onDelete: Cascade)
+  code          String
+  text          String
+  position      Int
+  lockedHash    String?
+  lockedAt      DateTime?
+  lockedById    String?
+  tests         CriterionTest[]
+
+  @@unique([requirementId, code])
+}
+
+model CriterionTest {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  criterionId String    @db.Uuid
+  criterion   Criterion @relation(fields: [criterionId], references: [id], onDelete: Cascade)
+  /// "file::test name", as it appears in JUnit.
+  testRef     String
+  /// Hash of the test body when the criterion was locked.
+  lockedHash  String?
+
+  @@unique([criterionId, testRef])
+}
+
+enum DecisionKind {
+  assumption
+  decision
+  client_answer
+}
+
+enum DecisionStatus {
+  proposed
+  confirmed
+  overturned
+}
+
+model Decision {
+  id             String                @id @default(uuid(7)) @db.Uuid
+  projectId      String                @db.Uuid
+  project        Project               @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  code           String
+  kind           DecisionKind
+  text           String
+  reason         String?
+  decidedBy      Role
+  decidedByAgent Boolean               @default(false)
+  status         DecisionStatus        @default(proposed)
+  showToClient   Boolean               @default(true)
+  sourceRef      String?
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+  requirements   DecisionRequirement[]
+  answers        Question[]
+
+  @@unique([projectId, code])
+}
+
+model DecisionRequirement {
+  decisionId    String      @db.Uuid
+  decision      Decision    @relation(fields: [decisionId], references: [id], onDelete: Cascade)
+  requirementId String      @db.Uuid
+  requirement   Requirement @relation(fields: [requirementId], references: [id], onDelete: Cascade)
+
+  @@id([decisionId, requirementId])
+}
+
+model Question {
+  id           String                @id @default(uuid(7)) @db.Uuid
+  projectId    String                @db.Uuid
+  project      Project               @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  code         String
+  text         String
+  blocks       Boolean               @default(false)
+  askedTo      Role
+  askedVia     String?
+  askedAt      DateTime              @default(now())
+  answer       String?
+  answerSource String?
+  answeredAt   DateTime?
+  decisionId   String?               @db.Uuid
+  decision     Decision?             @relation(fields: [decisionId], references: [id], onDelete: SetNull)
+  requirements QuestionRequirement[]
+
+  @@unique([projectId, code])
+}
+
+model QuestionRequirement {
+  questionId    String      @db.Uuid
+  question      Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  requirementId String      @db.Uuid
+  requirement   Requirement @relation(fields: [requirementId], references: [id], onDelete: Cascade)
+
+  @@id([questionId, requirementId])
+}
+
+enum Triage {
+  bug
+  config
+  missing_data
+  usage
+  improvement
+  not_a_defect
+}
+
+enum IncidentCause {
+  spec_gap
+  implementation
+  regression
+  client_change
+  environment
+}
+
+enum Billing {
+  fix
+  courtesy
+  quote
+}
+
+model Incident {
+  id             String         @id @default(uuid(7)) @db.Uuid
+  projectId      String         @db.Uuid
+  project        Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  code           String
+  reported       String
+  sourceRef      String?
+  triage         Triage?
+  cause          IncidentCause?
+  billing        Billing?
+  requirementId  String?        @db.Uuid
+  requirement    Requirement?   @relation(fields: [requirementId], references: [id], onDelete: SetNull)
+  regressionTest String?
+  createdAt      DateTime       @default(now())
+  triagedAt      DateTime?
+
+  @@unique([projectId, code])
+}
+
+// ─── Quality contracts ──────────────────────────────────────────────────────
+
+model GlossaryTerm {
+  id        String  @id @default(uuid(7)) @db.Uuid
+  projectId String  @db.Uuid
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  term      String
+  means     String
+  note      String?
+
+  @@unique([projectId, term])
+}
+
+model Invariant {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  projectId String   @db.Uuid
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  code      String
+  text      String
+  testRefs  String[]
+
+  @@unique([projectId, code])
+}
+
+model DesignContract {
+  id               String   @id @default(uuid(7)) @db.Uuid
+  projectId        String   @unique @db.Uuid
+  project          Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  components       Json     @default("{}")
+  forbidden        String[]
+  palette          Json     @default("{}")
+  referenceScreens String[]
+  updatedAt        DateTime @updatedAt
+}
+
+// ─── Execution ──────────────────────────────────────────────────────────────
+
+enum RunTrigger {
+  dev
+  agent
+  ci
+}
+
+enum RunStatus {
+  running
+  passed
+  failed
+  error
+}
+
+enum TestStatus {
+  passed
+  failed
+  skipped
+  error
+}
+
+enum FindingLevel {
+  error
+  warning
+  note
+}
+
+model Test {
+  id        String       @id @default(uuid(7)) @db.Uuid
+  projectId String       @db.Uuid
+  project   Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  ref       String
+  file      String
+  name      String
+  flaky     Boolean      @default(false)
+  createdAt DateTime     @default(now())
+  results   TestResult[]
+
+  @@unique([projectId, ref])
+}
+
+model Run {
+  id          String     @id @default(uuid(7)) @db.Uuid
+  projectId   String     @db.Uuid
+  project     Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  trigger     RunTrigger
+  commit      String?
+  branch      String?
+  dirty       Boolean    @default(false)
+  environment Json       @default("{}")
+  status      RunStatus  @default(running)
+  startedAt   DateTime   @default(now())
+  finishedAt  DateTime?
+  durationMs  Int?
+  stages      RunStage[]
+  evidence    Evidence[]
+
+  @@index([projectId, startedAt])
+}
+
+model RunStage {
+  id            String       @id @default(uuid(7)) @db.Uuid
+  runId         String       @db.Uuid
+  run           Run          @relation(fields: [runId], references: [id], onDelete: Cascade)
+  requirementId String?      @db.Uuid
+  stage         String
+  condition     String?
+  command       String?
+  exitCode      Int?
+  status        RunStatus
+  manual        Boolean      @default(false)
+  signedBy      String?
+  reference     String?
+  startedAt     DateTime     @default(now())
+  durationMs    Int          @default(0)
+  output        String       @default("")
+  results       TestResult[]
+  findings      Finding[]
+  artifacts     Artifact[]
+
+  @@index([runId])
+}
+
+model TestResult {
+  id         String     @id @default(uuid(7)) @db.Uuid
+  runStageId String     @db.Uuid
+  runStage   RunStage   @relation(fields: [runStageId], references: [id], onDelete: Cascade)
+  testId     String     @db.Uuid
+  test       Test       @relation(fields: [testId], references: [id], onDelete: Cascade)
+  status     TestStatus
+  durationMs Int        @default(0)
+  message    String?
+
+  @@index([testId])
+}
+
+model Finding {
+  id         String       @id @default(uuid(7)) @db.Uuid
+  runStageId String       @db.Uuid
+  runStage   RunStage     @relation(fields: [runStageId], references: [id], onDelete: Cascade)
+  tool       String
+  ruleId     String?
+  level      FindingLevel
+  file       String?
+  line       Int?
+  message    String
+}
+
+model Artifact {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  projectId   String    @db.Uuid
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  code        String
+  kind        String
+  storageKey  String
+  contentType String
+  size        Int
+  hash        String
+  runStageId  String?   @db.Uuid
+  runStage    RunStage? @relation(fields: [runStageId], references: [id], onDelete: SetNull)
+  createdAt   DateTime  @default(now())
+
+  @@unique([projectId, code])
+}
+
+/// The run that released a requirement, bound to the tree hash of the files it touches.
+model Evidence {
+  id            String      @id @default(uuid(7)) @db.Uuid
+  requirementId String      @db.Uuid
+  requirement   Requirement @relation(fields: [requirementId], references: [id], onDelete: Cascade)
+  runId         String      @db.Uuid
+  run           Run         @relation(fields: [runId], references: [id], onDelete: Cascade)
+  treeHash      String
+  verifiedAt    DateTime    @default(now())
+
+  @@index([requirementId])
+}
+
+// ─── History ────────────────────────────────────────────────────────────────
+
+enum ActorType {
+  user
+  agent
+  system
+}
+
+model StateEvent {
+  id            String             @id @default(uuid(7)) @db.Uuid
+  projectId     String             @db.Uuid
+  project       Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  requirementId String             @db.Uuid
+  requirement   Requirement        @relation(fields: [requirementId], references: [id], onDelete: Cascade)
+  fromStatus    RequirementStatus?
+  toStatus      RequirementStatus
+  reason        String?
+  actorType     ActorType
+  actorId       String?
+  commit        String?
+  createdAt     DateTime           @default(now())
+
+  @@index([requirementId, createdAt])
+}
+
+model AgentSession {
+  id         String       @id @default(uuid(7)) @db.Uuid
+  projectId  String       @db.Uuid
+  project    Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  agent      String
+  externalId String
+  startedAt  DateTime     @default(now())
+  endedAt    DateTime?
+  events     AgentEvent[]
+
+  @@unique([projectId, externalId])
+}
+
+model AgentEvent {
+  id        String       @id @default(uuid(7)) @db.Uuid
+  sessionId String       @db.Uuid
+  session   AgentSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  kind      String
+  payload   Json         @default("{}")
+  createdAt DateTime     @default(now())
+
+  @@index([sessionId, createdAt])
+}
+
+/// Append-only: a trigger in the migration refuses UPDATE and DELETE.
+model AuditEvent {
+  id          String    @id @default(uuid(7)) @db.Uuid
+  workspaceId String    @db.Uuid
+  projectId   String?   @db.Uuid
+  actorType   ActorType
+  actorId     String?
+  action      String
+  entity      String
+  entityId    String
+  data        Json      @default("{}")
+  createdAt   DateTime  @default(now())
+
+  @@index([workspaceId, createdAt])
+  @@index([projectId, createdAt])
+}
+
+model DocBuild {
+  id          String   @id @default(uuid(7)) @db.Uuid
+  projectId   String   @db.Uuid
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  document    String
+  format      String
+  commit      String?
+  storageKey  String?
+  generatedBy String?
+  createdAt   DateTime @default(now())
+
+  @@index([projectId, createdAt])
+}

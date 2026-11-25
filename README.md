@@ -4,7 +4,7 @@
 
 **English** · [Português](README.pt-BR.md)
 
-> **Status:** in design. The [PRD](docs/prd/README.md) is open for discussion. There is no code yet.
+> **Status:** rebuild in progress. The [PRD](docs/prd/README.md) describes the product, and the [ROADMAP](ROADMAP.md) tracks the build, phase by phase.
 
 ---
 
@@ -40,10 +40,10 @@ flowchart LR
   I --> J["Item-by-item report and acceptance"]
 ```
 
-- **Everything lives in the repository**, in `.lastro/`, reviewed in the same PR as the code.
+- **Spec on the server, review in the PR.** The Lastro server's Postgres is the source of truth, and `lastro export` writes a deterministic snapshot to `.lastro/`, reviewed in the same PR as the code.
 - **No LLM inside.** The agent you already use does the thinking. Lastro stores, enforces and checks.
 - **Visual dashboard.** Tests, runs and results, live diagrams of the QA flows and of traceability, and documentation generated from the data.
-- **Local or with Postgres.** On your machine, with no setup, using SQLite. For a team and several projects, on Postgres with a shared dashboard.
+- **Self-hosted, many projects.** One server with Docker, on a single VPS, holds every project of the workspace, with sign-in and a project switcher. The dashboard, the MCP and the CLI write through the same API.
 - **Agnostic.** Claude Code first, with a CLI and MCP for any agent, on any stack that produces JUnit or SARIF.
 
 ## Three levels of assurance
@@ -57,28 +57,34 @@ flowchart LR
 ## What using it will look like
 
 ```bash
-npm install -g lastro      # not published yet
+# server: dashboard, API and MCP
+docker compose -f docker/compose.prod.yml up -d
 
-lastro init
+# CLI
+npm install -g lastro      # not published yet
+lastro login https://lastro.example.com
+lastro link my-app         # links the repository to a project on the server
+lastro import              # loads the .lastro/ already in the repository
 lastro setup claude        # MCP, hooks and CLAUDE.md
 lastro intake "Fixes v.4.docx"
 lastro pending
 lastro approve PKG-2R8XW
 lastro verify
 lastro gate
+lastro export              # writes the snapshot to .lastro/ for the PR
 lastro report PKG-2R8XW --format pdf
-lastro ui                  # dashboard at http://127.0.0.1
 lastro docs build --format pdf
 ```
 
 ## Documentation
 
-- [PRD](docs/prd/README.md): the problem, the data model, the lifecycle, the QA flows, the integrations and the roadmap.
-- [`.lastro/`](.lastro): Lastro's own MVP, described in the format it proposes.
+- [PRD](docs/prd/README.md): the problem, the data model, the lifecycle, the QA flows, the integrations and the architecture.
+- [ROADMAP](ROADMAP.md): the build phases and the status of each one.
+- [`.lastro/`](.lastro): Lastro itself, described in the export format.
 
 ## Contributing
 
-The project is in the design phase. Open an issue to discuss the PRD, tell us how the problem shows up in your workflow, or propose an adapter for your agent or stack.
+The rebuild is in progress (see the [ROADMAP](ROADMAP.md)). Open an issue to discuss the PRD, tell us how the problem shows up in your workflow, or propose an adapter for your agent or stack.
 
 ## License
 

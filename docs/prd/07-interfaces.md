@@ -2,13 +2,17 @@
 
 Lastro has four entry points into the same core: the CLI for people and scripts, the MCP server for agents, the dashboard for viewing, deciding and generating documentation, and the reports for the requester. The dashboard has its own chapter: [Dashboard, documentation and diagrams](03-dashboard.md).
 
+The first three go through the Lastro server's HTTP API and the same core services. None of them opens the database on its own.
+
 ## CLI
 
 ### Project
 
 | Command | What it does |
 |---|---|
-| `lastro init` | Creates `.lastro/` with an empty `lastro.yml`, glossary and layout contract, plus the `.gitignore` for the local folders |
+| `lastro login [<url>]` | Signs in to the Lastro server through the browser and keeps the person's token on the machine, outside the repository |
+| `lastro link [<project>]` | Links the repository to a project on the server and writes its key to `lastro.yml` |
+| `lastro init` | Creates the project on the server, links the repository to it and writes the first `.lastro/` with an empty `lastro.yml`, glossary and layout contract, plus the `.gitignore` for the `.out/` folder |
 | `lastro setup claude\|codex\|gemini\|cursor\|git\|github` | Installs the integrations for each level |
 | `lastro doctor` | Checks the configuration, schemas, installed hooks and project commands |
 
@@ -16,9 +20,9 @@ Lastro has four entry points into the same core: the CLI for people and scripts,
 
 | Command | What it does |
 |---|---|
-| `lastro intake <file or folder>` | Registers the source, stores the binary in `.store/`, extracts text with anchors. If a source with the same title already exists, creates the new version with `supersedes` |
+| `lastro intake <file or folder>` | Sends the material to the server, which registers the source, stores the binary, extracts the text and splits it into passages with anchors. If a source with the same title already exists, creates the new version with `supersedes` |
 | `lastro source diff <SRC> <SRC>` | Difference between two versions, with the affected requirements |
-| `lastro source final <SRC>` | Marks the source as final |
+| `lastro source final <SRC>` | Marks the source as final. Human |
 
 Lastro doesn't call an LLM. Breaking the source into atomic requirements is done by the agent via MCP (`lastro_propose_requirements`), and the items start as `captured`.
 
@@ -29,11 +33,12 @@ Lastro doesn't call an LLM. Breaking the source into atomic requirements is done
 | `lastro req new\|edit\|show\|list` | Creates, edits, shows and lists requirements, with filters by state, type and package |
 | `lastro pending [PKG]` | Only what hasn't reached `verified`, grouped by reason: missing field, open question, awaiting approval, in implementation, gate red |
 | `lastro ask <REQ> "<question>" [--blocks]` | Opens a question |
-| `lastro answer <Q> "<answer>" --source <SRC@anchor>` | Records the answer and creates the `client_answer` decision |
+| `lastro answer <Q> "<answer>" --source <SRC@anchor>` | Records the answer and creates the `client_answer` decision. Human |
 | `lastro decide <REQ> "<decision>" --reason "<reason>"` | Records a decision |
 | `lastro decision confirm\|overturn <DEC>` | Human |
 | `lastro approve <REQ\|PKG>` | Human. Also locks the criteria |
 | `lastro lock\|unlock <REQ>` | Locks or unlocks criteria and tests. `unlock` is human |
+| `lastro drop <REQ> --reason "<reason>"` | Drops the item from scope. Human |
 
 ### Verification and delivery
 
@@ -47,21 +52,23 @@ Lastro doesn't call an LLM. Breaking the source into atomic requirements is done
 | `lastro report <PKG> [--format md\|html\|pdf] [--audience client\|dev]` | Item-by-item report |
 | `lastro accept <REQ\|PKG> --ref "<reference>"` | The requester's acceptance. Human |
 | `lastro incident new "<complaint>" --source <SRC@anchor>` | Records an incident and reopens the requirement |
-| `lastro incident triage <INC> --triage bug --cause spec_gap --billing courtesy` | Classifies |
+| `lastro incident triage <INC> --triage bug --cause spec_gap --billing courtesy` | Confirms the triage, cause and billing. Human |
 
-### Dashboard, documentation and database
+### Server, documentation and export
 
 | Command | What it does |
 |---|---|
-| `lastro ui` | Opens the dashboard in local mode, on `127.0.0.1`, reading the files and the SQLite database |
-| `lastro server` | Starts the dashboard in server mode, connected to Postgres, with login |
+| `lastro export [--out .lastro] [--json]` | Writes the project's deterministic snapshot to `.lastro/`, for review in the PR and for the offline gate. With `--json`, writes the same content to standard output |
+| `lastro import [<folder>]` | Loads a `.lastro/` snapshot into the server, showing first what will change |
+| `lastro mcp` | Bridges the agent's stdio to the server's `/api/mcp` route, with the token |
 | `lastro docs build [--format md\|html\|pdf] [--out docs/lastro]` | Generates the project's documentation from the data |
-| `lastro db migrate` | Creates or updates the tables in the configured database |
-| `lastro db push` | Copies the history from the local SQLite database to Postgres |
-| `lastro sync` | Reconciles the files in `.lastro/` with the database and applies the events from the server dashboard |
-| `lastro token create --name ci` | Creates the token CI uses to send runs to the server. Human |
+| `lastro token create --name ci` | Creates an API token for CI or for an agent. Human. The token is shown only once; the server keeps the hash |
+
+The server is not a CLI command. It is the web app, started with Docker (`docker compose -f docker/compose.prod.yml up -d`), and the database migrations run in the `migrate` service before `web` starts.
 
 ## MCP server
+
+The MCP server is the JSON-RPC route `/api/mcp` on the Lastro server, with a Bearer token. For agents that only speak stdio, `lastro mcp` bridges to it. The stages of `lastro_verify` run on the agent's machine, through the bridge, which sends the evidence to the server.
 
 Tools for the agent. None of them approves, accepts, unlocks or signs off a manual stage.
 

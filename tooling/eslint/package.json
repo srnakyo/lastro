@@ -1,0 +1,11 @@
+{
+  "name": "@lastro/eslint-config",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "index.js",
+  "dependencies": {
+    "@eslint/js": "^10.0.1",
+    "typescript-eslint": "^8.74.0"
+  }
+}

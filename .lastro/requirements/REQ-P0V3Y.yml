@@ -8,14 +8,14 @@ sources:
     anchor: "@03-dashboard.md#documentação-gerada"
     quote: "Todo documento diz de qual commit e de qual data foi gerado."
 statement: >
-  `lastro docs build` generates the project documents (overview, requirements, business rules and invariants, decisions, client report, diagrams) in Markdown and HTML from the stored data. Every document states the commit and date it was generated from. Test plan and quality report join in stage 3.
-where: "lastro docs build"
+  `lastro docs build` and the button on the Documentation page generate the project documents (overview, requirements, business rules and invariants, decisions, test plan, test cases, quality report, delivery history, client report, diagrams) in Markdown, HTML and PDF from the server data. Every document states the commit and date it was generated from, and each build is recorded as a DocBuild.
+where: "lastro docs build, Dashboard › Documentation"
 examples:
   - given: "lastro docs build --format md --out docs/lastro on this repository"
-    expect: "docs/lastro/ has requirements.md listing 15 + 8 requirements and decisions.md listing every DEC, each starting with the commit hash and date"
+    expect: "docs/lastro/ has requirements.md listing every requirement grouped by package and decisions.md listing every DEC, each starting with the commit hash and date"
 acceptance:
   - id: AC-1
-    text: "Given this repository, when `lastro docs build --format md` runs, then each generated document starts with the commit hash and generation date, and requirements.md lists every requirement grouped by package."
+    text: "Given this repository, when `lastro docs build --format md` runs, then each generated document starts with the commit hash and generation date, requirements.md lists every requirement grouped by package, and the server has a DocBuild record for the build."
     tests: []
 decisions: []
 questions: []

@@ -2,97 +2,99 @@
 
 ## Packages
 
-A monorepo with npm workspaces. Each package has a single responsibility, and none depends on another package's interface except `core` and `store`.
+A monorepo with bun workspaces and Turborepo, split into `apps/`, `packages/` and `tooling/`. Each package has a single responsibility.
 
 ```
+apps/
+  web/           dashboard and HTTP API (TanStack Start), /api/mcp route, sign-in
 packages/
-  core/          model (schemas), reading and writing .lastro/, IDs, state machine, gate, ledger
-  store/         database access with two drivers (SQLite and Postgres), migrations, sync with the files
-  runner/        command execution, conditions, JUnit and SARIF parsing, evidence
-  intake/        extractors per source type (docx, pdf, chat, audio, video, image), anchors, versions
-  docs/          generated documentation, item-by-item reports and diagrams (md, html, pdf, mermaid, svg)
-  server/        HTTP API and live events for the dashboard, login and tokens in server mode
-  ui/            dashboard (Vite + React + Tailwind + shadcn/ui)
-  cli/           the `lastro` command
-  mcp/           MCP server (stdio)
-adapters/
-  claude-code/   hooks, plugin, CLAUDE.md section
-  github/        action, check, PR block
-  claude-ship/   REVIEW.md, approvals and classifier drafts
-  git/           pre-push hook
-  codex/, gemini/, cursor/
-schemas/         public JSON Schema for each .lastro/ file
+  database/      Prisma schema, versioned migrations, Postgres client, audit trigger
+  shared/        zod contracts used by the API, the CLI, the MCP and the export
+  core/          domain services, one folder per domain, every operation scoped by project:
+                 states, gate, locks, citations, human actions, export and import
+  cli/           the `lastro` command, on npm; talks to the API with a token, never to the database
+  runner/        runs commands per condition, reads JUnit and SARIF, builds and uploads evidence
+  intake/        source extractors: DOCX with images in order, PDF, exported conversations,
+                 audio and video through external commands
+  docs/          document and diagram generators: Markdown, HTML, PDF
+  adapters/      Claude Code plugin (hooks, skills), git pre-push hook, GitHub Action,
+                 Claude Ship templates
+tooling/         shared configuration (TypeScript, ESLint)
+docker/          compose.dev.yml and compose.prod.yml (web, migrate, postgres)
 ```
 
 ```mermaid
 flowchart LR
-  cli --> core
-  cli --> store
-  mcp --> core
-  mcp --> store
-  server --> core
-  server --> store
-  ui --> server
+  web --> core
+  web --> intake
+  web --> docs
+  core --> database
+  core --> shared
+  web --> shared
+  cli -- "HTTP, token" --> web
   cli --> runner
-  mcp --> runner
-  cli --> intake
-  cli --> docs
-  server --> docs
-  runner --> store
-  intake --> core
-  docs --> store
-  store --> core
+  cli --> shared
+  runner --> shared
+  intake --> shared
+  docs --> shared
   adapters --> cli
 ```
 
-The dashboard never reads the database directly: it talks to `server`, which is the same in `lastro ui` (local) and in `lastro server` (Postgres).
+Only `core` talks to `database`, and only `web` calls `core`. The dashboard, the CLI, the MCP and CI always go through the API.
 
 ## Stack
 
 | Piece | Choice | Reason |
 |---|---|---|
-| Language | Strict TypeScript, Node 22+ | Same ecosystem as MCP and the agents; distribution through npm |
-| Schemas | zod, exporting JSON Schema | Runtime validation and autocomplete in the editor |
-| Database | SQLite (better-sqlite3) in local mode; Postgres 16+ in server mode | Zero setup on the machine; a shared database for the team |
-| Database access | Kysely, with versioned migrations | One typed layer that talks to both databases, with the same schema |
-| Dashboard API | Hono, with live events over SSE | Lightweight, runs on Node, the same API in both modes |
-| Dashboard | Vite + React + Tailwind + shadcn/ui | No SSR, quick to serve from the CLI itself |
+| Monorepo | bun workspaces and Turborepo | Fast installs and tests, tasks cached per package |
+| Language | TypeScript 6, strict | Same ecosystem as MCP and the agents. typescript-eslint does not support TypeScript 7 yet |
+| Dashboard and API | TanStack Start, Router and Query | Typed routes, the API and the dashboard in the same app |
+| Interface | Tailwind v4 and shadcn/ui (new-york) | Ready, accessible components, light and dark theme |
+| Sign-in | better-auth (email and password, GitHub) | Sessions, workspaces and members without an external service |
+| Database | Postgres 16 | One database for every project, no managed service |
+| Database access | Prisma 7 (pg driver adapter, relation joins), versioned migrations, `uuid(7)` ids | A typed schema and reviewable migrations |
+| Contracts | zod, exporting JSON Schema | The same validation in the API, the CLI, the MCP and the export, plus autocomplete in the editor |
+| MCP | JSON-RPC route `/api/mcp` with a Bearer token; `lastro mcp` bridges stdio | A single server for every agent |
 | Diagrams | Mermaid, rendered in the dashboard and exported as SVG | Versionable text, generated from the data |
 | Charts | Recharts | Timelines and indicators |
 | PDF | Playwright printing the documentation's HTML | Same look as the dashboard, with logo and colors |
-| CLI | commander | Simple and stable |
-| MCP | Official MCP SDK for TypeScript | Compatible with Claude Code, Codex, Gemini CLI and Cursor |
 | DOCX | mammoth (with images in order) | Keeps paragraphs and images together |
 | Input PDF | pdfjs-dist | Text by page and block |
 | Audio and video | Configurable external commands (Whisper, ffmpeg) | Lastro doesn't embed a model |
-| Lastro's own tests | Vitest with JUnit, ESLint with SARIF, Playwright on the dashboard | Lastro verifies itself |
+| Lastro's own tests | `bun test` (unit and integration against a `lastro_test` database), ESLint with SARIF, Playwright on the real screens | Lastro verifies itself |
+| Distribution | Docker image and compose for a single VPS; the CLI on npm | Self-hosted, no managed services |
 
 ## Architecture decisions
 
-1. **The spec lives in git; the history lives in the database.**
-   - The spec is reviewed in the same PR as the code.
-   - Runs, results and metrics keep growing and need fast queries in the dashboard.
-   - The database is SQLite on the machine or Postgres on the server, with the same schema.
-2. **No LLM inside.** Zero cost, no API key and no client data sent anywhere else. The intelligence comes from the developer's agent.
-3. **Short random IDs.** No collisions between branches. The client's numbering stays in the anchor.
-4. **Evidence only from its own runs.** The gate never accepts a result reported by the agent.
-5. **Human commands outside MCP.** Whatever requires a person has no tool for the agent.
-6. **One dashboard, two modes.** The same `server` and the same interface serve both local mode and Postgres mode.
-7. **Integrations as adapters.** The core doesn't know about Claude, GitHub or Playwright.
+1. **Postgres is the source of truth, and git receives the export.**
+   - One server holds every project of a workspace, with the spec and the history together and fast queries in the dashboard.
+   - `lastro export` writes a deterministic snapshot to `.lastro/`, reviewed in the same PR as the code and used by the offline CI gate. `lastro import` goes the other way.
+   - There is no local mode with another database and no syncing of files with the database.
+2. **A self-hosted dashboard, with sign-in.** The web app is the dashboard and the API, with workspaces, a project switcher and the project in the URL. It runs with Docker on a single VPS.
+3. **Everything goes through the API.** The dashboard, the MCP and the CLI write through the same path and the same core services. The CLI never opens the database.
+4. **No LLM inside.** Zero cost, no API key and no client data sent anywhere else. The intelligence comes from the developer's agent.
+5. **Short random IDs.** No collisions between branches. The client's numbering stays in the anchor. In the database, the primary key is a `uuid(7)`.
+6. **Evidence only from its own runs.** The gate never accepts a result reported by the agent.
+7. **Human commands outside MCP and refused in the core.** Whatever requires a person has no tool for the agent, and the core service refuses the action when the actor is an agent, without relying on the hooks.
+8. **Append-only audit log.** Every change produces an `AuditEvent`, and a Postgres trigger prevents updating or deleting it.
+9. **Integrations as adapters.** The core doesn't know about Claude, GitHub or Playwright.
+10. **TypeScript 6 across the repository.** typescript-eslint does not support TypeScript 7 yet.
 
 ## Security and privacy
 
-- **Local mode:**
-  - no network calls in the core;
-  - the dashboard listens only on `127.0.0.1`.
-- **Server mode:**
-  - the dashboard requires login;
-  - CI uses a project-scoped token;
-  - the database URL and the token live in environment variables, never in `lastro.yml`.
+- **Server:**
+  - the dashboard requires sign-in (email and password, or GitHub);
+  - each workspace only sees its own projects, and every core service receives the project;
+  - API and MCP tokens are project-scoped and stored as SHA-256 hashes, with a visible prefix to recognize them; the value is shown only once, at creation;
+  - the database URL and the token live in environment variables, never in `lastro.yml`;
+  - every change produces an audit event that can't be updated or deleted.
+- **CLI:**
+  - talks only to the configured server, never to the database;
+  - the person's token stays on the machine, outside the repository.
 - **Sources and secrets:**
-  - source binaries stay out of git by default, and what goes into git is configurable;
+  - source binaries stay on the server and out of git by default, and what goes into the export is configurable;
   - Lastro never reads or writes the project's secrets. Commands get the project's environment as it already is.
-- **Dependencies:** audited in Lastro's own CI, with no open alerts.
+- **Dependencies:** audited in Lastro's own CI (`bun audit`), with no open alerts.
 
 ## Languages
 
@@ -100,56 +102,19 @@ The dashboard never reads the database directly: it talks to `server`, which is 
 - CLI, dashboard and report messages in `en` and `pt-BR` from the start, chosen by `language` in `lastro.yml`.
 - File keys always in English. The content stays in the requester's language.
 
-## MVP order
+## Roadmap
 
-The order follows value:
+Lastro is being built as a complete product, not an MVP. The phases, what each one delivers, how each one is verified and their status are in the [ROADMAP](../../ROADMAP.md).
 
-- first, what ends the "what is pending?" question and can already be **seen in the dashboard**;
-- then, what stops the agent from pretending it's done;
-- last, what improves material intake.
-
-1. **Format, core and storage.**
-   - Schemas, `lastro init`, reading and writing `.lastro/`, and IDs.
-   - State machine with the transition conditions and the literal quote check.
-   - Questions, decisions and `lastro pending`.
-   - Database layer with SQLite and Postgres, migrations and `lastro sync`.
-2. **Dashboard, first version.**
-   - `lastro ui` with overview, packages, requirement, sources, questions and decisions.
-   - Traceability and lifecycle diagrams.
-   - `lastro docs build` with requirements, decisions, glossary and the client report.
-3. **Verification.**
-   - Command runner, conditions, JUnit and SARIF parsing.
-   - Flows by type, `lastro verify`, `lastro gate`, ledger and evidence that goes stale when a file changes.
-   - In the dashboard: test catalog, runs, the QA flow diagram with the result and quality indicators, plus the test plan and the quality report in the documentation.
-4. **Claude Code.**
-   - MCP server.
-   - Hooks: session start with reinjection after compaction, locks on edits and on human commands, gate at the end of the response.
-   - `CLAUDE.md` section and plugin.
-5. **Server mode.**
-   - `lastro server` with Postgres, login, tokens for CI and the projects page.
-   - Artifacts in S3.
-   - Dashboard events applied by `lastro sync`.
-6. **Material intake.**
-   - DOCX with images in order, PDF, exported conversations.
-   - Audio and video through external commands.
-   - Versions and the diff between versions.
-7. **External blocking and Claude Ship.**
-   - `pre-push` hook, GitHub action and PR block.
-   - `REVIEW.md`, approvals and classifier drafts.
-8. **Ecosystem.**
-   - Adapters for Codex, Gemini CLI and Cursor.
-   - Module map and timelines in the dashboard.
-   - JSON export for project knowledge tools.
-
-**Pilot:** the next delivery round of a real project, measured with the metrics in [Vision and scope](02-vision-scope.md#how-success-is-measured). Lastro itself uses Lastro starting at step 3.
+**Pilot:** the next delivery round of a real project, measured with the metrics in [Vision and scope](02-vision-scope.md#how-success-is-measured). Lastro starts tracking itself on its own server in the roadmap's dogfood phase.
 
 ## Open questions
 
 | # | Question |
 |---|---|
 | 1 | Relationship with Loqivo: integration through export, or does Loqivo become the hosted client portal for approval and acceptance? |
-| 2 | Client acceptance in the MVP: only through a reference recorded by the dev, or also through a temporarily exposed dashboard link? |
-| 3 | Does `ledger/` go into git by default, or only into the CI artifact? |
+| 2 | Client acceptance: only through a reference recorded by the dev, or also through a temporarily exposed dashboard link? |
+| 3 | Does `lastro export` include the latest evidence summary per requirement, or only the spec? |
 | 4 | How many consecutive blocks does the end-of-response hook allow before letting the agent stop? |
 | 5 | Does the `design_contract` stage stay limited to simple rules on the diff, or does it accept an optional classifier through the agent? |
-| 6 | Server mode login: only email and password in the MVP, or sign in with GitHub from the start? |
+| 6 | Dashboard sign-in: email and password only, or GitHub sign-in from the start? |

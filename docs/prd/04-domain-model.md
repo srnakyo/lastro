@@ -2,31 +2,33 @@
 
 ## Where everything lives
 
+- **The Lastro server's Postgres is the source of truth.** It holds every project of a workspace: the spec, the runs, the evidence, the state history, the agent sessions and the audit log. The dashboard, the MCP server and the CLI write through the server's API. The CLI never touches the database. See [Storage](#storage).
+- **The repository receives the export.** `lastro export` writes a deterministic snapshot of the project's spec to `.lastro/`, in YAML and Markdown, reviewed in the same PR as the code. The YAML examples in this chapter are that format.
+- **The export also goes back.** `lastro import` loads a `.lastro/` snapshot into the server, and CI can run an offline gate with the locked criteria from the snapshot and the runs it performs itself.
+
 ```
-.lastro/
+.lastro/                the project's snapshot, written by `lastro export`
   lastro.yml            configuration: types, required fields, QA flows, conditions, gate
   glossary.yml          domain terms and invariants
   design.yml            layout contract
   sources/              one source per file (metadata + extracted text with anchors)
-  requirements/         one requirement per file
+  requirements/         one requirement per file, with the criteria and the lock hash
   decisions/            assumptions and decisions
   questions/            open and answered questions
   incidents/            complaints and defects after delivery
   packages/             delivery rounds (e.g. "Fixes v.4")
-  ledger/               the latest evidence that cleared each requirement (small, versioned)
-  .store/               source binaries and artifacts (out of git by default)
-  .state/               SQLite database for local mode (out of git)
   .out/                 temporary command output (out of git)
 ```
 
-- What is in YAML and Markdown is the truth and goes into git, reviewed in the same PR as the code.
-- The database (SQLite in local mode, Postgres in server mode) keeps the run history, the test catalog, the metrics and a mirror of the spec for the dashboard. See [Storage](#storage).
 - `lastro.yml` has `version: 1` at the top, and every file in `.lastro/` is validated by a published JSON Schema, so editors can flag typos.
+- The same contract (zod, in `packages/shared`) validates the API, the CLI, the MCP and the export.
+- Source binaries and artifacts live in the server's storage, never in the export by default.
 
 ## IDs
 
 - Format `<PREFIX>-<5 base32 characters>`, for example `REQ-K7Q2M`, `DEC-3F9TA`. Random, so they don't collide when two branches create items at the same time.
 - The client's numbering ("item 14 of the document") doesn't become an ID: it stays in the source anchor and shows up in the report.
+- In the database, every table's primary key is a `uuid(7)`. The short ID is the public key, unique within the project.
 - Prefixes: `SRC` source, `REQ` requirement, `AC` criterion (local to the requirement), `DEC` decision, `Q` question, `INC` incident, `PKG` package, `ART` artifact, `INV` invariant.
 
 ## Entities
@@ -59,7 +61,7 @@ kind: docx            # docx | pdf | chat | audio | video | image | meeting | te
 title: "Fixes v.4.docx"
 from: client          # client | dev | team
 received_at: 2026-11-14T15:17:00-03:00
-hash: sha256:9f1c...  # of the original file, stored in .store/
+hash: sha256:9f1c...  # of the original file, stored on the server
 version: 2
 supersedes: SRC-4TQ7B # previous version with the same name
 final: true           # only final sources can back an approved requirement (configurable)
@@ -69,13 +71,13 @@ machine_transcript: false # true for transcribed audio and video: the quote need
 
 For a source that already lives in the repository (a PRD, a Markdown spec), `path` points to the file or folder instead of `extracted`, and anchors use the file and the section heading.
 
-The extracted text (`SRC-8M2KD.md`) marks the anchors like this:
+On the server, each source version is split into passages (`Passage`), one per paragraph or block, each with its own anchor. In the export, the extracted text (`SRC-8M2KD.md`) marks the anchors like this:
 
 ```markdown
 <!-- @p3 -->
 10. Invoices: the volume discount has to show up on the invoice, including on the annual plan. Today it only shows up on the monthly one.
 <!-- @p3/img2 -->
-![](../.store/SRC-8M2KD/img2.png)
+![](SRC-8M2KD/img2.png)
 ```
 
 Anchors by type:
@@ -87,7 +89,9 @@ Anchors by type:
 | chat | message id (`@msg:3A5B...`), with author and time |
 | audio, video | minute and second (`@t00:34`); for video, also the extracted frame |
 | image | the whole image (`@img`) |
-| text (a file in the repository itself) | file and section heading (`@05-lifecycle-and-gates.md#requirement-states`) |
+| text (a file in the repository itself) | file, section heading and paragraph (`@05-lifecycle-and-gates.md#requirement-states/p2`) |
+
+A citation may point to the section only (`@file#slug`). In that case it is matched against every paragraph under the section. The `Citation` stores whether the quote was found, in which passage and, for a transcript, whether a person confirmed it.
 
 ### Requirement (`requirements/REQ-xxxxx.yml`)
 
@@ -288,7 +292,7 @@ Every `lastro verify`, every `lastro gate --ci` and every call to `lastro_verify
 | `stages` | Each stage, by condition, with the command, exit code, summarized output and artifacts |
 | `results` | The result of each JUnit test and of each SARIF finding |
 
-### Evidence (`ledger/REQ-xxxxx.json` and the database)
+### Evidence (in the database)
 
 Every run performed by Lastro records:
 
@@ -309,70 +313,82 @@ Every run performed by Lastro records:
 }
 ```
 
-- The full history lives in the database.
-- `ledger/` keeps only the evidence that cleared each requirement at delivery, for the PR and the report.
-- Artifacts (screenshots, videos, long output) live in `.store/` by hash, or in an S3-compatible bucket in server mode. They can go into git or LFS if the project configures it.
+- The full history lives in the database, linked to the run, the stage and the condition.
+- The server's gate reads the evidence from the database. The export carries the spec; whether it also carries a summary of each requirement's latest evidence is an open question (see [Architecture and roadmap](09-architecture-roadmap.md#open-questions)).
+- Artifacts (screenshots, videos, long output) live in the server's storage by hash: a local directory, mounted as a Docker volume, or an S3-compatible bucket.
 
 ## Storage
 
-### Two modes
+### One database, many projects
 
-| | Local | Server |
-|---|---|---|
-| Database | SQLite in `.lastro/.state/lastro.db` | Postgres 16 or newer |
-| Configuration | None | `storage.driver: postgres` and the URL in an environment variable |
-| Projects | One per repository | Several in the same database, separated by `project_key` |
-| Dashboard | `lastro ui`, on `127.0.0.1`, no login | `lastro server`, with login, for the team |
-| CI | Writes to `ledger/` | Writes to the server with a token |
-| Artifacts | `.store/` | `.store/` or an S3-compatible bucket |
+| | |
+|---|---|
+| Database | Postgres 16 or newer, with versioned migrations |
+| Projects | Several on the same server, separated by workspace and by project |
+| Dashboard | The server's web app, with sign-in |
+| CLI, MCP and CI | Talk to the server's API with a token. Never to the database |
+| Artifacts | The server's local directory or an S3-compatible bucket |
+| Repository | Receives the `.lastro/` export and gives it back with `lastro import` |
 
-Both modes use the same schema and the same migrations, so you can start locally and move to Postgres later with `lastro db push`.
+There is no local mode with another database. Someone working alone runs the same server with Docker on their own machine.
 
 ### What lives where
 
-| Data | Git (`.lastro/`) | Database |
+| Data | Postgres | Repository (`.lastro/`) |
 |---|---|---|
-| Spec: sources (metadata and text), requirements, criteria, decisions, questions, incidents, packages, glossary, contract, configuration | **truth** | a mirror, for the dashboard and queries |
-| Runs, per-test results, test catalog, metrics and state history | only the delivery `ledger/` | **truth** |
-| Artifacts (screenshots, videos, long output) | no, by default | metadata; the file lives in `.store/` or in S3 |
-| Generated documentation | optional, in `docs/lastro/` | a record of each build |
-| Human actions taken in the server dashboard | applied by `lastro sync` | events |
+| Spec: sources (metadata and text), requirements, criteria, decisions, questions, incidents, packages, glossary, contract, configuration | **truth** | the export, reviewed in the PR |
+| Runs, per-test results, test catalog, metrics and state history | **truth** | no |
+| Agent sessions and events, audit log | **truth** | no |
+| Artifacts (screenshots, videos, long output) | metadata; the file lives in the server's directory or in S3 | no, by default |
+| Generated documentation | a record of each build | optional, in `docs/lastro/` |
+| Human actions | written through the API, with an audit event | go into the next `lastro export` |
 
-The spec stays in git because it is reviewed in the same PR as the code. The history goes into the database because it keeps growing and needs fast queries in the dashboard.
+The spec still reaches the PR because the export is deterministic: the same state always produces the same files. Whoever reviews the code sees in the same diff what changed in the spec.
 
 ### Configuration
 
+In the repository, `lastro.yml` only says where the server is and which project this is:
+
 ```yaml
-storage:
-  driver: postgres                 # sqlite (default) | postgres
-  url_env: LASTRO_DATABASE_URL     # name of the variable; the URL never goes into lastro.yml
-  project_key: "my-app"            # separates the projects that share the same database
-artifacts:
-  driver: s3                       # local (default) | s3
-  bucket_env: LASTRO_ARTIFACTS_BUCKET
 server:
-  url_env: LASTRO_SERVER_URL       # for CI and the CLI to send data to the server
-  token_env: LASTRO_TOKEN
+  url_env: LASTRO_SERVER_URL       # name of the variable with the server address
+  token_env: LASTRO_TOKEN          # name of the variable with the token; the token never goes into lastro.yml
+  project: "my-app"                # the project key on the server, written by `lastro link`
 ```
 
-### Sync
+The server reads the Postgres URL (`LASTRO_DATABASE_URL`) and the artifact bucket (`LASTRO_ARTIFACTS_BUCKET`) from its own environment, set in the compose file.
 
-- Every CLI command and every MCP tool updates the database right away.
-- `lastro sync` reconciles the files with the database. For the spec, the file wins. For the history, the database wins. Events from the server dashboard become changes to the files.
-- CI sends the runs to the server with `LASTRO_TOKEN`, without needing the database password.
+### Export and import
+
+- Every CLI command and every MCP tool writes to the server right away, through the API.
+- `lastro export` writes the project's snapshot to `.lastro/`, with keys and items in a fixed order and no generation date inside the files. Two exports of the same state are identical.
+- `lastro import` loads a snapshot into the server and shows first what will change. Importing an export and exporting again gives the same files.
+- Import goes through the same core services as the dashboard and the API. A human action that shows up in the snapshot (approval, unlock, acceptance) is only applied with a person's token.
+- CI sends the runs to the server with `LASTRO_TOKEN`, without needing the database password. Without a server, CI runs the gate offline: it reads the locked criteria from `.lastro/` and runs the stages itself.
 
 ### Main tables
 
-`projects`, `sources`, `source_versions`, `requirements`, `criteria`, `tests`, `criteria_tests`, `runs`, `run_stages`, `test_results`, `evidence`, `artifacts`, `decisions`, `questions`, `incidents`, `packages`, `state_events`, `doc_builds`, `users`, `tokens`.
+| Area | Models |
+|---|---|
+| Access | `Workspace`, `Membership`, the sign-in tables, `ApiToken` |
+| Project | `Project` (key, name, repository, language, configuration) |
+| Sources | `Source`, `SourceVersion`, `Passage` |
+| Spec | `Package`, `Requirement`, `Citation`, `Criterion`, `CriterionTest`, `Decision`, `Question`, `Incident` |
+| Quality | `GlossaryTerm`, `Invariant`, `DesignContract` |
+| Execution | `Test`, `Run`, `RunStage`, `TestResult`, `Finding` (SARIF), `Artifact`, `Evidence` |
+| History | `StateEvent`, `AgentSession`, `AgentEvent`, `AuditEvent`, `DocBuild` |
 
-- Migrations are versioned and run with `lastro db migrate`.
-- Every table has `project_id`, so several projects can share the same database.
+- Migrations are versioned and run in the compose `migrate` service before `web` starts.
+- Every project table has `projectId`, and every core service receives the project. There is no query without a project.
+- `Criterion` stores the lock hash. `Citation` stores whether the quote was found and in which `Passage`.
+- `AuditEvent` is append-only: a Postgres trigger refuses updates and deletes.
+- API and MCP tokens are stored as SHA-256 hashes, with a visible prefix to recognize each one.
 
 ## What is sensitive
 
 Client material often contains personal data. By default:
 
-- the source binary stays in `.store/`, out of git;
-- the extracted text goes into git (configurable: `sources.commit: text | none | all`);
-- in local mode, Lastro never sends anything off the machine. In server mode, it only talks to the Postgres database, the bucket and the server the project configured;
+- the source binary stays in the server's storage, out of git;
+- the export carries the extracted text (configurable: `sources.commit: text | none | all`);
+- the CLI only talks to the configured server. The server only talks to its Postgres database, its artifact storage and the integrations the workspace configured;
 - Lastro doesn't send material to any LLM. If that happens, the agent does it, under its own rules.

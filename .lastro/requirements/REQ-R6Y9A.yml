@@ -9,7 +9,7 @@ sources:
     quote: "Cada etapa, em cada condição, colorida pelo último resultado no commit atual"
 statement: >
   For each requirement the dashboard renders its QA flow as a Mermaid diagram with one node per stage and condition, colored by the latest result on the current commit: passed, failed, not run, waiting for a person.
-where: "Dashboard › Requirement"
+where: "Dashboard › Requirements › detail"
 examples:
   - given: "ui requirement: e2e failed on dark-theme, passed on others, preview not signed"
     expect: "e2e · dark-theme red, other e2e nodes green, preview orange"

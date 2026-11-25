@@ -16,13 +16,21 @@ terms:
   - term: "package"
     means: "one delivery round, usually one document or batch of messages from the requester"
   - term: "human command"
-    means: "an action only a person may take: approve, accept, unlock, confirm a decision, sign a manual stage"
+    means: "an action only a person may take: approve, accept, unlock, drop, confirm or overturn a decision, record an answer, triage an incident, mark a source final, sign a manual stage"
+  - term: "workspace"
+    means: "a group of people and projects on one Lastro server; members see only the projects of their workspaces"
+  - term: "export"
+    means: "the deterministic .lastro/ snapshot that `lastro export` writes into the repository and `lastro import` loads back into the server"
 invariants:
   - id: INV-1
     text: "The gate only accepts evidence from runs executed by Lastro itself."
   - id: INV-2
     text: "No MCP tool approves, accepts, unlocks or signs a manual stage."
   - id: INV-3
-    text: "In local mode the core makes no network calls and the dashboard listens on 127.0.0.1 only; in server mode Lastro talks only to the configured Postgres, bucket and server."
+    text: "The CLI talks only to the configured Lastro server, never to the database; the server talks only to its Postgres, its artifact storage and the integrations the workspace configured."
   - id: INV-4
     text: "Every file under .lastro/ that Lastro writes validates against the published JSON Schema."
+  - id: INV-5
+    text: "Human-only operations are refused by the core services when the actor is an agent, whatever the entry point (dashboard, API, CLI or MCP)."
+  - id: INV-6
+    text: "AuditEvent is append-only: a Postgres trigger refuses updates and deletes."

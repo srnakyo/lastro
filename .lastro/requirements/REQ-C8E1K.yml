@@ -8,7 +8,7 @@ sources:
     anchor: "@04-domain-model.md#critério-de-aceite-dentro-do-requisito"
     quote: "`lastro lock` grava o hash do texto do critério e dos testes ligados."
 statement: >
-  Approving a requirement locks its acceptance criteria: the hash of each criterion text and of each linked test is stored. A changed hash makes the gate fail with 'locked criterion changed' until a person runs `lastro unlock`.
+  Approving a requirement locks its acceptance criteria: the hash of each criterion text and of each linked test is stored in the Criterion and exported to .lastro/. A changed hash makes the gate fail with 'locked criterion changed' until a person runs `lastro unlock`.
 where: "lastro lock, lastro unlock, lastro gate"
 examples:
   - given: "approved requirement; linked test body edited"

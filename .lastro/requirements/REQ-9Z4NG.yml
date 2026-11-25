@@ -8,7 +8,7 @@ sources:
     anchor: "@08-integrations.md#executores-de-teste-e-análise"
     quote: "ele roda o comando do projeto e lê formatos padrão"
 statement: >
-  The runner parses JUnit XML (Vitest, Jest, Playwright, pytest, PHPUnit, gotestsum) and SARIF 2.1.0 reports declared under commands.<name>.report, and links test cases to acceptance criteria by 'file::test name'.
+  The runner parses JUnit XML (bun test, Vitest, Jest, Playwright, pytest, PHPUnit, gotestsum) and SARIF 2.1.0 reports declared under commands.<name>.report, and links test cases to acceptance criteria by 'file::test name'.
 examples:
   - given: "JUnit file from Vitest with 3 passed and 1 failed case"
     expect: "results passed 3, failed 1; the failed case is linked to its criterion"

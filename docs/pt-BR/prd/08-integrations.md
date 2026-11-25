@@ -4,7 +4,7 @@
 
 `lastro setup claude` instala os três pedaços de uma vez:
 
-- **Servidor MCP** no `.mcp.json` do projeto (ver [Interfaces](07-interfaces.md)).
+- **Servidor MCP** no `.mcp.json` do projeto, pela ponte `lastro mcp` ligada ao servidor do Lastro (ver [Interfaces](07-interfaces.md)).
 - **Hooks** no `.claude/settings.json` do projeto (ver [Como obrigar o agente a seguir](06-enforcement.md)).
 - **Seção marcada** no `CLAUDE.md`.
 
@@ -107,7 +107,7 @@ Como as regras se somam: vale a mais estrita, e `seats: 2` é o autor mais uma p
 
 ## GitHub
 
-- **Action** `lastro gate --ci`: roda as etapas automáticas num ambiente limpo, publica o check "Lastro gate" com uma tabela por requisito e atualiza o bloco do PR.
+- **Action** `lastro gate --ci`: roda as etapas automáticas num ambiente limpo, publica o check "Lastro gate" com uma tabela por requisito e atualiza o bloco do PR. Envia as execuções ao servidor com `LASTRO_TOKEN` ou, sem servidor, avalia o gate offline a partir do `.lastro/`.
 - **Proteção de branch**: o adaptador mostra o passo a passo para marcar "Lastro gate" como obrigatório. Só um admin do repositório faz isso.
 - **Comentário fixo no PR**, opcional, com o resumo do gate e os links para os prints.
 
@@ -119,7 +119,7 @@ O Lastro não sabe rodar teste de nenhuma linguagem: ele roda o comando do proje
 
 | Formato | De onde vem |
 |---|---|
-| JUnit XML | Vitest, Jest, Playwright, pytest, PHPUnit, Pest, go test (via gotestsum), JUnit, RSpec |
+| JUnit XML | bun test, Vitest, Jest, Playwright, pytest, PHPUnit, Pest, go test (via gotestsum), JUnit, RSpec |
 | SARIF | ESLint, Semgrep, Ruff, PHPStan (com formatador), CodeQL |
 | LCOV, Cobertura | Cobertura, opcional e só informativa |
 
@@ -133,4 +133,4 @@ O vínculo entre critério e teste é pelo nome do caso no JUnit (`arquivo::nome
 
 ## Ferramentas de conhecimento de projeto
 
-O Lastro guarda o contrato de **um repositório**. Ferramentas que centralizam vários projetos podem ler `.lastro/` e o histórico pelo CLI (`lastro export --json`) para dar a visão entre projetos ou um portal para o cliente. A primeira integração planejada é a Loqivo.
+O servidor do Lastro já reúne os projetos de um workspace. Ferramentas que centralizam projetos de outras formas podem ler a exportação `.lastro/` de cada repositório, ou o mesmo conteúdo pela CLI (`lastro export --json`), para dar a visão entre projetos ou um portal para o cliente. A primeira integração planejada é a Loqivo.

@@ -2,31 +2,33 @@
 
 ## Onde tudo fica
 
+- **O Postgres do servidor do Lastro é a verdade.** Ele guarda todos os projetos de um workspace: a spec, as execuções, a evidência, o histórico de estados, as sessões dos agentes e a auditoria. O painel, o servidor MCP e a CLI escrevem pela API do servidor. A CLI nunca fala com o banco. Ver [Armazenamento](#armazenamento).
+- **O repositório recebe a exportação.** `lastro export` grava em `.lastro/` um retrato determinístico da spec do projeto, em YAML e Markdown, revisado no mesmo PR que o código. Os exemplos em YAML deste capítulo são esse formato.
+- **A exportação também volta.** `lastro import` carrega um retrato `.lastro/` no servidor, e o CI pode rodar um gate offline com os critérios travados do retrato e as execuções feitas ali mesmo.
+
 ```
-.lastro/
+.lastro/                retrato do projeto, gravado pelo `lastro export`
   lastro.yml            configuração: tipos, campos obrigatórios, fluxos de QA, condições, gate
   glossary.yml          termos do domínio e invariantes
   design.yml            contrato de layout
   sources/              uma fonte por arquivo (metadados + texto extraído com âncoras)
-  requirements/         um requisito por arquivo
+  requirements/         um requisito por arquivo, com os critérios e o hash da trava
   decisions/            suposições e decisões
   questions/            perguntas em aberto e respondidas
   incidents/            reclamações e defeitos depois da entrega
   packages/             rodadas de entrega (ex.: "Correções v.4")
-  ledger/               a última evidência que liberou cada requisito (pequena, versionada)
-  .store/               binários das fontes e artefatos (fora do git por padrão)
-  .state/               banco SQLite do modo local (fora do git)
   .out/                 saídas temporárias dos comandos (fora do git)
 ```
 
-- O que está em YAML e Markdown é a verdade e vai no git, revisado no mesmo PR que o código.
-- O banco (SQLite no modo local, Postgres no modo servidor) guarda o histórico de execuções, o catálogo de testes, as métricas e um espelho da spec para o painel. Ver [Armazenamento](#armazenamento).
 - O `lastro.yml` tem `version: 1` no topo, e todo arquivo de `.lastro/` é validado por um JSON Schema publicado, para os editores avisarem erro de digitação.
+- O mesmo contrato (zod, em `packages/shared`) valida a API, a CLI, o MCP e a exportação.
+- Os binários das fontes e os artefatos ficam no armazenamento do servidor, nunca na exportação por padrão.
 
 ## IDs
 
 - Formato `<PREFIXO>-<5 caracteres base32>`, por exemplo `REQ-K7Q2M`, `DEC-3F9TA`. Aleatório para não colidir quando dois branches criam itens ao mesmo tempo.
 - A numeração do cliente ("item 14 do documento") não vira ID: fica na âncora da fonte e aparece no relatório.
+- No banco, a chave primária de toda tabela é um `uuid(7)`. O ID curto é a chave pública, única dentro do projeto.
 - Prefixos: `SRC` fonte, `REQ` requisito, `AC` critério (local ao requisito), `DEC` decisão, `Q` pergunta, `INC` incidente, `PKG` pacote, `ART` artefato, `INV` invariante.
 
 ## Entidades
@@ -59,7 +61,7 @@ kind: docx            # docx | pdf | chat | audio | video | image | meeting | te
 title: "Correções v.4.docx"
 from: client          # client | dev | team
 received_at: 2026-11-14T15:17:00-03:00
-hash: sha256:9f1c...  # do arquivo original, guardado em .store/
+hash: sha256:9f1c...  # do arquivo original, guardado no servidor
 version: 2
 supersedes: SRC-4TQ7B # versão anterior com o mesmo nome
 final: true           # só fontes finais podem sustentar requisito aprovado (configurável)
@@ -69,13 +71,13 @@ machine_transcript: false # true para áudio e vídeo transcritos: a citação p
 
 Para uma fonte que já está no repositório (um PRD, uma spec em Markdown), `path` aponta para o arquivo ou a pasta no lugar de `extracted`, e as âncoras usam o arquivo e o título da seção.
 
-O texto extraído (`SRC-8M2KD.md`) marca as âncoras assim:
+No servidor, cada versão da fonte é quebrada em trechos (`Passage`), um por parágrafo ou bloco, cada um com a sua âncora. Na exportação, o texto extraído (`SRC-8M2KD.md`) marca as âncoras assim:
 
 ```markdown
 <!-- @p3 -->
 10. Faturas: o desconto por volume tem que sair na fatura, inclusive no plano anual. Hoje só aparece no mensal.
 <!-- @p3/img2 -->
-![](../.store/SRC-8M2KD/img2.png)
+![](SRC-8M2KD/img2.png)
 ```
 
 Âncoras por tipo:
@@ -87,7 +89,9 @@ O texto extraído (`SRC-8M2KD.md`) marca as âncoras assim:
 | chat | id da mensagem (`@msg:3A5B...`), com autor e horário |
 | audio, video | minuto e segundo (`@t00:34`); no vídeo também o quadro extraído |
 | image | a imagem inteira (`@img`) |
-| text (arquivo do próprio repositório) | arquivo e título da seção (`@05-lifecycle-and-gates.md#estados-de-um-requisito`) |
+| text (arquivo do próprio repositório) | arquivo, título da seção e parágrafo (`@05-lifecycle-and-gates.md#estados-de-um-requisito/p2`) |
+
+Uma citação pode apontar só para a seção (`@arquivo#slug`). Nesse caso, ela é conferida contra todos os parágrafos dentro da seção. A `Citation` guarda se a citação foi encontrada, em qual trecho e, para uma transcrição, se uma pessoa confirmou.
 
 ### Requisito (`requirements/REQ-xxxxx.yml`)
 
@@ -288,7 +292,7 @@ Cada `lastro verify`, `lastro gate --ci` ou chamada de `lastro_verify` pelo agen
 | `stages` | Cada etapa, por condição, com comando, código de saída, saída resumida e artefatos |
 | `results` | O resultado de cada teste do JUnit e de cada achado do SARIF |
 
-### Evidência (`ledger/REQ-xxxxx.json` e banco)
+### Evidência (no banco)
 
 Cada execução feita pelo Lastro grava:
 
@@ -309,70 +313,82 @@ Cada execução feita pelo Lastro grava:
 }
 ```
 
-- O histórico completo fica no banco.
-- O `ledger/` guarda só a evidência que liberou cada requisito na entrega, para o PR e o relatório.
-- Artefatos (prints, vídeos, saídas longas) ficam em `.store/` por hash, ou num bucket compatível com S3 no modo servidor. Podem ir para o git ou para o LFS se o projeto configurar.
+- O histórico completo fica no banco, ligado à execução, à etapa e à condição.
+- O gate do servidor lê a evidência do banco. A exportação leva a spec; se ela leva também um resumo da última evidência de cada requisito é uma pergunta em aberto (ver [Arquitetura e roteiro](09-architecture-roadmap.md#perguntas-em-aberto)).
+- Artefatos (prints, vídeos, saídas longas) ficam no armazenamento do servidor por hash: um diretório local, montado como volume do Docker, ou um bucket compatível com S3.
 
 ## Armazenamento
 
-### Dois modos
+### Um banco, vários projetos
 
-| | Local | Servidor |
-|---|---|---|
-| Banco | SQLite em `.lastro/.state/lastro.db` | Postgres 16 ou mais novo |
-| Configuração | Nenhuma | `storage.driver: postgres` e a URL numa variável de ambiente |
-| Projetos | Um por repositório | Vários no mesmo banco, separados por `project_key` |
-| Painel | `lastro ui`, em `127.0.0.1`, sem login | `lastro server`, com login, para o time |
-| CI | Grava no `ledger/` | Grava no servidor com um token |
-| Artefatos | `.store/` | `.store/` ou bucket compatível com S3 |
+| | |
+|---|---|
+| Banco | Postgres 16 ou mais novo, com migrações versionadas |
+| Projetos | Vários no mesmo servidor, separados por workspace e por projeto |
+| Painel | A aplicação web do servidor, com login |
+| CLI, MCP e CI | Falam com a API do servidor, com token. Nunca com o banco |
+| Artefatos | Diretório local do servidor ou bucket compatível com S3 |
+| Repositório | Recebe a exportação `.lastro/` e a devolve com `lastro import` |
 
-Os dois modos usam o mesmo esquema e as mesmas migrações, então dá para começar local e passar para o Postgres depois com `lastro db push`.
+Não existe modo local com outro banco. Quem trabalha sozinho sobe o mesmo servidor com Docker na própria máquina.
 
 ### O que fica onde
 
-| Dado | Git (`.lastro/`) | Banco |
+| Dado | Postgres | Repositório (`.lastro/`) |
 |---|---|---|
-| Spec: fontes (metadados e texto), requisitos, critérios, decisões, perguntas, incidentes, pacotes, glossário, contrato, configuração | **verdade** | espelho, para o painel e as consultas |
-| Execuções, resultados por teste, catálogo de testes, métricas e histórico de estados | só o `ledger/` da entrega | **verdade** |
-| Artefatos (prints, vídeos, saídas longas) | não, por padrão | metadados; o arquivo fica em `.store/` ou no S3 |
-| Documentação gerada | opcional, em `docs/lastro/` | registro de cada geração |
-| Ações humanas feitas no painel do servidor | aplicadas pelo `lastro sync` | eventos |
+| Spec: fontes (metadados e texto), requisitos, critérios, decisões, perguntas, incidentes, pacotes, glossário, contrato, configuração | **verdade** | exportação, revisada no PR |
+| Execuções, resultados por teste, catálogo de testes, métricas e histórico de estados | **verdade** | não |
+| Sessões e eventos dos agentes, auditoria | **verdade** | não |
+| Artefatos (prints, vídeos, saídas longas) | metadados; o arquivo fica no diretório do servidor ou no S3 | não, por padrão |
+| Documentação gerada | registro de cada geração | opcional, em `docs/lastro/` |
+| Ações humanas | gravadas pela API, com evento de auditoria | entram no próximo `lastro export` |
 
-A spec continua no git porque é revisada no mesmo PR que o código. O histórico vai para o banco porque cresce sem parar e precisa de consulta rápida no painel.
+A spec continua chegando ao PR porque a exportação é determinística: o mesmo estado gera sempre os mesmos arquivos. Quem revisa o código vê no mesmo diff o que mudou na spec.
 
 ### Configuração
 
+No repositório, o `lastro.yml` só diz onde está o servidor e qual é o projeto:
+
 ```yaml
-storage:
-  driver: postgres                 # sqlite (padrão) | postgres
-  url_env: LASTRO_DATABASE_URL     # nome da variável; a URL nunca vai no lastro.yml
-  project_key: "my-app"            # separa os projetos que usam o mesmo banco
-artifacts:
-  driver: s3                       # local (padrão) | s3
-  bucket_env: LASTRO_ARTIFACTS_BUCKET
 server:
-  url_env: LASTRO_SERVER_URL       # para o CI e a CLI enviarem ao servidor
-  token_env: LASTRO_TOKEN
+  url_env: LASTRO_SERVER_URL       # nome da variável com o endereço do servidor
+  token_env: LASTRO_TOKEN          # nome da variável com o token; o token nunca vai no lastro.yml
+  project: "my-app"                # chave do projeto no servidor, gravada pelo `lastro link`
 ```
 
-### Sincronização
+O servidor lê a URL do Postgres (`LASTRO_DATABASE_URL`) e o bucket de artefatos (`LASTRO_ARTIFACTS_BUCKET`) do próprio ambiente, definido no compose.
 
-- Todo comando da CLI e toda ferramenta do MCP atualiza o banco na hora.
-- `lastro sync` reconcilia os arquivos com o banco. Para a spec, vale o arquivo. Para o histórico, vale o banco. Os eventos do painel do servidor viram mudanças nos arquivos.
-- O CI envia as execuções ao servidor com `LASTRO_TOKEN`, sem precisar da senha do banco.
+### Exportação e importação
+
+- Todo comando da CLI e toda ferramenta do MCP grava no servidor na hora, pela API.
+- `lastro export` grava o retrato do projeto em `.lastro/`, com chaves e itens em ordem fixa e sem data de geração dentro dos arquivos. Duas exportações do mesmo estado são idênticas.
+- `lastro import` carrega um retrato no servidor e mostra antes o que vai mudar. Importar uma exportação e exportar de novo dá os mesmos arquivos.
+- A importação passa pelos mesmos serviços do núcleo que o painel e a API. Uma ação humana que aparece no retrato (aprovação, destrave, aceite) só é aplicada com o token de uma pessoa.
+- O CI envia as execuções ao servidor com `LASTRO_TOKEN`, sem precisar da senha do banco. Sem servidor, o CI roda o gate offline: lê os critérios travados do `.lastro/` e executa as etapas ali mesmo.
 
 ### Tabelas principais
 
-`projects`, `sources`, `source_versions`, `requirements`, `criteria`, `tests`, `criteria_tests`, `runs`, `run_stages`, `test_results`, `evidence`, `artifacts`, `decisions`, `questions`, `incidents`, `packages`, `state_events`, `doc_builds`, `users`, `tokens`.
+| Área | Modelos |
+|---|---|
+| Acesso | `Workspace`, `Membership`, as tabelas do login, `ApiToken` |
+| Projeto | `Project` (chave, nome, repositório, idioma, configuração) |
+| Fontes | `Source`, `SourceVersion`, `Passage` |
+| Spec | `Package`, `Requirement`, `Citation`, `Criterion`, `CriterionTest`, `Decision`, `Question`, `Incident` |
+| Qualidade | `GlossaryTerm`, `Invariant`, `DesignContract` |
+| Execução | `Test`, `Run`, `RunStage`, `TestResult`, `Finding` (SARIF), `Artifact`, `Evidence` |
+| Histórico | `StateEvent`, `AgentSession`, `AgentEvent`, `AuditEvent`, `DocBuild` |
 
-- As migrações são versionadas e rodam com `lastro db migrate`.
-- Toda tabela tem `project_id`, para vários projetos dividirem o mesmo banco.
+- As migrações são versionadas e rodam no serviço `migrate` do compose antes do `web`.
+- Toda tabela de projeto tem `projectId`, e todo serviço do núcleo recebe o projeto. Não existe consulta sem projeto.
+- `Criterion` guarda o hash da trava. `Citation` guarda se a citação foi encontrada e em qual `Passage`.
+- `AuditEvent` é só de inclusão: um trigger no Postgres recusa alteração e exclusão.
+- Os tokens de API e MCP ficam guardados como hash SHA-256, com um prefixo visível para reconhecer cada um.
 
 ## O que é sensível
 
 Material de cliente costuma ter dado pessoal. Por padrão:
 
-- o binário da fonte fica em `.store/`, fora do git;
-- o texto extraído vai no git (configurável: `sources.commit: text | none | all`);
-- no modo local, o Lastro nunca manda nada para fora da máquina. No modo servidor, só fala com o Postgres, o bucket e o servidor que o projeto configurou;
+- o binário da fonte fica no armazenamento do servidor, fora do git;
+- a exportação leva o texto extraído (configurável: `sources.commit: text | none | all`);
+- a CLI só fala com o servidor configurado. O servidor só fala com o Postgres, o armazenamento de artefatos e as integrações que o workspace configurou;
 - o Lastro não manda material para nenhum LLM. Quem faz isso é o agente, pelas regras dele.

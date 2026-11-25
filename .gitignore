@@ -4,3 +4,5 @@ dist/
 .lastro/.store/
 .lastro/.out/
 .env
+.turbo/
+packages/database/src/generated/

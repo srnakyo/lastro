@@ -4,7 +4,7 @@ title: "Lastro PRD (pt-BR original)"
 from: dev
 received_at: 2026-11-25T11:30:00-03:00
 path: docs/pt-BR/prd/          # in-repo source: anchors point to file and heading
-version: 2
+version: 3
 supersedes: null
 final: false                   # under discussion; mark final before approving requirements
 machine_transcript: false

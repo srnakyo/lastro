@@ -1,8 +1,8 @@
 id: DEC-F2H5P
-about: []
+about: [REQ-H5K8S, REQ-F7H2Q]
 kind: decision
-text: "The spec lives in git under .lastro/; run history, results and metrics live in the database, SQLite locally or Postgres in server mode, with the same schema."
-reason: "The spec is reviewed in the same pull request as the code. History grows without limit and the dashboard needs fast queries; teams and several projects need a shared Postgres."
+text: "Postgres is the source of truth; git receives a deterministic .lastro/ export."
+reason: "One server holds every project of a workspace, with the spec and the run history together and fast queries in the dashboard. `lastro export` keeps the spec reviewed in the same pull request as the code and allows an offline gate in CI; `lastro import` loads a snapshot back."
 decided_by: agent
 status: proposed
 show_to_client: true

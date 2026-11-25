@@ -7,8 +7,11 @@ sources:
   - ref: SRC-P4RD7
     anchor: "@05-lifecycle-and-gates.md#captured--specified"
     quote: "Citação inventada é recusada."
+  - ref: SRC-P4RD7
+    anchor: "@04-domain-model.md#fonte-sourcessrc-xxxxxyml"
+    quote: "Nesse caso, ela é conferida contra todos os parágrafos dentro da seção."
 statement: >
-  Every sources[].quote of a requirement must appear literally (ignoring Markdown emphasis markers and repeated whitespace) in the extracted text of the referenced source at the given anchor. A quote that does not match blocks the move to specified and is reported with the closest passage found.
+  Every sources[].quote of a requirement must appear literally (ignoring Markdown emphasis markers and repeated whitespace) in a Passage of the referenced source version at the given anchor. A paragraph anchor (@file#slug/p2) matches that passage; a section anchor (@file#slug) matches any paragraph under the section. The Citation records whether the quote was found and in which passage. A quote that does not match blocks the move to specified and is reported with the closest passage found.
 where: "lastro req edit, lastro pending"
 examples:
   - given: "quote copied from the source with a line break in a different place"
@@ -21,6 +24,9 @@ acceptance:
     tests: []
   - id: AC-2
     text: "Given a quote that differs only by line breaks or ** markers, when the requirement is evaluated, then the quote is accepted."
+    tests: []
+  - id: AC-3
+    text: "Given a quote anchored to a section (@file#slug) that appears in its third paragraph, when the requirement is evaluated, then the quote is accepted and the Citation points to the passage @file#slug/p3."
     tests: []
 decisions: []
 questions: []

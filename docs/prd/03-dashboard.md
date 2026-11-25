@@ -10,21 +10,22 @@ The dashboard is where everything Lastro stores becomes visible and organized:
 
 It is the centerpiece of the product. The CLI, the MCP and the hooks feed the data; the dashboard is where people look, decide and generate the documents.
 
-## Two ways to run it
+## Where it runs
 
-| Mode | Command | Database | For whom |
-|---|---|---|---|
-| **Local** | `lastro ui` | SQLite in `.lastro/.state/`, no setup | One developer, on their own machine. Listens only on `127.0.0.1`, no login |
-| **Server** | `lastro server` | Postgres (see [Storage](04-domain-model.md#storage)) | A team, several projects and everyone's history in one place. With login, and CI writes to it with a token |
+The dashboard is the Lastro server's web app. The same app serves the HTTP API that the CLI, the MCP server and CI use.
 
-The dashboard is the same in both modes. Only where it reads from changes.
+- **Self-hosted.** A Docker image and compose files ready for a single VPS, with no managed services. The database is Postgres (see [Storage](04-domain-model.md#storage)).
+- **Many projects.** One server holds every project of a workspace, and everyone's history lives in one place.
+- **Sign-in.** Email and password, or GitHub. Each person sees the workspaces they are a member of.
+- **A searchable project switcher, with the project in the URL** (`/projects/<key>/...`). A link to a requirement always opens the same project.
+- **Tokens.** CI and the CLI write through the API with a project token, created in the dashboard.
 
 ## Organization
 
 Everything follows the same hierarchy, from the broadest to the most detailed:
 
 ```
-Project → Package (delivery round) → Requirement → Acceptance criterion → Test → Run → Evidence
+Workspace → Project → Package (delivery round) → Requirement → Acceptance criterion → Test → Run → Evidence
 ```
 
 Every list can be filtered by:
@@ -41,18 +42,19 @@ The global search finds anything by ID, by a passage of the quote or by the test
 
 | Page | What it shows |
 |---|---|
-| **Overview** | Project indicators: requirement coverage by tests, tests run, passed, failed and pending, each package's gate, quality by module, latest runs and open incidents |
-| **Packages** | Each delivery round with the items in the requester's numbering, the funnel by state and what is missing. "Pending" here is only what hasn't been verified |
-| **Requirement** | The quote side by side with the source passage, the fields, the criteria, each criterion's tests by condition, the evidence by commit, the decisions, the questions and the state history |
+| **Home** | One card per project in the workspace: coverage, tests run, passed, failed, gate and last run |
+| **Project overview** | KPI cards (requirements covered by tests, tests run, passed, failed and pending), the result distribution bar, the latest runs, quality per module, the funnel by state, what holds items back, and the open decisions and questions. "Pending" here is only what hasn't been verified |
+| **Requirements** | The filterable list, grouped by package in the requester's numbering. In the detail: the quote side by side with the source passage, the fields, the criteria, each criterion's tests by condition, the evidence by commit, the traceability and QA flow diagrams, the decisions, the questions, the state history and the human actions in dialogs |
 | **Tests** | The catalog of every test in the project (detailed below) |
-| **Runs** | Every `lastro verify` and every CI run (detailed below) |
+| **Runs** | List and detail of every `lastro verify` and every CI run (detailed below) |
+| **Bugs** | Incidents after delivery, with triage, cause and billing (fix, courtesy or quote) |
+| **Agents** | Each agent's sessions and the events of each session: tools called, files touched, gate blocks |
 | **Diagrams** | The live diagrams of the project, the package and the requirement (see the next section) |
-| **Documentation** | Generate, view and download the project's documents (see further below) |
-| **Sources** | The documents, conversations, audio and video received, with their versions, the difference between them and the requirements each passage generated |
-| **Questions and decisions** | What is open, what the agent assumed and hasn't been confirmed yet, what the client answered |
-| **Incidents** | Complaints after delivery, with triage, cause and billing (fix, courtesy or quote) |
-| **Configuration** | QA flows, conditions, glossary and layout contract. The flows are edited visually: add, remove and reorder stages and conditions |
-| **Projects** | Server mode only: every project in the database, side by side, with the same indicators |
+| **Documentation** | Generate, read and download the project's documents (see further below) |
+| **Sources** | Upload of documents, conversations, audio and video, with their versions, the difference between them, the quoted passages and the requirements each passage generated |
+| **Glossary and design contract** | The terms, the invariants, the allowed components and the reference screens |
+| **Settings** | Visual editor for QA flows, conditions and commands (add, remove and reorder stages and conditions), workspace members and tokens |
+| **Audit** | The append-only log of every change: who made it, when, through which entry point (dashboard, API, CLI or MCP) and what changed |
 
 ### Tests page
 
@@ -169,20 +171,25 @@ From the dashboard, a person can:
 
 - approve a spec;
 - confirm or overturn a decision;
+- unlock a criterion;
+- drop an item from scope;
 - answer a question;
 - record a preview and a manual stage;
 - accept a delivery;
 - triage an incident;
+- mark a source as final;
 - edit the QA flows.
 
 These are the same human actions as in the CLI, and the agent has no access to any of them.
 
-- **In local mode,** the action writes directly to the files in `.lastro/` and goes into the next commit.
-- **In server mode,** the action becomes an event in Postgres. `lastro sync` applies the event to the repository's files, so the spec is still reviewed in the PR.
+- Every action is a write to the server's API and produces an audit event.
+- The core refuses the action when the actor is an agent, whatever the entry point.
+- The change reaches the repository with the next `lastro export`, so the spec is still reviewed in the PR.
 
 ## Visual design
 
-- React, with Tailwind and shadcn/ui.
+- TanStack Start, Router and Query, with Tailwind v4 and shadcn/ui (new-york style).
+- Dense and data-first: KPI cards, tables and charts before prose.
 - Light and dark theme.
 - Works on laptop and phone screens.
 - Confirmations through its own dialog, never through the browser's native boxes.

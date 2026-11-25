@@ -7,8 +7,8 @@
 3. **Toda frase tem origem.** Cada requisito cita literalmente a fonte e aponta onde ela está.
 4. **Suposição é registrada, nunca escondida.** Se o pedido não diz, o agente decide e registra a decisão, que o cliente vê.
 5. **Quem pediu define o aceite.** Os exemplos e números de quem pediu viram os critérios. O agente não edita critério travado.
-6. **Os arquivos no git são a verdade.** Tudo o que importa fica em `.lastro/`, em YAML e Markdown, revisado no mesmo PR que o código.
-7. **Local primeiro, servidor quando precisar.** Funciona na máquina, sem configuração, com SQLite. Para time e vários projetos, conecta num Postgres e o painel passa a ser compartilhado.
+6. **O Postgres é a verdade, e o git recebe a exportação.** Tudo o que importa fica no banco do servidor do Lastro. `lastro export` grava no repositório um retrato determinístico em `.lastro/`, em YAML e Markdown, revisado no mesmo PR que o código.
+7. **Um servidor, vários projetos.** Um servidor do Lastro, auto-hospedado com Docker numa VPS só, guarda todos os projetos de um workspace. O painel, o servidor MCP e a CLI escrevem pela API dele.
 8. **Sem LLM dentro.** Quem pensa é o agente que o desenvolvedor já usa. O Lastro guarda, cobra e confere. Sem custo de tokens próprio.
 9. **Agnóstico de agente e de stack.** Claude Code primeiro, mas o formato, a CLI e o MCP servem a qualquer agente e linguagem.
 10. **Só a fase não feita é pendência.** Item feito e verificado não aparece como pendente, nem com ressalva.
@@ -22,7 +22,7 @@
 | **Cliente ou dono do produto** | Ver item a item o que pediu, o que foi feito, o que foi decidido por ele e onde conferir. Aprovar prévias e aceitar entregas |
 | **Líder técnico** | Política de qualidade por tipo de mudança, aplicada igual para todo mundo |
 
-## Objetivos do MVP
+## Objetivos
 
 1. Cada pedido vira itens atômicos com ID, citação e âncora na fonte.
 2. Nenhum item começa a ser implementado com campo obrigatório em branco ou pergunta que trava em aberto.
@@ -32,12 +32,12 @@
 6. Glossário, invariantes, contrato de layout e decisões voltam ao contexto do agente em toda sessão e depois de toda compactação.
 7. Relatório item a item para o cliente, com o texto literal do pedido.
 8. Um painel visual com os pacotes, os requisitos, o catálogo de testes, as execuções e os resultados, os diagramas vivos dos fluxos de QA e da rastreabilidade, e a geração da documentação do projeto.
-9. Os dados guardados em SQLite local ou num Postgres, com o mesmo esquema e a mesma interface.
+9. Os dados de todos os projetos guardados num Postgres, atrás de uma API única, e exportados para `.lastro/` em cada repositório.
 
-## Fora do escopo do MVP
+## Fora do escopo
 
 - Ser um gerenciador de projetos completo (sprints, horas, quadro kanban).
-- Portal para o cliente entrar e aprovar. No MVP, a aprovação do cliente entra como referência (id da mensagem, e-mail, assinatura) registrada pelo desenvolvedor. O modo servidor do painel é para o time.
+- Portal para o cliente entrar e aprovar. Por enquanto, a aprovação do cliente entra como referência (id da mensagem, e-mail, assinatura) registrada pelo desenvolvedor. O login do painel é para o time.
 - Gerar código ou testes por conta própria. Isso é trabalho do agente.
 - Substituir o CI. O Lastro roda dentro dele.
 - Ser um linter. O Lastro roda os linters do projeto e lê o resultado em SARIF.

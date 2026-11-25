@@ -2,13 +2,17 @@
 
 O Lastro tem quatro portas para o mesmo núcleo: a CLI para pessoas e scripts, o servidor MCP para agentes, o painel para ver, decidir e gerar documentação, e os relatórios para quem pediu. O painel tem capítulo próprio: [Painel, documentação e diagramas](03-dashboard.md).
 
+As três primeiras passam pela API HTTP do servidor do Lastro e pelos mesmos serviços do núcleo. Nenhuma delas abre o banco por conta própria.
+
 ## CLI
 
 ### Projeto
 
 | Comando | O que faz |
 |---|---|
-| `lastro init` | Cria `.lastro/` com `lastro.yml`, glossário e contrato de layout vazios, e o `.gitignore` das pastas locais |
+| `lastro login [<url>]` | Entra no servidor do Lastro pelo navegador e guarda o token da pessoa na máquina, fora do repositório |
+| `lastro link [<projeto>]` | Liga o repositório a um projeto do servidor e grava a chave dele no `lastro.yml` |
+| `lastro init` | Cria o projeto no servidor, liga o repositório a ele e grava o primeiro `.lastro/` com `lastro.yml`, glossário e contrato de layout vazios, e o `.gitignore` da pasta `.out/` |
 | `lastro setup claude\|codex\|gemini\|cursor\|git\|github` | Instala as integrações de cada nível |
 | `lastro doctor` | Confere configuração, schemas, hooks instalados e comandos do projeto |
 
@@ -16,9 +20,9 @@ O Lastro tem quatro portas para o mesmo núcleo: a CLI para pessoas e scripts, o
 
 | Comando | O que faz |
 |---|---|
-| `lastro intake <arquivo ou pasta>` | Registra a fonte, guarda o binário em `.store/`, extrai texto com âncoras. Se já existe fonte com o mesmo título, cria a nova versão com `supersedes` |
+| `lastro intake <arquivo ou pasta>` | Envia o material ao servidor, que registra a fonte, guarda o binário, extrai o texto e o quebra em trechos com âncoras. Se já existe fonte com o mesmo título, cria a nova versão com `supersedes` |
 | `lastro source diff <SRC> <SRC>` | Diferença entre duas versões, com os requisitos afetados |
-| `lastro source final <SRC>` | Marca a fonte como final |
+| `lastro source final <SRC>` | Marca a fonte como final. Humano |
 
 O Lastro não chama LLM. A quebra da fonte em requisitos atômicos é feita pelo agente via MCP (`lastro_propose_requirements`), e os itens nascem `captured`.
 
@@ -29,11 +33,12 @@ O Lastro não chama LLM. A quebra da fonte em requisitos atômicos é feita pelo
 | `lastro req new\|edit\|show\|list` | Cria, edita, mostra e lista requisitos, com filtros por estado, tipo e pacote |
 | `lastro pending [PKG]` | Só o que não chegou em `verified`, agrupado por motivo: falta campo, pergunta aberta, aguardando aprovação, em implementação, gate vermelho |
 | `lastro ask <REQ> "<pergunta>" [--blocks]` | Abre pergunta |
-| `lastro answer <Q> "<resposta>" --source <SRC@âncora>` | Registra a resposta e cria a decisão `client_answer` |
+| `lastro answer <Q> "<resposta>" --source <SRC@âncora>` | Registra a resposta e cria a decisão `client_answer`. Humano |
 | `lastro decide <REQ> "<decisão>" --reason "<motivo>"` | Registra decisão |
 | `lastro decision confirm\|overturn <DEC>` | Humano |
 | `lastro approve <REQ\|PKG>` | Humano. Também trava os critérios |
 | `lastro lock\|unlock <REQ>` | Trava ou destrava critérios e testes. O `unlock` é humano |
+| `lastro drop <REQ> --reason "<motivo>"` | Tira o item do escopo. Humano |
 
 ### Verificação e entrega
 
@@ -47,21 +52,23 @@ O Lastro não chama LLM. A quebra da fonte em requisitos atômicos é feita pelo
 | `lastro report <PKG> [--format md\|html\|pdf] [--audience client\|dev]` | Relatório item a item |
 | `lastro accept <REQ\|PKG> --ref "<referência>"` | Aceite de quem pediu. Humano |
 | `lastro incident new "<reclamação>" --source <SRC@âncora>` | Registra incidente e reabre o requisito |
-| `lastro incident triage <INC> --triage bug --cause spec_gap --billing courtesy` | Classifica |
+| `lastro incident triage <INC> --triage bug --cause spec_gap --billing courtesy` | Confirma a triagem, a causa e a cobrança. Humano |
 
-### Painel, documentação e banco
+### Servidor, documentação e exportação
 
 | Comando | O que faz |
 |---|---|
-| `lastro ui` | Abre o painel no modo local, em `127.0.0.1`, lendo os arquivos e o SQLite |
-| `lastro server` | Sobe o painel no modo servidor, ligado ao Postgres, com login |
+| `lastro export [--out .lastro] [--json]` | Grava o retrato determinístico do projeto em `.lastro/`, para revisão no PR e para o gate offline. Com `--json`, escreve o mesmo conteúdo na saída padrão |
+| `lastro import [<pasta>]` | Carrega um retrato `.lastro/` no servidor, mostrando antes o que vai mudar |
+| `lastro mcp` | Liga o stdio do agente à rota `/api/mcp` do servidor, com o token |
 | `lastro docs build [--format md\|html\|pdf] [--out docs/lastro]` | Gera a documentação do projeto a partir dos dados |
-| `lastro db migrate` | Cria ou atualiza as tabelas no banco configurado |
-| `lastro db push` | Copia o histórico do SQLite local para o Postgres |
-| `lastro sync` | Reconcilia os arquivos de `.lastro/` com o banco e aplica os eventos do painel do servidor |
-| `lastro token create --name ci` | Cria o token que o CI usa para enviar execuções ao servidor. Humano |
+| `lastro token create --name ci` | Cria um token de API para o CI ou para um agente. Humano. O token aparece uma vez só; o servidor guarda o hash |
+
+O servidor não é um comando da CLI. Ele é a aplicação web, que sobe com Docker (`docker compose -f docker/compose.prod.yml up -d`), e as migrações do banco rodam no serviço `migrate` antes de o `web` subir.
 
 ## Servidor MCP
+
+O servidor MCP é a rota JSON-RPC `/api/mcp` do servidor do Lastro, com um token Bearer. Para os agentes que só falam stdio, `lastro mcp` faz a ponte. As etapas de `lastro_verify` rodam na máquina do agente, pela ponte, que envia a evidência ao servidor.
 
 Ferramentas para o agente. Nenhuma delas aprova, aceita, destrava ou assina etapa manual.
 

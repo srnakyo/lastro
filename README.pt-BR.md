@@ -4,7 +4,7 @@
 
 [English](README.md) · **Português**
 
-> **Status:** em desenho. O [PRD](docs/pt-BR/prd/README.md) está aberto para discussão. Ainda não há código.
+> **Status:** em reconstrução. O [PRD](docs/pt-BR/prd/README.md) descreve o produto, e o [ROADMAP](ROADMAP.md) acompanha a construção, fase a fase.
 
 ---
 
@@ -40,10 +40,10 @@ flowchart LR
   I --> J["Relatório item a item e aceite"]
 ```
 
-- **Tudo fica no repositório**, em `.lastro/`, revisado no mesmo PR que o código.
+- **Spec no servidor, revisão no PR.** O Postgres do servidor do Lastro é a verdade, e `lastro export` grava um retrato determinístico em `.lastro/`, revisado no mesmo PR que o código.
 - **Sem LLM dentro.** Quem pensa é o agente que você já usa. O Lastro guarda, cobra e confere.
 - **Painel visual.** Testes, execuções e resultados, diagramas vivos dos fluxos de QA e da rastreabilidade, e documentação gerada a partir dos dados.
-- **Local ou com Postgres.** Na máquina, sem configuração, com SQLite. Para o time e vários projetos, num Postgres com o painel compartilhado.
+- **Auto-hospedado, vários projetos.** Um servidor com Docker, numa VPS só, guarda todos os projetos do workspace, com login e seletor de projeto. O painel, o MCP e a CLI escrevem pela mesma API.
 - **Agnóstico.** Claude Code primeiro, com CLI e MCP para qualquer agente, em qualquer stack que gere JUnit ou SARIF.
 
 ## Três níveis de garantia
@@ -57,28 +57,34 @@ flowchart LR
 ## Como vai ser usar
 
 ```bash
-npm install -g lastro      # ainda não publicado
+# servidor: painel, API e MCP
+docker compose -f docker/compose.prod.yml up -d
 
-lastro init
+# CLI
+npm install -g lastro      # ainda não publicado
+lastro login https://lastro.example.com
+lastro link my-app         # liga o repositório a um projeto do servidor
+lastro import              # carrega o .lastro/ que já existe no repositório
 lastro setup claude        # MCP, hooks e CLAUDE.md
 lastro intake "Correções v.4.docx"
 lastro pending
 lastro approve PKG-2R8XW
 lastro verify
 lastro gate
+lastro export              # grava o retrato em .lastro/ para o PR
 lastro report PKG-2R8XW --format pdf
-lastro ui                  # painel em http://127.0.0.1
 lastro docs build --format pdf
 ```
 
 ## Documentação
 
-- [PRD](docs/pt-BR/prd/README.md): o problema, o modelo de dados, o ciclo de vida, os fluxos de QA, as integrações e o roteiro.
-- [`.lastro/`](.lastro): o MVP do próprio Lastro, descrito no formato que ele propõe.
+- [PRD](docs/pt-BR/prd/README.md): o problema, o modelo de dados, o ciclo de vida, os fluxos de QA, as integrações e a arquitetura.
+- [ROADMAP](ROADMAP.md): as fases da construção e o andamento de cada uma.
+- [`.lastro/`](.lastro): o próprio Lastro, descrito no formato da exportação.
 
 ## Contribuindo
 
-O projeto está na fase de desenho. Abra uma issue para discutir o PRD, contar como o problema aparece no seu fluxo ou propor um adaptador para o seu agente ou stack.
+O projeto está em reconstrução (ver o [ROADMAP](ROADMAP.md)). Abra uma issue para discutir o PRD, contar como o problema aparece no seu fluxo ou propor um adaptador para o seu agente ou stack.
 
 ## Licença
 

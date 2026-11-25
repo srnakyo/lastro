@@ -4,7 +4,7 @@
 
 `lastro setup claude` installs the three pieces at once:
 
-- **MCP server** in the project's `.mcp.json` (see [Interfaces](07-interfaces.md)).
+- **MCP server** in the project's `.mcp.json`, through the `lastro mcp` bridge connected to the Lastro server (see [Interfaces](07-interfaces.md)).
 - **Hooks** in the project's `.claude/settings.json` (see [Making the agent comply](06-enforcement.md)).
 - **Marked section** in `CLAUDE.md`.
 
@@ -107,7 +107,7 @@ How the rules combine: the strictest one applies, and `seats: 2` means the autho
 
 ## GitHub
 
-- **Action** `lastro gate --ci`: runs the automatic stages in a clean environment, publishes the "Lastro gate" check with a table per requirement and updates the PR block.
+- **Action** `lastro gate --ci`: runs the automatic stages in a clean environment, publishes the "Lastro gate" check with a table per requirement and updates the PR block. It sends the runs to the server with `LASTRO_TOKEN` or, without a server, evaluates the gate offline from `.lastro/`.
 - **Branch protection**: the adapter shows the steps to mark "Lastro gate" as required. Only a repository admin can do this.
 - **Pinned PR comment**, optional, with the gate summary and links to the screenshots.
 
@@ -119,7 +119,7 @@ Lastro doesn't know how to run tests in any language: it runs the project's comm
 
 | Format | Where it comes from |
 |---|---|
-| JUnit XML | Vitest, Jest, Playwright, pytest, PHPUnit, Pest, go test (via gotestsum), JUnit, RSpec |
+| JUnit XML | bun test, Vitest, Jest, Playwright, pytest, PHPUnit, Pest, go test (via gotestsum), JUnit, RSpec |
 | SARIF | ESLint, Semgrep, Ruff, PHPStan (with a formatter), CodeQL |
 | LCOV, Cobertura | Coverage, optional and informational only |
 
@@ -133,4 +133,4 @@ Criteria are linked to tests by the case name in JUnit (`file::test name`), so i
 
 ## Project knowledge tools
 
-Lastro holds the contract of **one repository**. Tools that bring several projects together can read `.lastro/` and the history through the CLI (`lastro export --json`) to provide a cross-project view or a client portal. The first planned integration is Loqivo.
+The Lastro server already brings together the projects of a workspace. Tools that bring projects together in other ways can read each repository's `.lastro/` export, or the same content through the CLI (`lastro export --json`), to provide a cross-project view or a client portal. The first planned integration is Loqivo.

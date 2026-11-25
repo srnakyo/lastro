@@ -32,7 +32,7 @@ O texto fica curto de propósito. O contexto de verdade vem pelo MCP e pelo hook
 |---|---|
 | **Início de sessão** (também depois de compactação e de `/clear`) | Injeta o pacote ativo, os requisitos `approved` e `building`, o glossário, as invariantes, o contrato de layout e as decisões recentes. Resolve o "esqueceu o que tinha sido combinado" |
 | **Antes de ferramenta: Edit, Write e afins** | Nega edição de arquivo de critério ou de teste travado, com a mensagem: "teste travado em REQ-K7Q2M; peça ao desenvolvedor `lastro unlock`" |
-| **Antes de ferramenta: Bash** | Nega os comandos humanos (`lastro approve`, `accept`, `unlock`, `check --manual`, `decision confirm`). Opcional: nega `git push` para a branch principal com o gate vermelho |
+| **Antes de ferramenta: Bash** | Nega os comandos humanos (`lastro approve`, `accept`, `unlock`, `check --manual`, `decision confirm`, `source final`). Opcional: nega `git push` para a branch principal com o gate vermelho |
 | **Fim de resposta** | Roda `lastro gate --session`. Se há requisito em `building` com mudanças sem verificação, ou se o agente pediu `lastro_submit` e o gate está vermelho, bloqueia o fim e devolve o que falta. Não bloqueia quando o agente abriu uma pergunta ou registrou uma pausa com motivo. Tem limite de bloqueios seguidos, para não prender o agente em laço |
 | **Depois de ferramenta** | Registra no histórico quais arquivos o agente mexeu, para preencher `touches` e detectar mudança fora do alcance declarado |
 
@@ -40,7 +40,8 @@ O texto fica curto de propósito. O contexto de verdade vem pelo MCP e pelo hook
 
 - O gate só aceita evidência que o próprio Lastro gerou, rodando o comando e lendo o JUnit ou o SARIF.
 - `lastro_verify` pelo MCP executa os comandos. O agente recebe o resultado, não escreve o resultado.
-- No CI, o gate não confia no `ledger/`: roda todas as etapas automáticas de novo. O `ledger/` serve para o relatório e para o PR, não como prova final. Editar o ledger à mão não libera nada.
+- No CI, o gate não confia em evidência guardada: roda todas as etapas automáticas de novo. A evidência do servidor serve para o painel, o relatório e o PR, não como prova final.
+- Editar a exportação `.lastro/` à mão não libera nada: o gate confere o hash de cada critério travado, e o `lastro import` só aplica uma ação humana com o token de uma pessoa.
 
 ### Comandos humanos
 
@@ -49,21 +50,26 @@ As ações que dependem de uma pessoa são:
 - aprovar spec;
 - confirmar ou derrubar decisão;
 - destravar critério;
+- tirar um item do escopo;
+- registrar a resposta de uma pergunta;
+- confirmar a triagem de um incidente;
+- marcar uma fonte como final;
 - registrar etapa manual;
 - registrar prévia;
 - aceitar entrega.
 
 Elas:
 
+- são recusadas pelo núcleo quando quem pede é um agente: o serviço confere o ator (a sessão de uma pessoa no painel, o token de uma pessoa ou o token de um agente) antes de gravar, venha o pedido do painel, da API, da CLI ou do MCP;
 - não existem no servidor MCP;
 - são bloqueadas para o agente pelo hook de Bash;
 - pedem confirmação interativa no terminal;
-- no CI, só contam quando o commit que as registrou é de uma identidade permitida (`gate.human_identities` no `lastro.yml`) ou quando o PR foi aprovado por uma pessoa.
+- no gate offline do CI, que lê o `.lastro/`, só contam quando o commit que as trouxe é de uma identidade permitida (`gate.human_identities` no `lastro.yml`) ou quando o PR foi aprovado por uma pessoa.
 
 ## Nível 3: bloqueio externo
 
 - **Hook `pre-push` do git** (`lastro setup git`): roda `lastro gate --changed` e bloqueia o push quando um requisito tocado não está verificado.
-- **Check no CI** (`lastro gate --ci`): roda todas as etapas automáticas de novo num ambiente limpo, confere os travamentos e publica o check "Lastro gate" com uma tabela por requisito. Marcado como obrigatório na proteção da branch principal, ele impede o merge.
+- **Check no CI** (`lastro gate --ci`): roda todas as etapas automáticas de novo num ambiente limpo, confere os travamentos e publica o check "Lastro gate" com uma tabela por requisito. Com servidor, envia as execuções para ele; sem servidor, roda offline com os critérios travados do `.lastro/`. Marcado como obrigatório na proteção da branch principal, ele impede o merge.
 - **Bloco no PR**: o CI escreve ou atualiza, na descrição do PR, um bloco marcado com os requisitos, as decisões e a evidência. Serve para quem revisa e para as integrações (ver [Integrações](08-integrations.md)).
 
 ## Outros agentes

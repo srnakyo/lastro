@@ -1,6 +1,6 @@
 id: Q-R9T2Z
-about: ["REQ-A2C7H"]
-text: "Does ledger/ go into git by default, or only into the CI artifact?"
+about: ["REQ-H5K8S"]
+text: "Does `lastro export` include the latest evidence summary per requirement, or only the spec?"
 blocks: false
 asked_to: dev
 asked_via: "PRD, open questions"

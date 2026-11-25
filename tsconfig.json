@@ -1,0 +1,4 @@
+{
+  "extends": "./tooling/tsconfig/base.json",
+  "include": ["tests", "packages/*/src", "packages/*/prisma.config.ts"]
+}

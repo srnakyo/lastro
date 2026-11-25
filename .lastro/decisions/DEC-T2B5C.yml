@@ -1,8 +1,8 @@
 id: DEC-T2B5C
-about: [REQ-J8M1T, REQ-F7H2Q]
+about: [REQ-J8M1T]
 kind: decision
-text: "One dashboard, two modes: the same server package and UI serve `lastro ui` (SQLite, 127.0.0.1, no login) and `lastro server` (Postgres, login, CI tokens)."
-reason: "One code path to build and test; a developer starts locally and moves to Postgres with lastro db push."
+text: "The dashboard is a self-hosted web app with sign-in, workspaces and a project switcher; there is no local SQLite mode."
+reason: "One code path to build and test. A single server on a VPS serves a team and many projects, and someone working alone runs the same server with Docker on their own machine."
 decided_by: agent
 status: proposed
 show_to_client: true

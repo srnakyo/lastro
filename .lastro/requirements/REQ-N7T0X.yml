@@ -9,7 +9,7 @@ sources:
     quote: "com a quantidade de itens em cada estado e as passagens que estão travadas"
 statement: >
   For each package the dashboard renders the lifecycle state diagram with the number of requirements in each state and marks blocked transitions (missing fields, open blocking question, non-final source).
-where: "Dashboard › Packages"
+where: "Dashboard › Diagrams, Dashboard › Project overview"
 examples:
   - given: "PKG-M7V0P with 15 specified requirements and a non-final source"
     expect: "specified shows 15; specified → approved marked blocked: 'source not final'"

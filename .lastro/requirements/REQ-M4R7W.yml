@@ -9,7 +9,7 @@ sources:
     quote: "Da fonte até a evidência, com os buracos destacados"
 statement: >
   The dashboard renders, from data, a Mermaid traceability diagram source → requirement → criterion → test → run, marking as gaps: criterion without test, test without run on the current commit, quote that does not match its source, requirement without a final source. Clicking a node opens the item.
-where: "Dashboard › Diagrams, Dashboard › Requirement"
+where: "Dashboard › Diagrams, Dashboard › Requirements › detail"
 examples:
   - given: "requirement with AC-1 linked to 2 tests and AC-2 with no test"
     expect: "AC-2 drawn as a gap with the label 'no test'"

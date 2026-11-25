@@ -1,6 +1,6 @@
 id: Q-V8C1D
-about: []
-text: "Server mode login: email and password only in the MVP, or GitHub sign-in from the start?"
+about: [REQ-J8M1T]
+text: "Dashboard sign-in: email and password only, or GitHub sign-in from the start?"
 blocks: false
 asked_to: dev
 asked_via: "PRD, open questions"

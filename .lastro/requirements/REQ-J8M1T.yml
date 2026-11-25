@@ -1,28 +1,36 @@
 id: REQ-J8M1T
-title: "`lastro ui` serves the dashboard locally without login"
+title: "The dashboard is the web app, with sign-in, workspaces and a project switcher"
 type: ui
 status: specified
 package: PKG-D4S8H
 sources:
   - ref: SRC-P4RD7
-    anchor: "@03-dashboard.md#duas-formas-de-rodar"
-    quote: "Escuta só em `127.0.0.1`, sem login"
+    anchor: "@03-dashboard.md#onde-roda"
+    quote: "Seletor de projeto com busca, e o projeto na URL"
+  - ref: SRC-P4RD7
+    anchor: "@03-dashboard.md#onde-roda"
+    quote: "E-mail e senha, ou GitHub. Cada pessoa vê os workspaces de que é membro."
 statement: >
-  `lastro ui` starts the server package on 127.0.0.1 with the SQLite store and opens the dashboard with the pages Overview, Packages, Requirement, Sources and Questions and decisions. It refuses to bind to any other address in local mode.
-where: "lastro ui"
+  apps/web serves the dashboard. Every page requires sign-in (email and password, or GitHub). A signed-in person sees only the projects of the workspaces they are a member of, picks one in a searchable project switcher, and every project page lives under /projects/<key>/. A project of another workspace answers as not found.
+where: "Dashboard › sign-in, Home, project switcher"
 examples:
-  - given: "lastro ui in a repository with the .lastro/ of this project"
-    expect: "dashboard at http://127.0.0.1:<port> lists PKG-M7V0P and PKG-D4S8H with their requirements"
-  - given: "lastro ui --host 0.0.0.0"
-    expect: "refused in local mode with a message pointing to lastro server"
+  - given: "a visitor without a session opening /projects/lastro/requirements"
+    expect: "redirected to sign-in, then back to the same URL"
+  - given: "a member typing 'las' in the project switcher"
+    expect: "the lastro project is listed; choosing it opens /projects/lastro/"
+  - given: "a member of workspace A opening a project key of workspace B"
+    expect: "not found page; nothing about the project is shown"
 acceptance:
   - id: AC-1
-    text: "Given this repository, when `lastro ui` runs, then the dashboard on 127.0.0.1 lists both packages and every requirement with its status."
+    text: "Given no session, when any project URL opens, then the dashboard shows the sign-in page and returns to that URL after signing in."
     tests: []
   - id: AC-2
-    text: "Given `--host 0.0.0.0` in local mode, then the command refuses and points to `lastro server`."
+    text: "Given a signed-in member, when they search the project switcher and pick a project, then the URL becomes /projects/<key>/ and the page shows that project."
     tests: []
-decisions: []
-questions: []
+  - id: AC-3
+    text: "Given a signed-in member of another workspace, when they open /projects/<key>/ of a project they do not belong to, then the response is not found."
+    tests: []
+decisions: [DEC-T2B5C]
+questions: [Q-V8C1D]
 depends_on: []
 touches: []

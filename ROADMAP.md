@@ -18,7 +18,7 @@ bun workspaces and Turborepo: `apps/`, `packages/`, `tooling/`.
 |---|---|
 | `apps/web` | Dashboard and HTTP API: TanStack Start, Router and Query, Tailwind v4, shadcn/ui (new-york), recharts, Mermaid |
 | Auth | better-auth (email and password, GitHub). API and MCP tokens stored as SHA-256 hashes with a visible prefix |
-| `packages/database` | Prisma and Postgres 16, versioned migrations, `uuid(7)` ids, append-only audit table |
+| `packages/database` | Prisma 7 (pg driver adapter, relation joins) and Postgres 16, versioned migrations, `uuid(7)` ids, append-only audit table enforced by a trigger |
 | `packages/core` | Domain services, one folder per domain, every operation scoped by project |
 | `packages/shared` | zod contracts shared by the API, CLI, MCP and the export format |
 | `packages/cli` | The `lastro` command on npm. Talks to the API with a token, never to the database |
@@ -28,6 +28,7 @@ bun workspaces and Turborepo: `apps/`, `packages/`, `tooling/`.
 | `packages/adapters` | Claude Code plugin (hooks, skills), git `pre-push`, GitHub Action, Claude Ship templates |
 | MCP | JSON-RPC route `/api/mcp` with a Bearer token. `lastro mcp` bridges stdio to it |
 | Tests | `bun test` for unit and integration (against a `lastro_test` database), Playwright for the real screens |
+| TypeScript | 6.0: typescript-eslint does not support TypeScript 7 yet |
 | Docker | `docker/compose.dev.yml`, `docker/compose.prod.yml` (web, migrate, postgres) |
 
 ### Data model
@@ -65,7 +66,7 @@ bun workspaces and Turborepo: `apps/`, `packages/`, `tooling/`.
 | # | Phase | Status |
 |---|---|---|
 | 0 | Preparation: design plugins enabled, rejected first implementation moved out of the repository, this roadmap | done |
-| 1 | Foundation: bun, turbo, `tooling/`; Prisma schema and migrations; `packages/shared`; `packages/core` with integration tests; PRD and `.lastro/` updated to these decisions | todo |
+| 1 | Foundation: bun, turbo, `tooling/`; Prisma schema and migrations; `packages/shared`; `packages/core` with integration tests; PRD and `.lastro/` updated to these decisions | done |
 | 2 | Dashboard base: auth, workspace, projects and switcher, shell, design system, home; `lastro import` of this repository's `.lastro/` | todo |
 | 3 | Full spec: sources and intake, requirements, decisions, questions, incidents, packages, lifecycle, blockers, human actions; `lastro export` | todo |
 | 4 | API, CLI and MCP: tokens; `init`, `login`, `link`, `intake`, `req`, `ask`, `decide`, `pending`, `export`, `import`, `mcp`; `/api/mcp` | todo |

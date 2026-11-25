@@ -3,22 +3,23 @@ version: 1
 project: "lastro"
 language: en
 
+server:
+  url_env: LASTRO_SERVER_URL
+  token_env: LASTRO_TOKEN
+
 approval:
   spec: [dev]
   require_final_source: true      # the PRD must be marked final before anything is approved
 
 commands:
-  typecheck: { run: "npx tsc -b" }
-  lint:      { run: "npx eslint . -f @microsoft/eslint-formatter-sarif -o .lastro/.out/eslint.sarif", report: { sarif: ".lastro/.out/eslint.sarif" } }
-  unit:      { run: "npx vitest run --reporter=junit --outputFile=.lastro/.out/unit.xml", report: { junit: ".lastro/.out/unit.xml" } }
-  e2e:       { run: "npx playwright test --reporter=junit", env: { PLAYWRIGHT_JUNIT_OUTPUT_NAME: ".lastro/.out/e2e.xml" }, report: { junit: ".lastro/.out/e2e.xml" } }
+  typecheck: { run: "bunx tsc --noEmit" }
+  lint:      { run: "bunx eslint . --max-warnings 0 -f @microsoft/eslint-formatter-sarif -o .lastro/.out/eslint.sarif", report: { sarif: ".lastro/.out/eslint.sarif" } }
+  unit:      { run: "bun test --preload ./tests/setup/preload.ts tests/unit tests/integration --reporter=junit --reporter-outfile=.lastro/.out/unit.xml", report: { junit: ".lastro/.out/unit.xml" } }
+  e2e:       { run: "bunx playwright test --reporter=junit", env: { PLAYWRIGHT_JUNIT_OUTPUT_NAME: ".lastro/.out/e2e.xml" }, report: { junit: ".lastro/.out/e2e.xml" } }
 
 conditions:
-  empty-repo:     { setup: "node scripts/fixtures.mjs empty", note: "a git repository with no .lastro/ folder" }
-  existing-repo:  { setup: "node scripts/fixtures.mjs existing", note: "a repository with history, branches and an existing .lastro/" }
   windows-paths:  { env: { LASTRO_TEST_PATH_STYLE: "win32" }, note: "paths with backslashes and drive letters" }
-  sqlite:         { env: { LASTRO_TEST_DB: "sqlite" } }
-  postgres:       { setup: "docker compose -f test/postgres.yml up -d --wait", env: { LASTRO_TEST_DB: "postgres" }, note: "Postgres 16 in a throwaway container" }
+  postgres:       { note: "throwaway lastro_test database on Postgres 16 (LASTRO_TEST_DATABASE_URL); the test preload applies the migrations and refuses any other database" }
   light-theme:    { env: { E2E_THEME: "light" } }
   dark-theme:     { env: { E2E_THEME: "dark" } }
   mobile-width:   { env: { E2E_VIEWPORT: "390x844" } }
@@ -28,7 +29,7 @@ types:
     required: [where, examples]
     flow:
       - typecheck
-      - { run: unit, conditions: [empty-repo, existing-repo] }
+      - unit
   format:
     required: [examples]
     flow:
@@ -40,7 +41,7 @@ types:
     required: [where, examples]
     flow:
       - typecheck
-      - { run: unit, conditions: [sqlite, postgres] }
+      - { run: unit, conditions: [postgres] }
   ui:
     required: [where, examples]
     flow:

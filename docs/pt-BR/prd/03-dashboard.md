@@ -10,21 +10,22 @@ O painel é onde tudo o que o Lastro guarda fica visível e organizado:
 
 Ele é a peça central do produto. A CLI, o MCP e os hooks alimentam os dados; o painel é onde as pessoas olham, decidem e geram os documentos.
 
-## Duas formas de rodar
+## Onde roda
 
-| Modo | Comando | Banco | Para quem |
-|---|---|---|---|
-| **Local** | `lastro ui` | SQLite em `.lastro/.state/`, sem configuração | Um desenvolvedor, na própria máquina. Escuta só em `127.0.0.1`, sem login |
-| **Servidor** | `lastro server` | Postgres (ver [Armazenamento](04-domain-model.md#armazenamento)) | Time, vários projetos e o histórico de todo mundo no mesmo lugar. Com login, e o CI grava lá com um token |
+O painel é a aplicação web do servidor do Lastro. A mesma aplicação serve a API HTTP que a CLI, o servidor MCP e o CI usam.
 
-O painel é o mesmo nos dois modos. Muda só de onde ele lê.
+- **Auto-hospedado.** Imagem Docker e compose prontos para uma VPS só, sem serviço gerenciado. O banco é um Postgres (ver [Armazenamento](04-domain-model.md#armazenamento)).
+- **Vários projetos.** Um servidor guarda todos os projetos de um workspace, e o histórico de todo mundo fica no mesmo lugar.
+- **Login.** E-mail e senha, ou GitHub. Cada pessoa vê os workspaces de que é membro.
+- **Seletor de projeto com busca, e o projeto na URL** (`/projects/<chave>/...`). Um link para um requisito abre sempre o mesmo projeto.
+- **Tokens.** O CI e a CLI gravam pela API com um token do projeto, criado no painel.
 
 ## Organização
 
 Tudo segue a mesma hierarquia, do mais amplo ao mais detalhado:
 
 ```
-Projeto → Pacote (rodada de entrega) → Requisito → Critério de aceite → Teste → Execução → Evidência
+Workspace → Projeto → Pacote (rodada de entrega) → Requisito → Critério de aceite → Teste → Execução → Evidência
 ```
 
 Em toda lista dá para filtrar por:
@@ -41,18 +42,19 @@ A busca global acha qualquer coisa por ID, por trecho da citação ou pelo nome 
 
 | Página | O que mostra |
 |---|---|
-| **Visão geral** | Indicadores do projeto: cobertura de requisitos por testes, testes executados, aprovados, reprovados e pendentes, gate de cada pacote, qualidade por módulo, últimas execuções e incidentes abertos |
-| **Pacotes** | Cada rodada de entrega com os itens na numeração de quem pediu, o funil por estado e o que falta. "Pendente" aqui é só o que não foi verificado |
-| **Requisito** | A citação lado a lado com o trecho da fonte, os campos, os critérios, os testes de cada critério por condição, a evidência por commit, as decisões, as perguntas e o histórico de estados |
+| **Início** | Um cartão por projeto do workspace: cobertura, testes executados, aprovados, reprovados, gate e última execução |
+| **Visão geral do projeto** | Cartões de indicadores (requisitos cobertos por testes, testes executados, aprovados, reprovados e pendentes), a barra de distribuição dos resultados, as últimas execuções, a qualidade por módulo, o funil por estado, o que segura os itens e as decisões e perguntas em aberto. "Pendente" aqui é só o que não foi verificado |
+| **Requisitos** | A lista com filtros, agrupada por pacote na numeração de quem pediu. No detalhe: a citação lado a lado com o trecho da fonte, os campos, os critérios, os testes de cada critério por condição, a evidência por commit, os diagramas de rastreabilidade e de fluxo de QA, as decisões, as perguntas, o histórico de estados e as ações humanas em diálogos |
 | **Testes** | O catálogo de todos os testes do projeto (detalhado abaixo) |
-| **Execuções** | Cada `lastro verify` e cada rodada do CI (detalhado abaixo) |
+| **Execuções** | Lista e detalhe de cada `lastro verify` e de cada rodada do CI (detalhado abaixo) |
+| **Bugs** | Os incidentes depois da entrega, com triagem, causa e cobrança (correção, cortesia ou orçamento) |
+| **Agentes** | As sessões de cada agente e os eventos de cada sessão: ferramentas chamadas, arquivos tocados, bloqueios do gate |
 | **Diagramas** | Os diagramas vivos do projeto, do pacote e do requisito (ver a próxima seção) |
-| **Documentação** | Gerar, ver e baixar os documentos do projeto (ver mais abaixo) |
-| **Fontes** | Os documentos, conversas, áudios e vídeos recebidos, com as versões, a diferença entre elas e os requisitos que cada trecho gerou |
-| **Perguntas e decisões** | O que está aberto, o que o agente presumiu e ainda não foi confirmado, o que o cliente respondeu |
-| **Incidentes** | Reclamações depois da entrega, com triagem, causa e cobrança (correção, cortesia ou orçamento) |
-| **Configuração** | Fluxos de QA, condições, glossário e contrato de layout. Os fluxos são editados visualmente: incluir, tirar e reordenar etapas e condições |
-| **Projetos** | Só no modo servidor: todos os projetos do banco, lado a lado, com os mesmos indicadores |
+| **Documentação** | Gerar, ler e baixar os documentos do projeto (ver mais abaixo) |
+| **Fontes** | Envio dos documentos, conversas, áudios e vídeos, com as versões, a diferença entre elas, os trechos citados e os requisitos que cada trecho gerou |
+| **Glossário e contrato de layout** | Os termos, as invariantes, os componentes permitidos e as telas de referência |
+| **Configurações** | Editor visual dos fluxos de QA, das condições e dos comandos (incluir, tirar e reordenar etapas e condições), os membros do workspace e os tokens |
+| **Auditoria** | O registro, só de inclusão, de toda mudança: quem fez, quando, por onde (painel, API, CLI ou MCP) e o que mudou |
 
 ### Página de testes
 
@@ -169,20 +171,25 @@ Pelo painel, uma pessoa pode:
 
 - aprovar spec;
 - confirmar ou derrubar decisão;
+- destravar critério;
+- tirar um item do escopo;
 - responder pergunta;
 - registrar prévia e etapa manual;
 - aceitar entrega;
 - fazer a triagem de incidente;
+- marcar uma fonte como final;
 - editar os fluxos de QA.
 
 São as mesmas ações humanas da CLI, e o agente não tem acesso a nenhuma delas.
 
-- **No modo local,** a ação grava direto nos arquivos de `.lastro/` e entra no próximo commit.
-- **No modo servidor,** a ação vira um evento no Postgres. O `lastro sync` aplica o evento nos arquivos do repositório, para a spec continuar revisada no PR.
+- Toda ação é uma escrita na API do servidor e gera um evento de auditoria.
+- O núcleo recusa a ação quando quem pede é um agente, qualquer que seja a porta de entrada.
+- A mudança chega ao repositório no próximo `lastro export`, para a spec continuar revisada no PR.
 
 ## Visual
 
-- React, com Tailwind e shadcn/ui.
+- TanStack Start, Router e Query, com Tailwind v4 e shadcn/ui (estilo new-york).
+- Denso e voltado para os dados: cartões de indicadores, tabelas e gráficos antes de texto.
 - Tema claro e escuro.
 - Funciona em tela de notebook e de celular.
 - Confirmações por diálogo próprio, nunca pelas caixas nativas do navegador.
