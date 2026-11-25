@@ -75,7 +75,11 @@ bun workspaces and Turborepo: `apps/`, `packages/`, `tooling/`.
 | 7 | Enforcement: Claude Code plugin, `pre-push`, GitHub Action, Claude Ship templates | done |
 | 8 | Advanced dashboard: Agents, Audit, module map, timelines, visual flow editor | done |
 | 9 | Distribution: Docker image and production compose, npm package, README in English and Portuguese with real screenshots | done |
-| 10 | Dogfood: Lastro tracks itself on its own server, tests linked to criteria, gate in CI | todo |
+| 10 | Dogfood: Lastro tracks itself on its own server, tests linked to criteria, gate in CI | done: every criterion of Lastro's 26 requirements is linked to tests, `lastro gate --ci` runs in CI and a dry run of the full flow passes; approving them (PRD final, then approve) is a person's action |
+
+## What the dogfood found
+
+Auditing Lastro's own 26 requirements against the code found that none was built exactly as specified (23 partial, 3 missing). Every gap was fixed or, where the build reads the spec differently, recorded as a proposed decision in `.lastro/decisions/` for a person to confirm or overturn. A dry run of `lastro gate --ci` on this repository then found two gate bugs (suppressed SARIF results counted as errors; a test skipped under one condition hid its pass under another), also fixed.
 
 ## Verification in every phase
 
