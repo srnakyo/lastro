@@ -1,0 +1,25 @@
+id: REQ-D1F4M
+title: "Item-by-item package report in Markdown"
+type: behavior
+status: specified
+package: PKG-M7V0P
+sources:
+  - ref: SRC-P4RD7
+    anchor: "@04-lifecycle-and-gates.md#pacotes-e-o-relatório-item-a-item"
+    quote: "na ordem e na numeração de quem pediu"
+statement: >
+  `lastro report <PKG>` writes a Markdown report with one entry per requirement, in the order and numbering of the requester (source anchor label): literal request, status in plain language, what was done, decisions shown to the client as statements, where to see it, evidence links. Open questions go to a separate 'awaiting answer' section.
+where: "lastro report"
+examples:
+  - given: "package from a document with items 1 to 12, item 7 with an open question"
+    expect: "entries 1 to 6 and 8 to 12 in order; item 7 only under 'awaiting answer'"
+  - given: "decision with show_to_client: true"
+    expect: "appears as 'We decided ...' under its item"
+acceptance:
+  - id: AC-1
+    text: "Given a package whose source numbers items 1 to 12 and item 7 has an open question, when `lastro report` runs, then items appear in source order and item 7 appears only under 'awaiting answer'."
+    tests: []
+decisions: []
+questions: []
+depends_on: []
+touches: []

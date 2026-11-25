@@ -1,0 +1,9 @@
+id: DEC-G5J8Q
+about: []
+kind: decision
+text: "Lastro has no LLM inside; the developer's own agent does interpretation through MCP."
+reason: "No token cost, no API key, and no client material sent anywhere by Lastro."
+decided_by: agent
+status: proposed
+show_to_client: true
+source: { ref: SRC-P4RD7, anchor: "@02-vision-scope.md#princípios" }

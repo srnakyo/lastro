@@ -1,0 +1,23 @@
+id: REQ-7V6KE
+title: "`lastro pending` lists only what is not verified"
+type: behavior
+status: specified
+package: PKG-M7V0P
+sources:
+  - ref: SRC-P4RD7
+    anchor: "@04-lifecycle-and-gates.md#estados-de-um-requisito"
+    quote: "Pendente é só o que não chegou em `verified`."
+statement: >
+  `lastro pending [PKG]` lists only requirements whose status is before verified (or reopened), grouped by reason: missing fields, open question, awaiting approval, building, gate red. Verified, previewed, delivered and accepted items never appear, not even with a note.
+where: "lastro pending"
+examples:
+  - given: "package with 5 verified, 2 building, 1 captured missing 'where'"
+    expect: "output lists 3 items: 2 under 'building', 1 under 'missing fields: where'; no verified item appears"
+acceptance:
+  - id: AC-1
+    text: "Given a package with 5 verified, 2 building and 1 captured requirement, when `lastro pending` runs, then it lists exactly 3 items grouped by reason and none of the verified ones."
+    tests: []
+decisions: []
+questions: []
+depends_on: []
+touches: []

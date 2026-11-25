@@ -1,0 +1,5 @@
+node_modules/
+dist/
+.lastro/.state/
+.lastro/.store/
+.lastro/.out/

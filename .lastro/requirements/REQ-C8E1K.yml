@@ -1,0 +1,25 @@
+id: REQ-C8E1K
+title: "Locked criteria and tests need a human unlock"
+type: behavior
+status: specified
+package: PKG-M7V0P
+sources:
+  - ref: SRC-P4RD7
+    anchor: "@03-domain-model.md#critério-de-aceite-dentro-do-requisito"
+    quote: "`lastro lock` grava o hash do texto do critério e dos testes ligados."
+statement: >
+  Approving a requirement locks its acceptance criteria: the hash of each criterion text and of each linked test is stored. A changed hash makes the gate fail with 'locked criterion changed' until a person runs `lastro unlock`.
+where: "lastro lock, lastro unlock, lastro gate"
+examples:
+  - given: "approved requirement; linked test body edited"
+    expect: "gate fails: 'locked test changed: unit/x.test.ts::case'"
+  - given: "person runs lastro unlock, then lastro lock again"
+    expect: "gate evaluates normally with the new hash"
+acceptance:
+  - id: AC-1
+    text: "Given an approved requirement, when a linked test is edited, then the gate fails naming the test until `lastro unlock` and a new lock are recorded."
+    tests: []
+decisions: []
+questions: []
+depends_on: []
+touches: []

@@ -1,0 +1,25 @@
+id: REQ-E4G7N
+title: "Human commands require interactive confirmation"
+type: behavior
+status: specified
+package: PKG-M7V0P
+sources:
+  - ref: SRC-P4RD7
+    anchor: "@05-enforcement.md#comandos-humanos"
+    quote: "pedem confirmação interativa no terminal"
+statement: >
+  approve, accept, unlock, decision confirm/overturn and manual check ask for interactive confirmation on a TTY and refuse to run without one, unless --yes is given by an identity listed in gate.human_identities.
+where: "lastro approve, lastro accept, lastro unlock, lastro decision, lastro check --manual"
+examples:
+  - given: "lastro approve run without a TTY and without --yes"
+    expect: "refused; exit code 2"
+  - given: "lastro approve on a TTY, user confirms"
+    expect: "requirement approved and criteria locked"
+acceptance:
+  - id: AC-1
+    text: "Given no TTY and no --yes, when `lastro approve` runs, then it refuses with exit code 2 and changes nothing."
+    tests: []
+decisions: []
+questions: []
+depends_on: []
+touches: []

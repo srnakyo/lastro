@@ -1,0 +1,38 @@
+# Lastro's own configuration: the project uses itself.
+version: 1
+project: "lastro"
+language: en
+
+approval:
+  spec: [dev]
+  require_final_source: true      # the PRD must be marked final before anything is approved
+
+commands:
+  typecheck: { run: "npx tsc -b" }
+  lint:      { run: "npx eslint . -f @microsoft/eslint-formatter-sarif -o .lastro/.out/eslint.sarif", report: { sarif: ".lastro/.out/eslint.sarif" } }
+  unit:      { run: "npx vitest run --reporter=junit --outputFile=.lastro/.out/unit.xml", report: { junit: ".lastro/.out/unit.xml" } }
+
+conditions:
+  empty-repo:     { setup: "node scripts/fixtures.mjs empty", note: "a git repository with no .lastro/ folder" }
+  existing-repo:  { setup: "node scripts/fixtures.mjs existing", note: "a repository with history, branches and an existing .lastro/" }
+  windows-paths:  { env: { LASTRO_TEST_PATH_STYLE: "win32" }, note: "paths with backslashes and drive letters" }
+
+types:
+  behavior:
+    required: [where, examples]
+    flow:
+      - typecheck
+      - { run: unit, conditions: [empty-repo, existing-repo] }
+  format:
+    required: [examples]
+    flow:
+      - typecheck
+      - unit
+      - { check: examples }
+
+global_flow: [typecheck, lint]
+
+gate:
+  block_agent_stop: true
+  stale_on_change: true
+  ci: required

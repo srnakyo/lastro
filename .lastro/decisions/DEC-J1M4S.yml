@@ -1,0 +1,9 @@
+id: DEC-J1M4S
+about: []
+kind: decision
+text: "Documentation is bilingual: English is canonical, the pt-BR PRD is the original draft. File keys are always English; content follows the requester's language."
+reason: "Reach the international community while keeping the Brazilian origin of the project."
+decided_by: agent
+status: proposed
+show_to_client: true
+source: { ref: SRC-P4RD7, anchor: "@08-architecture-roadmap.md#idiomas" }

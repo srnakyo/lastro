@@ -1,0 +1,9 @@
+id: DEC-K4N7T
+about: []
+kind: decision
+text: "TypeScript strict on Node 22+, npm workspaces, zod schemas exported as JSON Schema."
+reason: "Same ecosystem as MCP and the coding agents, distribution through npm, runtime validation and editor autocompletion from one source."
+decided_by: agent
+status: proposed
+show_to_client: true
+source: { ref: SRC-P4RD7, anchor: "@08-architecture-roadmap.md#stack" }

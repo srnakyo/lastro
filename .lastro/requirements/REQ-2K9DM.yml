@@ -1,0 +1,24 @@
+id: REQ-2K9DM
+title: "Short random IDs with type prefixes"
+type: format
+status: specified
+package: PKG-M7V0P
+sources:
+  - ref: SRC-P4RD7
+    anchor: "@03-domain-model.md#ids"
+    quote: "Aleatório para não colidir quando dois branches criam itens ao mesmo tempo."
+statement: >
+  New entities get IDs of the form <PREFIX>-<5 Crockford base32 characters>, with the prefixes SRC, REQ, DEC, Q, INC, PKG, ART and INV. The requester's numbering is never used as ID; it stays in the source anchor label.
+examples:
+  - given: "10,000 new requirement IDs generated"
+    expect: "all match ^REQ-[0-9A-HJKMNP-TV-Z]{5}$ and none repeats an existing file"
+  - given: "requirement created from 'item 14' of a document"
+    expect: "ID is random; sources[0].label is 'item 14'"
+acceptance:
+  - id: AC-1
+    text: "Given 10,000 generated requirement IDs, then every ID matches ^REQ-[0-9A-HJKMNP-TV-Z]{5}$ and no ID collides with an existing file in the repository."
+    tests: []
+decisions: []
+questions: []
+depends_on: []
+touches: []

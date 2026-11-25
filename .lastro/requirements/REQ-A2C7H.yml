@@ -1,0 +1,28 @@
+id: REQ-A2C7H
+title: "`lastro gate` evaluates the gate on the current commit"
+type: behavior
+status: specified
+package: PKG-M7V0P
+sources:
+  - ref: SRC-P4RD7
+    anchor: "@06-interfaces.md#verificação-e-entrega"
+    quote: "Sai com código 0 só se passar."
+statement: >
+  `lastro gate` applies the seven gate rules of the PRD to the selected requirements on the current commit and exits 0 only when all pass. The output separates what the agent can fix from what needs a person.
+where: "lastro gate"
+examples:
+  - given: "one acceptance criterion without a linked test"
+    expect: "exit 1; 'AC-2 has no test' listed under 'agent can fix'"
+  - given: "all automatic stages pass, manual preview not signed"
+    expect: "exit 1; 'preview not approved' listed under 'needs a person'"
+acceptance:
+  - id: AC-1
+    text: "Given a requirement whose criterion AC-2 has no linked test, when `lastro gate` runs, then it exits with code 1 and lists AC-2 under what the agent can fix."
+    tests: []
+  - id: AC-2
+    text: "Given a requirement whose only missing stage is a manual preview, then the gate exits with code 1 and lists the preview under what needs a person."
+    tests: []
+decisions: []
+questions: [Q-R9T2Z]
+depends_on: []
+touches: []

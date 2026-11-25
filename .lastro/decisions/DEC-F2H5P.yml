@@ -1,0 +1,9 @@
+id: DEC-F2H5P
+about: []
+kind: decision
+text: "Files under .lastro/ in git are the source of truth; SQLite is only an index and history cache."
+reason: "The spec is reviewed in the same pull request as the code, history comes from git, and there is nothing to host. The cache can be deleted and rebuilt."
+decided_by: agent
+status: proposed
+show_to_client: true
+source: { ref: SRC-P4RD7, anchor: "@08-architecture-roadmap.md#decisões-de-arquitetura" }

@@ -1,0 +1,28 @@
+id: REQ-5R2HC
+title: "A blocking question blocks only its own requirement"
+type: behavior
+status: specified
+package: PKG-M7V0P
+sources:
+  - ref: SRC-P4RD7
+    anchor: "@03-domain-model.md#pergunta-questionsq-xxxxxyml"
+    quote: "Pergunta com `blocks: true` trava só o requisito dela, não o pacote."
+statement: >
+  An open question with blocks: true keeps its requirements from leaving captured or specified, and nothing else. Answering it with `lastro answer` records a client_answer decision with the answer source and releases the requirement.
+where: "lastro ask, lastro answer"
+examples:
+  - given: "package with 10 requirements, one blocking question on REQ-A"
+    expect: "REQ-A cannot be approved; the other 9 can"
+  - given: "answer recorded with --source SRC-x@msg:y"
+    expect: "a DEC of kind client_answer is created with that source"
+acceptance:
+  - id: AC-1
+    text: "Given a package with 10 requirements and one open blocking question on one of them, when `lastro approve PKG` runs, then 9 requirements become approved and the blocked one stays, with the question id in the output."
+    tests: []
+  - id: AC-2
+    text: "Given an answer recorded with --source, then a decision of kind client_answer exists with that source and the question is closed."
+    tests: []
+decisions: []
+questions: []
+depends_on: []
+touches: []
