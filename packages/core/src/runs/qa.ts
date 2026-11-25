@@ -29,7 +29,8 @@ export async function requirementQa(projectId: string, code: string) {
   };
 }
 
-const label = (b: { kind: string; detail: string }) => b.kind.replace(/_/g, " ");
+// Blocker kinds go out as codes; the diagram and each screen put them in words in their own language.
+const label = (b: { kind: string; detail: string }) => b.kind;
 
 /** Latest result of each test with the run it came from. */
 async function latestTests(projectId: string) {

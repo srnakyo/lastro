@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/card";
 import { docsQuery } from "@/hooks/doc-queries";
 import { formatDateTime } from "@/lib/format";
 import { useI18n, type MessageKey } from "@/lib/i18n";
+import { ContentLanguage } from "@/components/projects/content-language";
 
 export const Route = createFileRoute("/_app/projects/$key/docs/")({
   loader: ({ context, params }) => context.queryClient.ensureQueryData(docsQuery(params.key)),
@@ -37,7 +38,10 @@ function Docs() {
                 </div>
               </div>
               <div className="mt-auto flex flex-wrap items-center gap-2 pt-4">
-                <span className="mr-auto text-[12px] text-muted-foreground">{md ? t("docs.last", { when: formatDateTime(md.createdAt, lang) }) : t("docs.never")}</span>
+                <span className="mr-auto flex flex-wrap items-center gap-2 text-[12px] text-muted-foreground">
+                  {md ? t("docs.last", { when: formatDateTime(md.createdAt, lang) }) : t("docs.never")}
+                  {md && <ContentLanguage language={md.language} label="docs.writtenIn" help="docs.writtenIn.help" />}
+                </span>
                 {md && (
                   <>
                     <Link to="/projects/$key/docs/$doc" params={{ key, doc: d.id }} className="rounded-md bg-primary px-2.5 py-1 text-[12.5px] font-medium text-primary-foreground hover:bg-primary/90">{t("docs.read")}</Link>

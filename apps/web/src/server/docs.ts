@@ -19,7 +19,7 @@ export async function buildDocs(projectId: string, actor: Actor, options: { lang
       ...(r?.pdf ? [{ document: d.id, format: "pdf" as const, bytes: r.pdf }] : []),
     ];
   });
-  await docBuildsService.record(projectId, actor, input.commit, files, storeFromEnv());
+  await docBuildsService.record(projectId, actor, input.commit, files, storeFromEnv(), input.lang);
   return { documents: documents.length, pdf: rendered.some((r) => r.pdf !== null) };
 }
 

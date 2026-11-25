@@ -26,7 +26,7 @@ export const enBase = {
   "user.signOut": "Sign out",
   "user.theme.dark": "Dark theme",
   "user.theme.light": "Light theme",
-  "user.language": "Português",
+  "user.language": "Language",
   "auth.signIn.title": "Sign in to Lastro",
   "auth.signIn.lead": "Requirements, evidence and quality gates for every project you build with AI agents.",
   "auth.signIn.submit": "Sign in",

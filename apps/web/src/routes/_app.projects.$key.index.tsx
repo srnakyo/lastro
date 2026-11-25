@@ -11,6 +11,7 @@ import { ResultDistribution } from "@/components/overview/result-distribution";
 import { StatusFunnel } from "@/components/overview/status-funnel";
 import { ActivityCard } from "@/components/overview/activity-card";
 import { PageHeader } from "@/components/page-header";
+import { ContentLanguage } from "@/components/projects/content-language";
 import { overviewQuery, projectQuery } from "@/hooks/queries";
 import { useI18n } from "@/lib/i18n";
 
@@ -27,7 +28,7 @@ function Overview() {
   const covered = Math.round((o.coverage * o.requirements) / 100);
   return (
     <>
-      <PageHeader title={project.name} description={project.description ?? undefined} />
+      <PageHeader title={project.name} description={project.description ?? undefined} actions={<ContentLanguage language={project.language} />} />
       <NextSteps projectKey={key} data={o} />
       <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard label={t("overview.kpi.coverage")} value={`${o.coverage}%`} icon={<ShieldCheck />} tone="primary" hint={t("overview.kpi.ofTotal", { n: covered, total: o.requirements })} />

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { signUp } from "@/lib/auth-client";
 import { useRefreshViewer } from "@/hooks/use-refresh-viewer";
+import { authErrorText } from "@/lib/error-text";
 import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/sign-up")({
@@ -16,7 +17,7 @@ export const Route = createFileRoute("/sign-up")({
 });
 
 function SignUp() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const router = useRouter();
   const refresh = useRefreshViewer();
   const { viewer } = Route.useRouteContext();
@@ -29,7 +30,7 @@ function SignUp() {
     setBusy(true);
     const result = await signUp.email({ name: String(form.get("name")), email: String(form.get("email")), password: String(form.get("password")) });
     setBusy(false);
-    if (result.error) return setError(result.error.message ?? t("auth.failed"));
+    if (result.error) return setError(authErrorText(lang, result.error, t("auth.signUpFailed")));
     await refresh();
     await router.navigate({ to: "/onboarding" });
   }

@@ -2,9 +2,12 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
+import { errorText } from "@/lib/error-text";
+import { useI18n } from "@/lib/i18n";
 
 /** Runs a server action, shows its error as a toast, then refreshes the queries of the project. */
 export function useAction(projectKey: string) {
+  const { lang } = useI18n();
   const queryClient = useQueryClient();
   const router = useRouter();
   const [pending, setPending] = useState(false);
@@ -17,7 +20,7 @@ export function useAction(projectKey: string) {
       if (success) toast.success(success);
       return result;
     } catch (error) {
-      toast.error((error as Error).message);
+      toast.error(errorText(lang, (error as Error).message));
       return null;
     } finally {
       setPending(false);

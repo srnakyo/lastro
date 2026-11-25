@@ -760,6 +760,8 @@ model DocBuild {
   commit      String?
   storageKey  String?
   generatedBy String?
+  /// The language the document was written in.
+  language    String   @default("en")
   createdAt   DateTime @default(now())
 
   @@index([projectId, createdAt])

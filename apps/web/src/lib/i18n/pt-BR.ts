@@ -28,7 +28,7 @@ export const ptBRBase: Record<keyof typeof enBase, string> = {
   "user.signOut": "Sair",
   "user.theme.dark": "Tema escuro",
   "user.theme.light": "Tema claro",
-  "user.language": "English",
+  "user.language": "Idioma",
   "auth.signIn.title": "Entrar no Lastro",
   "auth.signIn.lead": "Requisitos, evidência e quality gates para cada projeto que você faz com agentes de IA.",
   "auth.signIn.submit": "Entrar",

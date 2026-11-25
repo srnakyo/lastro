@@ -1,10 +1,11 @@
+import { values } from "@lastro/docs";
 import type { Blocker } from "@lastro/shared";
 import { Link } from "@tanstack/react-router";
 import { Lock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDateTime } from "@/lib/format";
-import { useI18n } from "@/lib/i18n";
+import { useI18n, type MessageKey } from "@/lib/i18n";
 import { RichText } from "@/lib/rich-text";
 
 export function BlockersList({ blockers }: { blockers: Blocker[] }) {
@@ -105,6 +106,7 @@ export function RelatedList({ projectKey, decisions, questions }: { projectKey: 
 
 export function HistoryList({ history }: { history: { id: string; fromStatus: string | null; toStatus: string; reason: string | null; actorType: string; createdAt: string | Date }[] }) {
   const { t, lang } = useI18n();
+  const words = values(lang);
   return (
     <Card>
       <CardHeader>
@@ -119,8 +121,8 @@ export function HistoryList({ history }: { history: { id: string; fromStatus: st
               <span className="font-medium">{t(`status.${h.toStatus}` as never)}</span>
             </span>
             <span className="text-[12px] text-muted-foreground">
-              {h.actorType}
-              {h.reason ? ` · ${h.reason}` : ""}
+              {t(`actor.${h.actorType}` as MessageKey)}
+              {h.reason ? ` · ${words.reason(h.reason)}` : ""}
             </span>
           </li>
         ))}

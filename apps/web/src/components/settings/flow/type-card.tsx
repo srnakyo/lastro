@@ -10,7 +10,7 @@ import { FIELDS, type Action, type Draft } from "./draft";
 import { FlowList } from "./flow-list";
 
 export function TypeCard({ draft, index, preview, dispatch }: { draft: Draft; index: number; preview: ProjectConfig; dispatch: (a: Action) => void }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const type = draft.types[index];
   if (!type) return null;
   return (
@@ -41,7 +41,7 @@ export function TypeCard({ draft, index, preview, dispatch }: { draft: Draft; in
         </div>
         <div className="min-w-0">
           <p className="mb-1.5 text-[12px] font-medium text-muted-foreground">{t("flow.preview")}</p>
-          <div className="rounded-md border bg-muted/30 p-3"><MermaidView source={qaFlowDiagram(preview, type.name)} minHeight={120} fit /></div>
+          <div className="rounded-md border bg-muted/30 p-3"><MermaidView source={qaFlowDiagram(preview, type.name, undefined, lang)} minHeight={120} fit /></div>
         </div>
       </div>
     </Card>

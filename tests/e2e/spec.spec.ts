@@ -40,6 +40,8 @@ test("a blocking question holds its requirement until a person records the answe
   await page.getByRole("button", { name: "Record answer" }).click();
   await page.getByRole("dialog").getByRole("textbox").first().fill("Yes, same as the PDF.");
   await page.getByRole("dialog").getByRole("button", { name: "Save" }).click();
+  // The dialog closes only once the server saved the answer; the typed text alone is already on screen in the textarea.
+  await expect(page.getByRole("dialog")).toBeHidden();
   await expect(page.getByText("Yes, same as the PDF.")).toBeVisible();
   await open(page, "/projects/e2e-demo/requirements/REQ-E2E02");
   await expect(page.getByText("Blocking question open")).toHaveCount(0);
@@ -64,6 +66,7 @@ test("an incident is reported and triaged with cause and billing", async ({ page
   const report = page.getByRole("dialog");
   await report.getByRole("textbox").first().fill("The discount is missing on the PDF.");
   await report.getByRole("button", { name: "Save" }).click();
+  await expect(report).toBeHidden();
   await expect(page.getByText("The discount is missing on the PDF.")).toBeVisible();
   await page.getByRole("button", { name: "Triage" }).click();
   const triage = page.getByRole("dialog");

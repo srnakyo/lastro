@@ -37,9 +37,10 @@ test("the glossary takes a new term and the audit log shows it", async ({ page }
   await dialog.getByLabel("Term").fill("Seat");
   await dialog.getByLabel("Means").fill("An active user on the plan");
   await dialog.getByRole("button", { name: "Save" }).click();
+  await expect(dialog).toBeHidden();
   await expect(page.getByText("An active user on the plan")).toBeVisible();
   await open(page, "/projects/e2e-demo/audit");
-  await expect(page.getByText("glossary.term").first()).toBeVisible();
+  await expect(page.getByRole("cell", { name: "Changed a glossary term" }).first()).toBeVisible();
 });
 
 test("agent sessions show what the agent did, refused actions included", async ({ page }) => {

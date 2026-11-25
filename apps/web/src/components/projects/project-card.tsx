@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Tooltip } from "@/components/ui/tooltip";
+import { ContentLanguage } from "./content-language";
 import { formatDateTime } from "@/lib/format";
 import { useI18n } from "@/lib/i18n";
 
@@ -11,6 +12,7 @@ export interface ProjectSummary {
   key: string;
   name: string;
   description: string | null;
+  language: string;
   requirements: number;
   pending: number;
   coverage: number;
@@ -45,6 +47,9 @@ export function ProjectCard({ project }: { project: ProjectSummary }) {
           </Tooltip>
         </div>
         {project.description && <p className="mt-2 line-clamp-2 text-[13px] text-muted-foreground">{project.description}</p>}
+        <div className="mt-2 empty:hidden">
+          <ContentLanguage language={project.language} />
+        </div>
         {project.requirements === 0 ? (
           <div className="mt-4 flex flex-1 flex-col justify-between gap-3 border-t pt-4">
             <p className="text-[13px] text-muted-foreground">{t("home.start")}</p>

@@ -78,7 +78,7 @@ export const overviewService = {
         const o = await overviewService.project(p.id);
         const lastRun = o.runs[0] ?? null;
         const gate: "failing" | "passing" | "no_runs" = o.tests.failed > 0 ? "failing" : lastRun ? "passing" : "no_runs";
-        return { id: p.id, key: p.key, name: p.name, description: p.description, requirements: o.requirements, pending: o.pending, coverage: o.coverage, tests: o.tests, lastRun, gate };
+        return { id: p.id, key: p.key, name: p.name, description: p.description, language: p.language, requirements: o.requirements, pending: o.pending, coverage: o.coverage, tests: o.tests, lastRun, gate };
       }),
     );
   },

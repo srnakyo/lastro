@@ -4,3 +4,4 @@ export { lifecycleDiagram } from "./diagrams/lifecycle";
 export { moduleMapDiagram, type ModuleItem } from "./diagrams/modules";
 export { DOCUMENTS, generateDocuments, generatePackageReport } from "./documents";
 export { DOCUMENT_IDS, type DocRequirement, type DocsInput, type DocumentId, type GeneratedDocument } from "./model";
+export { values, type Values, type ValueGroup } from "./values";

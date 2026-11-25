@@ -1,3 +1,4 @@
+import { values } from "../values";
 import { label, nodeId } from "./mermaid";
 
 export interface ModuleItem {
@@ -13,13 +14,14 @@ const CLASS: Record<string, string> = {
 };
 
 /** Requirements grouped by module, one box per module, each requirement colored by its state. */
-export function moduleMapDiagram(items: ModuleItem[]): string {
+export function moduleMapDiagram(items: ModuleItem[], lang: "en" | "pt-BR" = "en"): string {
+  const v = values(lang);
   const modules = new Map<string, ModuleItem[]>();
   for (const i of items) modules.set(i.module, [...(modules.get(i.module) ?? []), i]);
   const lines = ["flowchart LR"];
   for (const [name, reqs] of [...modules.entries()].sort(([a], [b]) => a.localeCompare(b))) {
     lines.push(`  subgraph ${nodeId("m", name)}["${label(name)}"]`, "    direction TB");
-    for (const r of reqs) lines.push(`    ${nodeId("r", r.code)}["${label(`${r.code} · ${r.status}`)}"]:::${CLASS[r.status] ?? "todo"}`);
+    for (const r of reqs) lines.push(`    ${nodeId("r", r.code)}["${label(`${r.code} · ${v.of("status", r.status)}`)}"]:::${CLASS[r.status] ?? "todo"}`);
     lines.push("  end");
   }
   lines.push(

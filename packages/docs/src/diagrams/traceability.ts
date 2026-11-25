@@ -1,3 +1,4 @@
+import { values } from "../values";
 import { label, nodeId, STATUS_CLASSES } from "./mermaid";
 
 export interface TraceRequirement {
@@ -27,7 +28,8 @@ export const traceIds = {
  * found, a requirement whose source is not final, a criterion with no test ("no test"); a test with no run
  * is grey ("not run").
  */
-export function traceabilityDiagram(requirements: TraceRequirement[], tests: TestStates): string {
+export function traceabilityDiagram(requirements: TraceRequirement[], tests: TestStates, lang: "en" | "pt-BR" = "en"): string {
+  const v = values(lang);
   const lines = ["flowchart LR"];
   const declared = new Set<string>();
   const addNode = (id: string, line: string) => {
@@ -37,24 +39,24 @@ export function traceabilityDiagram(requirements: TraceRequirement[], tests: Tes
   for (const r of requirements) {
     const req = traceIds.requirement(r.code);
     const gap = r.finalSource === false;
-    addNode(req, `  ${req}["${label(`${r.code} ${r.title}${gap ? " · source not final" : ""}`)}"]:::${gap ? "gap" : "item"}`);
+    addNode(req, `  ${req}["${label(`${r.code} ${r.title}${gap ? ` · ${v.word("sourceNotFinal")}` : ""}`)}"]:::${gap ? "gap" : "item"}`);
     for (const c of r.citations) {
       const passage = traceIds.passage(c.source, c.anchor);
-      addNode(passage, `  ${passage}["${label(`${c.source} ${c.anchor}${c.found ? "" : " · quote not found"}`)}"]:::${c.found ? "passed" : "failed"}`);
+      addNode(passage, `  ${passage}["${label(`${c.source} ${c.anchor}${c.found ? "" : ` · ${v.word("quoteNotFound")}`}`)}"]:::${c.found ? "passed" : "failed"}`);
       lines.push(`  ${passage} --> ${req}`);
     }
     for (const criterion of r.criteria) {
       const ac = nodeId("ac", `${r.code}${criterion.code}`);
-      addNode(ac, `  ${ac}["${label(criterion.tests.length ? criterion.code : `${criterion.code} · no test`)}"]:::${criterion.tests.length ? "item" : "failed"}`);
+      addNode(ac, `  ${ac}["${label(criterion.tests.length ? criterion.code : `${criterion.code} · ${v.word("noTest")}`)}"]:::${criterion.tests.length ? "item" : "failed"}`);
       lines.push(`  ${req} --> ${ac}`);
       for (const ref of criterion.tests) {
         const state = stateOf(tests[ref]);
         const test = nodeId("t", ref);
-        addNode(test, `  ${test}["${label(`${ref.split("::")[1] ?? ref}${state.status ? "" : " · not run"}`)}"]:::${testClass(state.status)}`);
+        addNode(test, `  ${test}["${label(`${ref.split("::")[1] ?? ref}${state.status ? "" : ` · ${v.word("notRun")}`}`)}"]:::${testClass(state.status)}`);
         lines.push(`  ${ac} --> ${test}`);
         if ("runId" in state && state.runId) {
           const run = traceIds.run(state.runId);
-          addNode(run, `  ${run}(["${label(`run ${state.commit ?? state.runId.slice(0, 8)}`)}"]):::${testClass(state.status)}`);
+          addNode(run, `  ${run}(["${label(`${v.word("run")} ${state.commit ?? state.runId.slice(0, 8)}`)}"]):::${testClass(state.status)}`);
           lines.push(`  ${test} --> ${run}`);
         }
       }

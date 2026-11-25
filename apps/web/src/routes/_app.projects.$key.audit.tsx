@@ -4,11 +4,11 @@ import { useState } from "react";
 import { PageHeader } from "@/components/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { auditQuery } from "@/hooks/admin-queries";
 import { formatDateTime } from "@/lib/format";
 import { useI18n } from "@/lib/i18n";
+import { AUDIT_ACTIONS, AuditData, auditActionText, auditEntityText } from "@/components/admin/audit-data";
 
 export const Route = createFileRoute("/_app/projects/$key/audit")({
   loader: ({ context, params }) => context.queryClient.ensureQueryData(auditQuery(params.key, {})),
@@ -28,7 +28,14 @@ function Audit() {
       <PageHeader title={t("nav.audit")} description={t("audit.lead")} />
       <Card>
         <div className="flex flex-wrap items-center gap-3 border-b px-5 py-3">
-          <Input value={action} onChange={(e) => setAction(e.target.value)} placeholder={t("audit.filter.action")} className="h-8 w-full max-w-[220px]" aria-label={t("audit.filter.action")} />
+          <Select value={action} onChange={(e) => setAction(e.target.value)} className="h-8 w-auto max-w-[280px]" aria-label={t("audit.filter.action")}>
+            <option value="">{t("audit.filter.all")}</option>
+            {AUDIT_ACTIONS.map((a) => (
+              <option key={a} value={a}>
+                {auditActionText(t, a)}
+              </option>
+            ))}
+          </Select>
           <Select value={actorType} onChange={(e) => setActorType(e.target.value as typeof actorType)} className="h-8 w-auto" aria-label={t("audit.filter.actor")}>
             <option value="">{t("common.all")}</option>
             <option value="user">{t("actor.user")}</option>
@@ -55,9 +62,9 @@ function Audit() {
                   <tr key={e.id} className="align-top">
                     <td className="whitespace-nowrap px-5 py-2.5 text-muted-foreground">{formatDateTime(e.createdAt, lang)}</td>
                     <td className="px-3 py-2.5"><Badge tone={TONE[e.actorType]}>{t(`actor.${e.actorType}`)}</Badge><span className="ml-2 font-mono text-[11px] text-muted-foreground">{e.actorId?.slice(0, 14) ?? ""}</span></td>
-                    <td className="px-3 py-2.5 font-mono text-[12.5px]">{e.action}</td>
-                    <td className="px-3 py-2.5 font-mono text-[12px] text-muted-foreground">{e.entity} {e.entityId.length > 20 ? `${e.entityId.slice(0, 8)}…` : e.entityId}</td>
-                    <td className="max-w-[420px] px-5 py-2.5 font-mono text-[11.5px] text-muted-foreground"><span className="line-clamp-2 break-all">{JSON.stringify(e.data) === "{}" ? "" : JSON.stringify(e.data)}</span></td>
+                    <td className="px-3 py-2.5 text-[12.5px]" title={e.action}>{auditActionText(t, e.action)}</td>
+                    <td className="px-3 py-2.5 text-[12px] text-muted-foreground">{auditEntityText(t, e.entity)} <span className="font-mono">{e.entityId.length > 20 ? `${e.entityId.slice(0, 8)}…` : e.entityId}</span></td>
+                    <td className="max-w-[460px] px-5 py-2.5 text-[12px]"><AuditData data={e.data} /></td>
                   </tr>
                 ))}
               </tbody>

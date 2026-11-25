@@ -9,7 +9,7 @@ function item(r: DocRequirement, input: DocsInput, t: DocT): string {
   const open = input.questions.filter((q) => !q.answer && q.requirements.includes(r.code));
   return join(
     `## ${r.title}`,
-    `**${r.status}**`,
+    `**${t(`plain.${r.status}` as never)}**`,
     `### ${t("client.asked")}`,
     ...r.citations.map((c) => quote(c.quote)),
     `### ${t("client.done")}`,

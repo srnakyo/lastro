@@ -31,7 +31,7 @@ function DiagramCard({ title, lead, action, source, minHeight, children }: { tit
 }
 
 function Diagrams() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const { key } = Route.useParams();
   const { data } = useSuspenseQuery(diagramsQuery(key));
   const [type, setType] = useState(data.types[0] ?? "");
@@ -53,7 +53,7 @@ function Diagrams() {
           <DiagramCard
             title={t("diagrams.flow")}
             action={<Select value={type} onChange={(e) => setType(e.target.value)} className="h-8 w-auto">{data.types.map((x) => <option key={x} value={x}>{x}</option>)}</Select>}
-            source={qaFlowDiagram(data.config, type)}
+            source={qaFlowDiagram(data.config, type, undefined, lang)}
             minHeight={140}
           />
         )}
@@ -69,7 +69,7 @@ function Diagrams() {
         >
           <TraceDiagram projectKey={key} requirements={traced} tests={data.tests} minHeight={320} />
         </DiagramCard>
-        <DiagramCard title={t("diagrams.modules")} lead={t("diagrams.modules.lead")} source={moduleMapDiagram(data.requirements)} minHeight={220} />
+        <DiagramCard title={t("diagrams.modules")} lead={t("diagrams.modules.lead")} source={moduleMapDiagram(data.requirements, lang)} minHeight={220} />
         <DiagramCard
           title={t("diagrams.lifecycle")}
           lead={t("diagrams.lifecycle.lead")}
@@ -81,7 +81,7 @@ function Diagrams() {
               </Select>
             ) : undefined
           }
-          source={lifecycleDiagram(data.edges, counts, blocked)}
+          source={lifecycleDiagram(data.edges, counts, blocked, lang)}
           minHeight={260}
         />
       </div>

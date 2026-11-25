@@ -2,6 +2,7 @@ import type { ProjectConfig } from "@lastro/shared";
 import type { Tx } from "../db";
 import { blocksStep, computeBlockers } from "../lifecycle/blockers";
 import { loadGraph, toBlockerInput } from "../requirements/graph";
+import { gateText, NOT_RUN, type GateItem } from "./gate-items";
 
 export interface GateResult {
   pass: boolean;
@@ -9,6 +10,9 @@ export interface GateResult {
   agentCanFix: string[];
   /** What only a person can resolve: manual stages, approvals, unlocks. */
   needsPerson: string[];
+  /** The same, as data for screens that write them in their own language. */
+  fixItems: GateItem[];
+  personItems: GateItem[];
 }
 
 interface StageState {
@@ -38,13 +42,13 @@ function requiredStages(config: ProjectConfig, type: string) {
  * Automatic checks Lastro performs itself (a `check` stage that is not manual). `examples`: every example of
  * the requester has a linked test that passed. A check Lastro does not know needs a person to decide.
  */
-function builtinCheck(name: string, examples: number, passingTests: number): { fix?: string; person?: string } {
+function builtinCheck(name: string, examples: number, passingTests: number): { fix?: GateItem; person?: GateItem } {
   if (name === "examples") {
-    if (examples === 0) return { fix: "examples: the requirement has no example of the requester" };
-    if (passingTests < examples) return { fix: `examples: ${examples} examples, ${passingTests} linked tests passing` };
+    if (examples === 0) return { fix: { kind: "no_examples" } };
+    if (passingTests < examples) return { fix: { kind: "examples_short", examples, passing: passingTests } };
     return {};
   }
-  return { person: `check ${name} has no automatic implementation: make it manual (signed) or a command` };
+  return { person: { kind: "unknown_check", check: name } };
 }
 
 const RANK: Record<string, number> = { error: 3, failed: 2, passed: 1, skipped: 0 };
@@ -73,7 +77,7 @@ async function latestByRef(tx: Tx, projectId: string, refs: string[], commit?: s
 }
 
 /** Rule 4: a locked test file is sealed on its first run after approval; a different hash afterwards fails the gate. */
-async function lockedTests(tx: Tx, graph: Awaited<ReturnType<typeof loadGraph>>, testFiles: Record<string, string>, out: string[]) {
+async function lockedTests(tx: Tx, graph: Awaited<ReturnType<typeof loadGraph>>, testFiles: Record<string, string>, out: GateItem[]) {
   for (const c of graph.criteria) {
     if (!c.lockedHash) continue;
     for (const t of c.tests) {
@@ -81,7 +85,7 @@ async function lockedTests(tx: Tx, graph: Awaited<ReturnType<typeof loadGraph>>,
       const now = testFiles[file];
       if (!now) continue;
       if (!t.lockedHash) await tx.criterionTest.updateMany({ where: { criterionId: c.id, testRef: t.testRef }, data: { lockedHash: now } });
-      else if (t.lockedHash !== now) out.push(`locked test changed: ${file} (${c.code}); revert it, or a person unlocks the criteria`);
+      else if (t.lockedHash !== now) out.push({ kind: "locked_changed", file, criterion: c.code });
     }
   }
 }
@@ -93,10 +97,10 @@ async function extraTests(tx: Tx, projectId: string, requirementId: string) {
     tx.invariant.findMany({ where: { projectId }, select: { code: true, testRefs: true } }),
   ]);
   return [
-    ...incidents.map((i) => ({ ref: i.regressionTest ?? "", why: `regression test of ${i.code}`, always: true })),
+    ...incidents.map((i) => ({ ref: i.regressionTest ?? "", kind: "regression" as const, code: i.code, always: true })),
     // An invariant counts where its tests run in this requirement's stages: Lastro cannot know which files
     // an invariant's test covers, so the tests that the requirement's own suites run stand for "the same files".
-    ...invariants.flatMap((i) => i.testRefs.map((ref) => ({ ref, why: `invariant ${i.code}`, always: false }))),
+    ...invariants.flatMap((i) => i.testRefs.map((ref) => ({ ref, kind: "invariant" as const, code: i.code, always: false }))),
   ];
 }
 
@@ -107,8 +111,8 @@ async function extraTests(tx: Tx, projectId: string, requirementId: string) {
  */
 export async function evaluateGate(tx: Tx, config: ProjectConfig, requirementId: string, latestStages: StageState[], ctx: GateContext = {}): Promise<GateResult> {
   const graph = await loadGraph(tx, requirementId);
-  const agentCanFix: string[] = [];
-  const needsPerson: string[] = [];
+  const fix: GateItem[] = [];
+  const person: GateItem[] = [];
   const extra = await extraTests(tx, graph.projectId, requirementId);
   const refs = [...graph.criteria.flatMap((c) => c.tests.map((t) => t.testRef)), ...extra.map((e) => e.ref)];
   const latest = await latestByRef(tx, graph.projectId, refs, ctx.commit);
@@ -116,28 +120,28 @@ export async function evaluateGate(tx: Tx, config: ProjectConfig, requirementId:
     if (need.builtin) {
       const passing = new Set(graph.criteria.flatMap((c) => c.tests.map((t) => t.testRef)).filter((ref) => latest.get(ref) === "passed")).size;
       const result = builtinCheck(need.stage, Array.isArray(graph.examples) ? graph.examples.length : 0, passing);
-      if (result.fix) agentCanFix.push(result.fix);
-      if (result.person) needsPerson.push(result.person);
+      if (result.fix) fix.push(result.fix);
+      if (result.person) person.push(result.person);
       continue;
     }
     const found = latestStages.find((s) => s.stage === need.stage && s.condition === need.condition);
     const label = `${need.stage}${need.condition ? ` · ${need.condition}` : ""}`;
-    if (need.manual && found?.status !== "passed") needsPerson.push(`manual stage ${label} not signed`);
+    if (need.manual && found?.status !== "passed") person.push({ kind: "manual", stage: label });
     if (!need.manual && found?.status !== "passed") {
-      agentCanFix.push(found ? `${label} ${found.status}` : `${label} not run`);
-      for (const f of found?.findings ?? []) agentCanFix.push(`${label}: ${f.file ?? "?"}${f.line ? `:${f.line}` : ""} ${f.ruleId ?? ""} ${f.message}`.trim());
+      fix.push({ kind: "stage", stage: label, status: found?.status ?? NOT_RUN });
+      for (const f of found?.findings ?? []) fix.push({ kind: "finding", stage: label, text: `${f.file ?? "?"}${f.line ? `:${f.line}` : ""} ${f.ruleId ?? ""} ${f.message}`.trim() });
     }
   }
   for (const c of graph.criteria) {
-    if (c.tests.length === 0) agentCanFix.push(`${c.code} has no test`);
-    for (const t of c.tests) if (latest.get(t.testRef) !== "passed") agentCanFix.push(`${c.code} ${t.testRef} ${latest.get(t.testRef) ?? "not run"}`);
+    if (c.tests.length === 0) fix.push({ kind: "no_test", criterion: c.code });
+    for (const t of c.tests) if (latest.get(t.testRef) !== "passed") fix.push({ kind: "test", criterion: c.code, test: t.testRef, status: latest.get(t.testRef) ?? NOT_RUN });
   }
   for (const e of extra) {
     const status = latest.get(e.ref);
-    if ((e.always || status) && status !== "passed") agentCanFix.push(`${e.why}: ${e.ref} ${status ?? "not run"}`);
+    if ((e.always || status) && status !== "passed") fix.push(e.kind === "regression" ? { kind: "regression", incident: e.code, test: e.ref, status: status ?? NOT_RUN } : { kind: "invariant", invariant: e.code, test: e.ref, status: status ?? NOT_RUN });
   }
-  await lockedTests(tx, graph, ctx.testFiles ?? {}, agentCanFix);
+  await lockedTests(tx, graph, ctx.testFiles ?? {}, fix);
   const holding = blocksStep(computeBlockers({ ...toBlockerInput(graph), hasEvidence: true }, config), "verified").filter((b) => b.kind !== "criterion_without_test");
-  for (const b of holding) needsPerson.push(`${b.kind}${b.detail ? ` ${b.detail}` : ""}`);
-  return { pass: agentCanFix.length === 0 && needsPerson.length === 0, agentCanFix, needsPerson };
+  for (const b of holding) person.push({ kind: "blocker", blocker: b.kind, detail: b.detail ?? "" });
+  return { pass: fix.length === 0 && person.length === 0, agentCanFix: fix.map(gateText), needsPerson: person.map(gateText), fixItems: fix, personItems: person };
 }

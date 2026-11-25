@@ -1,4 +1,5 @@
 import type { ProjectConfig, Stage } from "@lastro/shared";
+import { values } from "../values";
 import { label, nodeId, STATUS_CLASSES } from "./mermaid";
 
 /** Latest status per "stage|condition" ("passed", "failed", "error"); absent means not run. */
@@ -30,8 +31,9 @@ function stateClass(step: Step, condition: string | null, states?: StageStates) 
  * The QA flow of a requirement type as a left-to-right flowchart: approved, each stage (fanned out
  * per condition), verified. With states, each node takes the color of its latest result.
  */
-export function qaFlowDiagram(config: ProjectConfig, type: string, states?: StageStates): string {
-  const lines = ["flowchart LR", `  start(["approved"])`];
+export function qaFlowDiagram(config: ProjectConfig, type: string, states?: StageStates, lang: "en" | "pt-BR" = "en"): string {
+  const v = values(lang);
+  const lines = ["flowchart LR", `  start(["${label(v.of("status", "approved"))}"])`];
   let previous = ["start"];
   for (const step of steps(config, type)) {
     const ids = step.conditions.map((condition) => {
@@ -43,7 +45,7 @@ export function qaFlowDiagram(config: ProjectConfig, type: string, states?: Stag
     for (const from of previous) for (const to of ids) lines.push(`  ${from} --> ${to}`);
     previous = ids;
   }
-  lines.push(`  done(["verified"])`);
+  lines.push(`  done(["${label(v.of("status", "verified"))}"])`);
   for (const from of previous) lines.push(`  ${from} --> done`);
   return [...lines, ...STATUS_CLASSES.map((c) => `  ${c}`)].join("\n");
 }

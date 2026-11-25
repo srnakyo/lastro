@@ -1,11 +1,13 @@
 import { traceabilityDiagram, traceIds, type TestStates, type TraceRequirement } from "@lastro/docs";
 import { useNavigate } from "@tanstack/react-router";
 import { useMemo } from "react";
+import { useI18n } from "@/lib/i18n";
 import { MermaidView } from "./mermaid-view";
 
 /** Traceability where a requirement, a source passage or a run opens its page when clicked. */
 export function TraceDiagram({ projectKey, requirements, tests, minHeight }: { projectKey: string; requirements: TraceRequirement[]; tests: TestStates; minHeight?: number }) {
   const navigate = useNavigate();
+  const { lang } = useI18n();
   const links = useMemo(() => {
     const map = new Map<string, () => void>();
     for (const r of requirements) {
@@ -25,5 +27,5 @@ export function TraceDiagram({ projectKey, requirements, tests, minHeight }: { p
     go?.();
     return !!go;
   };
-  return <MermaidView source={traceabilityDiagram(requirements, tests)} minHeight={minHeight} onNodeClick={onNodeClick} />;
+  return <MermaidView source={traceabilityDiagram(requirements, tests, lang)} minHeight={minHeight} onNodeClick={onNodeClick} />;
 }

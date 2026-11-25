@@ -39,7 +39,7 @@ export function AppShell({ viewer, children }: { viewer: Viewer; children: React
   return (
     <div className="flex min-h-screen">
       <a href="#content" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-md focus:bg-primary focus:px-3 focus:py-2 focus:text-primary-foreground">
-        Skip to content
+        {t("a11y.skip")}
       </a>
       <Sidebar projectKey={projectKey} collapsed={collapsed} />
       <div className="flex min-w-0 flex-1 flex-col">

@@ -35,6 +35,7 @@ export { agentEventsService } from "./agent/events";
 export { runsService } from "./runs/service";
 export { testCatalog, uncoveredCriteria, verifyPlan } from "./runs/tests";
 export type { GateResult } from "./runs/gate";
+export { gateText, type GateItem } from "./runs/gate-items";
 export { diagramsData, requirementQa } from "./runs/qa";
 export { docsData } from "./docs/data";
 export { docBuildsService, type BuiltFile } from "./docs/service";

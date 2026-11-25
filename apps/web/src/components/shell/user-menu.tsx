@@ -1,6 +1,6 @@
 import { useRouter } from "@tanstack/react-router";
 import { useRefreshViewer } from "@/hooks/use-refresh-viewer";
-import { Languages, LogOut, Moon, Sun } from "lucide-react";
+import { Check, Languages, LogOut, Moon, Sun } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { setPreference } from "@/fns/workspaces";
 import { signOut } from "@/lib/auth-client";
@@ -9,6 +9,12 @@ import { useI18n } from "@/lib/i18n";
 function initials(name: string) {
   return name.split(/\s+/).slice(0, 2).map((p) => p[0]?.toUpperCase() ?? "").join("");
 }
+
+/** Each language named in itself, so a person finds theirs whatever the screen shows now. */
+const LANGS = [
+  { value: "pt-BR", label: "Português (Brasil)" },
+  { value: "en", label: "English" },
+] as const;
 
 export function UserMenu({ user, dark }: { user: { name: string; email: string }; dark: boolean }) {
   const { t, lang } = useI18n();
@@ -35,9 +41,15 @@ export function UserMenu({ user, dark }: { user: { name: string; email: string }
         <DropdownMenuItem onSelect={() => void set("lastro_theme", dark ? "light" : "dark")}>
           {dark ? <Sun /> : <Moon />} {dark ? t("user.theme.light") : t("user.theme.dark")}
         </DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => void set("lastro_lang", lang === "en" ? "pt-BR" : "en")}>
-          <Languages /> {t("user.language")}
-        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel className="flex items-center gap-2">
+          <Languages className="size-3.5" /> {t("user.language")}
+        </DropdownMenuLabel>
+        {LANGS.map((option) => (
+          <DropdownMenuItem key={option.value} onSelect={() => option.value !== lang && void set("lastro_lang", option.value)} aria-checked={option.value === lang} role="menuitemradio">
+            <Check className={option.value === lang ? "opacity-100" : "opacity-0"} /> {option.label}
+          </DropdownMenuItem>
+        ))}
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onSelect={async () => {

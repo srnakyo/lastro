@@ -8,12 +8,13 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { createProject } from "@/fns/projects";
 import { keys } from "@/hooks/queries";
+import { errorText } from "@/lib/error-text";
 import { useI18n } from "@/lib/i18n";
 
 const toKey = (v: string) => v.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 50);
 
 export function NewProjectDialog() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -30,7 +31,7 @@ export function NewProjectDialog() {
       setOpen(false);
       await navigate({ to: "/projects/$key", params: { key: created.key } });
     } catch (e) {
-      setError((e as Error).message);
+      setError(errorText(lang, (e as Error).message));
     }
   }
 

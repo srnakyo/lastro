@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { createWorkspace } from "@/fns/workspaces";
 import { useRefreshViewer } from "@/hooks/use-refresh-viewer";
+import { errorText } from "@/lib/error-text";
 import { useI18n } from "@/lib/i18n";
 
 const slugify = (v: string) => v.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40);
@@ -18,7 +19,7 @@ export const Route = createFileRoute("/onboarding")({
 });
 
 function Onboarding() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const router = useRouter();
   const refresh = useRefreshViewer();
   const [name, setName] = useState("");
@@ -32,7 +33,7 @@ function Onboarding() {
       await refresh();
       await router.navigate({ to: "/" });
     } catch (e) {
-      setError((e as Error).message);
+      setError(errorText(lang, (e as Error).message));
     }
   }
 
