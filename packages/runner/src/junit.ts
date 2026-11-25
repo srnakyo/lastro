@@ -79,3 +79,18 @@ export function parseJunit(xml: string, options: JunitOptions = {}): TestCaseRes
     }),
   );
 }
+
+const RANK: Record<TestCaseResult["status"], number> = { error: 3, failed: 2, passed: 1, skipped: 0 };
+
+/**
+ * One result per test: a report can list the same test more than once (Playwright, once per project). It
+ * failed if any run failed, passed if any passed and none failed, and was skipped only if every run was.
+ */
+export function mergeResults(results: TestCaseResult[]): TestCaseResult[] {
+  const byRef = new Map<string, TestCaseResult>();
+  for (const r of results) {
+    const seen = byRef.get(r.ref);
+    if (!seen || RANK[r.status] > RANK[seen.status]) byRef.set(r.ref, { ...r, durationMs: Math.max(r.durationMs, seen?.durationMs ?? 0) });
+  }
+  return [...byRef.values()];
+}

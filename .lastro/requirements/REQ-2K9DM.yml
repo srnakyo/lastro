@@ -17,7 +17,10 @@ examples:
 acceptance:
   - id: AC-1
     text: Given 10,000 generated requirement IDs, then every ID matches ^REQ-[0-9A-HJKMNP-TV-Z]{5}$ and no ID collides with an existing requirement of the project.
-    tests: []
+    tests:
+      - tests/unit/codes.test.ts::are INV-XXXXX like every other entity, and older INV-1 codes stay valid
+      - tests/unit/codes.test.ts::generates Crockford base32 codes that the schema accepts
+      - tests/unit/codes.test.ts::gives up after repeated collisions
 decisions: []
 questions: []
 depends_on: []

@@ -1,7 +1,7 @@
 import { afterAll, beforeEach, describe, expect, it } from "bun:test";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { lifecycleService, requirementsService, sourcesService, tokensService } from "@lastro/core";
+import { lifecycleService, packagesService, questionsService, requirementsService, sourcesService, tokensService } from "@lastro/core";
 import { database } from "@lastro/database";
 import { lastro, startApi, tempRepo } from "../helpers/cli";
 import { resetDatabase } from "../helpers/db";
@@ -137,5 +137,26 @@ describe("lastro doctor (REQ-1F7QA, REQ-G2J5R)", () => {
     const res = await run(["doctor"]);
     expect(res.code).toBe(1);
     expect(res.stdout).toContain("server.url_env");
+  });
+});
+
+describe("lastro approve PKG (REQ-5R2HC)", () => {
+  it("approves the package's requirements except the one held by a blocking question, naming the question", async () => {
+    const { run, repo, project, actor } = await setup();
+    const source = await createBriefSource(project.id, actor, true);
+    await sourcesService.markFinal(project.id, actor, source.code).catch(() => undefined);
+    const pkg = await packagesService.create(project.id, actor, { title: "Round 1", sources: [source.code] });
+    const codes: string[] = [];
+    for (let i = 1; i <= 10; i++) codes.push((await requirementsService.create(project.id, actor, { ...discountRequirement(source.code), title: `Item ${i}`, package: pkg.code })).code);
+    const question = await questionsService.ask(project.id, actor, { text: "Annual plan too?", askedTo: "client", blocks: true, requirements: [codes[6] ?? ""] });
+    await run(["init", "billing"]);
+    const yml = join(repo, ".lastro", "lastro.yml");
+    writeFileSync(yml, readFileSync(yml, "utf8").replace("human_identities: []", "human_identities:\n    - user-1@example.test"));
+    const res = await run(["approve", pkg.code, "--yes"]);
+    const statuses = await Promise.all(codes.map(async (c) => (await requirementsService.get(project.id, c)).status));
+    expect(statuses.filter((s) => s === "approved")).toHaveLength(9);
+    expect(statuses[6]).not.toBe("approved");
+    expect(res.stdout).toContain(`${codes[6]} not approved`);
+    expect(res.stdout).toContain(question.code);
   });
 });

@@ -18,7 +18,8 @@ examples:
 acceptance:
   - id: AC-1
     text: Given a verified requirement with a proposed decision, when a person runs `lastro decision overturn`, then the requirement returns to building with the reason 'decision overturned'.
-    tests: []
+    tests:
+      - tests/integration/decisions.test.ts::records agent assumptions as proposed and reopens what was built on an overturned one
 decisions: []
 questions: []
 depends_on: []

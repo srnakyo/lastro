@@ -12,6 +12,7 @@ commands:
       PLAYWRIGHT_JUNIT_OUTPUT_NAME: .lastro/.out/e2e.xml
     report:
       junit: .lastro/.out/e2e.xml
+      junit_prefix: tests/e2e/
   lint:
     run: bunx eslint . --max-warnings 0 -f @microsoft/eslint-formatter-sarif -o .lastro/.out/eslint.sarif
     report:
@@ -21,7 +22,7 @@ commands:
     report:
       junit: .lastro/.out/unit.xml
   typecheck:
-    run: bunx tsc --noEmit
+    run: bun run typecheck
 conditions:
   postgres:
     note: throwaway lastro_test database on Postgres 16 (LASTRO_TEST_DATABASE_URL); the test preload applies the migrations and refuses any other database

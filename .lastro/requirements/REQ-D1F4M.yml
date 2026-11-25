@@ -18,7 +18,8 @@ examples:
 acceptance:
   - id: AC-1
     text: Given a package whose source numbers items 1 to 12 and item 7 has an open question, when `lastro report` runs, then items appear in source order and item 7 appears only under 'awaiting answer'.
-    tests: []
+    tests:
+      - tests/integration/docs.test.ts::lists a package's items in the requester's order, and an item with an open question only under 'Awaiting answer' (REQ-D1F4M)
 decisions: []
 questions: []
 depends_on: []

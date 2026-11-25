@@ -3,7 +3,7 @@ import { join } from "node:path";
 import type { ProjectConfig } from "@lastro/shared";
 import { runCommand } from "./exec";
 import { commitInfo, fileHashes, treeHash } from "./git";
-import { parseJunit, type TestCaseResult } from "./junit";
+import { mergeResults, parseJunit, type TestCaseResult } from "./junit";
 import { planStages } from "./plan";
 import { parseSarif, type Finding } from "./sarif";
 
@@ -64,7 +64,7 @@ async function runStage(cwd: string, config: ProjectConfig, name: string, condit
     if (setup.exitCode !== 0) return { stage: name, condition, command: cond.setup, exitCode: setup.exitCode, status: "failed", durationMs: setup.durationMs, output: `setup failed\n${setup.output}`, results: [], findings: [], env: conditionEnv };
   }
   const run = await runCommand(command.run, cwd, env);
-  const results = readReport(cwd, command.report?.junit, (xml) => parseJunit(xml, { root: cwd, prefix: command.report?.junit_prefix })) as TestCaseResult[];
+  const results = mergeResults(readReport(cwd, command.report?.junit, (xml) => parseJunit(xml, { root: cwd, prefix: command.report?.junit_prefix })) as TestCaseResult[]);
   const findings = readReport(cwd, command.report?.sarif, parseSarif) as Finding[];
   const failed = run.exitCode !== 0 || results.some((r) => r.status === "failed" || r.status === "error") || findings.some((f) => f.level === "error");
   return { stage: name, condition, command: command.run, exitCode: run.exitCode, status: failed ? "failed" : "passed", durationMs: run.durationMs, output: run.output, results, findings, env: conditionEnv };

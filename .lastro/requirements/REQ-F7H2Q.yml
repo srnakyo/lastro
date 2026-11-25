@@ -21,11 +21,15 @@ examples:
 acceptance:
   - id: AC-1
     text: Given an empty lastro_test database, when the migrations are applied, then every model listed in the PRD's main tables exists, every project-scoped table has a projectId column and migrate status reports no pending migration.
-    tests: []
+    tests:
+      - tests/integration/projects.test.ts::has a projectId on every project-scoped table, filled on rows created through nested writes
+      - tests/integration/projects.test.ts::reports no pending migration
   - id: AC-2
     text: Given an existing AuditEvent row, when an UPDATE or a DELETE targets it, then the database refuses the statement and the row is unchanged.
-    tests: []
+    tests:
+      - tests/integration/projects.test.ts::never lets the audit log be edited or deleted
 decisions:
+  - DEC-EPP25
   - DEC-F2H5P
 questions: []
 depends_on: []

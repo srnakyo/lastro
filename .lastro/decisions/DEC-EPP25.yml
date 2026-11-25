@@ -1,0 +1,9 @@
+id: DEC-EPP25
+about:
+  - REQ-F7H2Q
+kind: assumption
+text: Join tables (PackageSource, RequirementDependency, DecisionRequirement, QuestionRequirement) keep composite primary keys instead of a uuid(7) id.
+reason: A row of a join table is identified by the pair it joins; a separate id adds an index and nothing any query uses. Every other model has a uuid(7) key.
+decided_by: agent
+status: proposed
+show_to_client: true

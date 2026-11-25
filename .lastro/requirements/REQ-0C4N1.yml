@@ -18,10 +18,12 @@ examples:
 acceptance:
   - id: AC-1
     text: Given an empty git repository and a signed-in CLI, when `lastro init` runs, then the server has a new project whose key is in .lastro/lastro.yml, .lastro/ contains lastro.yml, glossary.yml, design.yml and the folders sources/, requirements/, decisions/, questions/, incidents/, packages/, and .gitignore ignores .lastro/.out/.
-    tests: []
+    tests:
+      - tests/integration/cli.test.ts::creates the project and the whole .lastro/ export, then says it is already initialized without changing anything
   - id: AC-2
     text: Given a repository with an existing .lastro/lastro.yml linked to a project, when `lastro init` runs, then no existing file changes and the server has no new project.
-    tests: []
+    tests:
+      - tests/integration/cli.test.ts::creates the project and the whole .lastro/ export, then says it is already initialized without changing anything
 decisions: []
 questions: []
 depends_on: []

@@ -1,0 +1,9 @@
+id: DEC-Q0MW8
+about:
+  - REQ-A2C7H
+kind: assumption
+text: An invariant joins a requirement's gate where its tests run in that requirement's stages.
+reason: PRD rule 6 says 'the invariants whose tests touch the same files'; Lastro does not know which files a test covers, so the suites a requirement runs stand for its files. Incident regression tests are always required.
+decided_by: agent
+status: proposed
+show_to_client: true

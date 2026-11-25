@@ -18,10 +18,13 @@ examples:
 acceptance:
   - id: AC-1
     text: Given a stage with two conditions, when `lastro verify` runs, then there are two evidence records, each with its condition, env and result.
-    tests: []
+    tests:
+      - tests/integration/runs.test.ts::stores each condition's run with its env and result
+      - tests/unit/runner.test.ts::runs each command once per condition, with the condition's env, and reads its report
   - id: AC-2
     text: Given a condition whose setup exits with a non-zero code, then its evidence is failed with the setup output and the other condition still runs.
-    tests: []
+    tests:
+      - tests/unit/runner.test.ts::fails a condition whose setup fails, keeps its output, and still runs the other condition (REQ-8X1MF)
 decisions: []
 questions: []
 depends_on: []

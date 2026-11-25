@@ -2,7 +2,7 @@ import { describe, expect, it } from "bun:test";
 import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { parseJunit, parseSarif, planStages, treeHash, verify } from "@lastro/runner";
+import { mergeResults, parseJunit, parseSarif, planStages, treeHash, verify } from "@lastro/runner";
 import { projectConfigSchema } from "@lastro/shared";
 
 const JUNIT = `<?xml version="1.0"?>
@@ -101,5 +101,19 @@ describe("JUnit from each tool (REQ-9Z4NG)", () => {
     expect(result.stages.map((s) => [s.condition, s.status])).toEqual([["broken", "failed"], ["ok", "passed"]]);
     expect(result.stages[0]?.output).toContain("seeding failed");
     expect(result.stages[1]?.env).toEqual({ THEME: "dark" });
+  });
+});
+
+describe("repeated test cases", () => {
+  it("keeps one result per test: failed if any run failed, passed if any passed, skipped only if all were", () => {
+    const base = { file: "a.spec.ts", name: "x", durationMs: 1, message: null };
+    const merged = mergeResults([
+      { ...base, ref: "a.spec.ts::x", status: "passed" },
+      { ...base, ref: "a.spec.ts::x", status: "skipped" },
+      { ...base, ref: "a.spec.ts::y", status: "passed" },
+      { ...base, ref: "a.spec.ts::y", status: "failed" },
+      { ...base, ref: "a.spec.ts::z", status: "skipped" },
+    ]);
+    expect(merged.map((r) => `${r.ref} ${r.status}`)).toEqual(["a.spec.ts::x passed", "a.spec.ts::y failed", "a.spec.ts::z skipped"]);
   });
 });

@@ -16,7 +16,9 @@ examples:
 acceptance:
   - id: AC-1
     text: Given a package with 5 verified, 2 building and 1 captured requirement, when `lastro pending` runs, then it lists exactly 3 items grouped by reason and none of the verified ones.
-    tests: []
+    tests:
+      - tests/integration/cli.test.ts::lists the missing fields by name, grouped by reason (REQ-3M5TX, REQ-7V6KE)
+      - tests/unit/lifecycle.test.ts::pending is only what has not reached verified
 decisions: []
 questions: []
 depends_on: []

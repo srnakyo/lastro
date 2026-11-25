@@ -18,10 +18,12 @@ examples:
 acceptance:
   - id: AC-1
     text: Given a package with 10 requirements and one open blocking question on one of them, when `lastro approve PKG` runs, then 9 requirements become approved and the blocked one stays, with the question id in the output.
-    tests: []
+    tests:
+      - tests/integration/cli.test.ts::approves the package's requirements except the one held by a blocking question, naming the question
   - id: AC-2
     text: Given an answer recorded with --source, then a decision of kind client_answer exists with that source and the question is closed.
-    tests: []
+    tests:
+      - tests/integration/decisions.test.ts::records an answer with its source as a client_answer decision and closes the question
 decisions: []
 questions: []
 depends_on: []

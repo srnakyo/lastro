@@ -18,10 +18,13 @@ examples:
 acceptance:
   - id: AC-1
     text: Given a calculation requirement missing data_source and period, when it is evaluated, then its status stays captured and `lastro pending` lists exactly data_source and period as missing.
-    tests: []
+    tests:
+      - tests/integration/cli.test.ts::lists the missing fields by name, grouped by reason (REQ-3M5TX, REQ-7V6KE)
+      - tests/unit/lifecycle.test.ts::lists the required fields that are missing
   - id: AC-2
     text: Given the same requirement with every required field filled, a valid quote and no blocking question, when it is evaluated, then its status becomes specified.
-    tests: []
+    tests:
+      - tests/integration/requirements.test.ts::becomes specified when every required field and quote is in place
 decisions: []
 questions: []
 depends_on: []

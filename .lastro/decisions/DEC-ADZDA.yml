@@ -1,0 +1,9 @@
+id: DEC-ADZDA
+about:
+  - REQ-Q3W6Z
+kind: assumption
+text: A test is flaky when it passed and failed with the same fingerprint of the files its requirement is bound to; for a test no requirement covers, on the same commit.
+reason: "'No change in the files it covers' needs to know those files; the evidence fingerprint is what Lastro records for them."
+decided_by: agent
+status: proposed
+show_to_client: true

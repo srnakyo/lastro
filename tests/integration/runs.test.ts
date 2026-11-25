@@ -165,3 +165,32 @@ describe("flaky tests (REQ-Q3W6Z)", () => {
     expect((await testCatalog(again.project.id)).find((t) => t.ref === TEST_REF)?.flaky).toBe(false);
   });
 });
+
+describe("automatic checks and run comparison", () => {
+  it("passes the examples check only when every example of the requester has a passing linked test", async () => {
+    const { project, code } = await building(["unit", { check: "examples" }]);
+    const result = await runsService.record(project.id, agent, report(code, "passed"));
+    expect(result.gates[code]?.pass).toBe(true);
+  });
+
+  it("hands a check Lastro does not know to a person instead of failing it silently", async () => {
+    const unknown = await building(["unit", { check: "screenshot_diff" }]);
+    const held = await runsService.record(unknown.project.id, agent, report(unknown.code, "passed"));
+    expect(held.gates[unknown.code]?.needsPerson).toEqual(["check screenshot_diff has no automatic implementation: make it manual (signed) or a command"]);
+  });
+
+  it("lists the tests that started failing and those passing again in separate lists (REQ-S9A2B)", async () => {
+    const { project, code } = await building();
+    const two = (a: "passed" | "failed", b: "passed" | "failed") => {
+      const r = report(code, "passed");
+      const stage = r.stages[0];
+      if (!stage) throw new Error("no stage");
+      const result = (ref: string, status: "passed" | "failed") => ({ ref, file: ref.split("::")[0] ?? ref, name: ref.split("::")[1] ?? ref, status, durationMs: 1, message: null });
+      return { ...r, stages: [{ ...stage, status: "failed" as const, results: [result(TEST_REF, a), result("tests/discount.test.ts::annual plan", b)] }] };
+    };
+    await runsService.record(project.id, agent, two("passed", "failed"));
+    const second = await runsService.record(project.id, agent, two("failed", "passed"));
+    const detail = await runsService.get(project.id, second.runId);
+    expect(detail.comparisons[0]).toMatchObject({ newlyFailing: [TEST_REF], newlyPassing: ["tests/discount.test.ts::annual plan"] });
+  });
+});

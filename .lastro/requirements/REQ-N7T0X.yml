@@ -16,7 +16,8 @@ examples:
 acceptance:
   - id: AC-1
     text: Given a package whose source is not final, when its lifecycle diagram renders, then the specified state shows the count and the transition to approved is marked blocked with the reason.
-    tests: []
+    tests:
+      - tests/unit/diagrams.test.ts::marks the transition to approved as blocked with the reason, and shows the counts (REQ-N7T0X)
 decisions: []
 questions: []
 depends_on: []

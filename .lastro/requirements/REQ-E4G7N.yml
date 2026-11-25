@@ -23,10 +23,16 @@ examples:
 acceptance:
   - id: AC-1
     text: Given no TTY and no --yes, when `lastro approve` runs, then it refuses with exit code 2 and changes nothing.
-    tests: []
+    tests:
+      - tests/integration/cli.test.ts::accepts --yes only from a person listed in gate.human_identities
+      - tests/integration/cli.test.ts::refuses with exit code 2 and changes nothing when there is no terminal and no --yes
   - id: AC-2
     text: Given an agent actor, when any human-only operation is requested through the API, the CLI or the MCP, then the core refuses it and nothing changes.
-    tests: []
+    tests:
+      - tests/integration/api.test.ts::initializes and lists the tools without any human-only action
+      - tests/integration/api.test.ts::lets an agent create requirements but never approve them
+      - "tests/integration/lifecycle.test.ts::is a human command: agents can neither approve nor mark sources final"
+      - tests/unit/hooks.test.ts::refuses human commands in Bash and lets the rest through
 decisions: []
 questions: []
 depends_on: []

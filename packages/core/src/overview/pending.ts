@@ -27,5 +27,8 @@ function reasonOf(v: RequirementView, ran: Set<string>): Pick<PendingItem, "reas
 export async function pendingList(projectId: string, packageCode?: string): Promise<PendingItem[]> {
   const views = (await requirementsService.list(projectId, packageCode ? { packageCode } : {})).filter((v) => isPending(v.status));
   const ran = new Set((await db().runStage.findMany({ where: { requirementId: { in: views.map((v) => v.id) } }, select: { requirementId: true }, distinct: ["requirementId"] })).map((r) => r.requirementId ?? ""));
-  return views.map((v) => ({ code: v.code, title: v.title, status: v.status, ...reasonOf(v, ran) }));
+  return views.map((v) => {
+    const { reason, details } = reasonOf(v, ran);
+    return { code: v.code, title: v.title, status: v.status, reason, details: [...new Set(details)] };
+  });
 }

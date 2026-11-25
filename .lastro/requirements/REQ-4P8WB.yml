@@ -21,13 +21,16 @@ examples:
 acceptance:
   - id: AC-1
     text: Given a quote that differs from the source by one word, when the requirement is evaluated, then it stays captured and the report shows the closest passage at that anchor.
-    tests: []
+    tests:
+      - tests/unit/text.test.ts::rejects a quote with one word changed and points at the closest passage
   - id: AC-2
     text: Given a quote that differs only by line breaks or ** markers, when the requirement is evaluated, then the quote is accepted.
-    tests: []
+    tests:
+      - tests/unit/text.test.ts::finds a quote under a section anchor, ignoring emphasis, code marks and line breaks
   - id: AC-3
     text: Given a quote anchored to a section (@file#slug) that appears in its third paragraph, when the requirement is evaluated, then the quote is accepted and the Citation points to the passage @file#slug/p3.
-    tests: []
+    tests:
+      - tests/unit/text.test.ts::accepts a quote in the third paragraph of a section anchor and points at /p3
 decisions: []
 questions: []
 depends_on: []

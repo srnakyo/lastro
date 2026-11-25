@@ -23,13 +23,16 @@ examples:
 acceptance:
   - id: AC-1
     text: Given a lastro.yml with a literal token or a database URL with credentials, when `lastro doctor` runs, then it exits with code 1 and tells to use the *_env setting.
-    tests: []
+    tests:
+      - tests/integration/cli.test.ts::fails on a literal token or database URL with credentials in lastro.yml
   - id: AC-2
     text: Given a connection error, when any command or the server reports it, then the message contains no password.
-    tests: []
+    tests:
+      - tests/unit/text.test.ts::removes the password of a connection URL, tokens and password settings from a message
   - id: AC-3
     text: Given a newly created API token, then the database stores only its visible prefix and its SHA-256 hash, and a request with that token authenticates while a request with any other value does not.
-    tests: []
+    tests:
+      - tests/integration/api.test.ts::stores only the visible prefix and a SHA-256 hash; the token authenticates and any other value does not
 decisions: []
 questions: []
 depends_on: []

@@ -16,7 +16,8 @@ examples:
 acceptance:
   - id: AC-1
     text: Given a requirement whose AC-2 has no linked test, when its traceability diagram renders, then AC-2 is drawn with the gap style and the label 'no test'.
-    tests: []
+    tests:
+      - tests/unit/diagrams.test.ts::draws a criterion without a test as a gap labelled 'no test' (REQ-M4R7W)
 decisions: []
 questions: []
 depends_on: []

@@ -17,10 +17,12 @@ examples:
 acceptance:
   - id: AC-1
     text: Given JUnit reports produced by Vitest, Jest, Playwright, pytest and PHPUnit, when parsed, then each test case is identified as 'file::test name' with its status.
-    tests: []
+    tests:
+      - tests/unit/runner.test.ts::reads Vitest, Jest, Playwright, pytest and PHPUnit reports as file::test name
   - id: AC-2
     text: Given a SARIF 2.1.0 report with errors, when the stage is evaluated, then it fails and lists file, line and rule for each error.
-    tests: []
+    tests:
+      - tests/unit/runner.test.ts::fails a stage with SARIF errors and keeps file, line and rule of each
 decisions: []
 questions: []
 depends_on: []

@@ -16,7 +16,9 @@ examples:
 acceptance:
   - id: AC-1
     text: Given a requirement with a quote anchored in an in-repo source, when its page opens, then the quote and the surrounding source passage appear side by side with the quote highlighted.
-    tests: []
+    tests:
+      - tests/e2e/spec.spec.ts::a requirement shows its quote next to the source and what holds it back
+      - tests/unit/highlight.test.ts::marks the quote inside the passage, across emphasis and line breaks
 decisions: []
 questions: []
 depends_on: []

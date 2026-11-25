@@ -75,6 +75,14 @@ jobs:
           for i in $(seq 1 60); do curl -sf http://localhost:4317/sign-in > /dev/null && break; sleep 1; done
       - run: bun scripts/seed-dev.ts
       - run: bunx playwright test
+      - name: Lastro gate, without a server
+        # Until the repository has a Lastro server (the gate job below), the gate runs here from the .lastro/
+        # export: Lastro runs the QA flow of every approved requirement and checks its locked criteria.
+        if: vars.LASTRO_URL == ''
+        run: |
+          PGPASSWORD=lastro psql -h localhost -U lastro -d lastro -c "create database lastro_test" || true
+          (cd packages/cli && bun run build)
+          node packages/cli/dist/lastro.js gate --ci
       - uses: actions/upload-artifact@v4
         if: always()
         with:

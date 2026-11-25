@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+import { database } from "@lastro/database";
 import { beforeEach, describe, expect, it } from "bun:test";
 import { sourcesService, tokensService } from "@lastro/core";
 import { handleApi } from "../../apps/web/src/api-lib";
@@ -104,5 +106,18 @@ describe("agent limits and hooks endpoints", () => {
     expect(touched.updated).toEqual([code]);
     const locked = await (await call(agent, "GET", "/projects/billing/locked-tests")).json();
     expect(locked).toEqual([{ file: "tests/discount.test.ts", criteria: [`${code} AC-1`] }]);
+  });
+});
+
+describe("tokens at rest (REQ-G2J5R)", () => {
+  it("stores only the visible prefix and a SHA-256 hash; the token authenticates and any other value does not", async () => {
+    const { agent } = await setup();
+    const rows = await database().apiToken.findMany();
+    const serialized = JSON.stringify(rows);
+    expect(serialized).not.toContain(agent);
+    const row = rows.find((r) => agent.startsWith(`${r.prefix}_`));
+    expect(row?.hash).toBe(createHash("sha256").update(agent).digest("hex"));
+    expect((await call(agent, "GET", "/projects")).status).toBe(200);
+    expect((await call(`${agent}x`, "GET", "/projects")).status).toBe(403);
   });
 });

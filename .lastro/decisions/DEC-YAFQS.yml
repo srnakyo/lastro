@@ -1,0 +1,9 @@
+id: DEC-YAFQS
+about:
+  - REQ-R6Y9A
+kind: assumption
+text: The QA flow diagram on the dashboard shows the latest commit that ran the requirement; lastro gate judges the repository's HEAD.
+reason: The server does not know the developer's checkout; the latest commit it ran is its 'current commit'. The CLI sends HEAD to the gate.
+decided_by: agent
+status: proposed
+show_to_client: true

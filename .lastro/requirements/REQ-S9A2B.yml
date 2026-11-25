@@ -16,7 +16,8 @@ examples:
 acceptance:
   - id: AC-1
     text: Given two consecutive runs of a requirement, when the second is opened, then tests that changed from pass to fail and from fail to pass are listed separately.
-    tests: []
+    tests:
+      - tests/integration/runs.test.ts::lists the tests that started failing and those passing again in separate lists (REQ-S9A2B)
 decisions: []
 questions: []
 depends_on: []

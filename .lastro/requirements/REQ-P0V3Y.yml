@@ -16,7 +16,8 @@ examples:
 acceptance:
   - id: AC-1
     text: Given this repository, when `lastro docs build --format md` runs, then each generated document starts with the commit hash and generation date, requirements.md lists every requirement grouped by package, and the server has a DocBuild record for the build.
-    tests: []
+    tests:
+      - tests/integration/docs.test.ts::starts every document with the commit and the date, and groups requirements by package (REQ-P0V3Y)
 decisions: []
 questions: []
 depends_on: []

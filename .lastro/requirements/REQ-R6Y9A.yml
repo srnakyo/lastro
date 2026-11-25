@@ -16,8 +16,10 @@ examples:
 acceptance:
   - id: AC-1
     text: Given a requirement whose e2e stage failed only under dark-theme and whose preview is unsigned, when its QA flow diagram renders, then e2e · dark-theme is red, the other e2e nodes are green and preview is orange.
-    tests: []
-decisions: []
+    tests:
+      - tests/unit/diagrams.test.ts::colors each stage and condition by its latest result (REQ-R6Y9A)
+decisions:
+  - DEC-YAFQS
 questions: []
 depends_on: []
 touches: []

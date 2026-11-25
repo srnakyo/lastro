@@ -17,10 +17,13 @@ examples:
 acceptance:
   - id: AC-1
     text: Given a requirement file with an invalid status value, when `lastro doctor` runs, then it reports the file, the field path and the allowed values, and exits with code 1.
-    tests: []
+    tests:
+      - tests/integration/cli.test.ts::names the file, the field and the allowed values of an invalid status, and exits 1
   - id: AC-2
     text: Given packages/shared, when it is built, then there is one JSON Schema per exported entity and each example file in the PRD validates against it.
-    tests: []
+    tests:
+      - tests/unit/export-schemas.test.ts::accept every example file of the PRD
+      - tests/unit/export-schemas.test.ts::are one per export file and match the contracts
 decisions: []
 questions: []
 depends_on: []

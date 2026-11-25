@@ -18,11 +18,15 @@ examples:
 acceptance:
   - id: AC-1
     text: Given a test with a fail and a pass on two commits with no change in the files it covers, then the Tests page flags it as flaky.
-    tests: []
+    tests:
+      - tests/integration/runs.test.ts::flags a test that failed and passed on two commits when its files did not change, and not when they did
   - id: AC-2
     text: Given a test referenced by no criterion, then the Tests page flags it as orphan.
-    tests: []
-decisions: []
+    tests:
+      - tests/e2e/quality.spec.ts::the test catalog shows flaky and orphan tests and the criteria without a test
+      - tests/integration/runs.test.ts::builds the test catalog with flaky and orphan tests and compares a run with the previous one
+decisions:
+  - DEC-ADZDA
 questions: []
 depends_on: []
 touches: []

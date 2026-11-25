@@ -17,8 +17,9 @@ const file = () => join(process.env.XDG_CONFIG_HOME ?? join(homedir(), ".config"
  */
 export function readCredentials(cwd = process.cwd()): Credentials | null {
   const names = serverSettings(cwd);
-  const url = process.env[names.urlEnv];
-  const token = process.env[names.tokenEnv];
+  // The names lastro.yml gives win; LASTRO_URL and LASTRO_TOKEN still work, as the GitHub Action sets them.
+  const url = process.env[names.urlEnv] || process.env.LASTRO_URL;
+  const token = process.env[names.tokenEnv] || process.env.LASTRO_TOKEN;
   if (url && token) return { url, token };
   if (!existsSync(file())) return null;
   return JSON.parse(readFileSync(file(), "utf8")) as Credentials;

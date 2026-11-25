@@ -18,10 +18,13 @@ examples:
 acceptance:
   - id: AC-1
     text: Given a verified requirement, when a file listed in touches changes and the gate runs, then the requirement is building with the reason 'stale evidence'.
-    tests: []
+    tests:
+      - tests/integration/runs.test.ts::names the stale evidence with exactly that reason
+      - tests/integration/verify-flow.test.ts::runs the project's command, records the evidence and makes it stale when a touched file changes
   - id: AC-2
     text: Given a change only in files outside touches, then the requirement stays verified.
-    tests: []
+    tests:
+      - tests/unit/runner.test.ts::keeps the fingerprint when only files outside the touched ones change
 decisions: []
 questions: []
 depends_on: []

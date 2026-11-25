@@ -18,7 +18,9 @@ examples:
 acceptance:
   - id: AC-1
     text: Given an approved requirement, when a linked test is edited, then the gate fails naming the test until `lastro unlock` and a new lock are recorded.
-    tests: []
+    tests:
+      - tests/integration/cli.test.ts::runs offline from the export with --ci and checks the locked criteria (REQ-A2C7H AC-3)
+      - tests/integration/runs.test.ts::fails naming a locked test whose file changed after it was sealed, until a person unlocks
 decisions: []
 questions: []
 depends_on: []

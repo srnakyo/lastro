@@ -28,10 +28,23 @@ export interface GateContext {
 function requiredStages(config: ProjectConfig, type: string) {
   const stages = [...config.global_flow, ...(config.types[type]?.flow ?? [])];
   return stages.flatMap((s) => {
-    if (typeof s === "string") return [{ stage: s, condition: null as string | null, manual: false }];
+    if (typeof s === "string") return [{ stage: s, condition: null as string | null, manual: false, builtin: false }];
     const name = s.run ?? s.check ?? "stage";
-    return (s.conditions?.length ? s.conditions : [null]).map((condition) => ({ stage: name, condition, manual: !!s.manual }));
+    return (s.conditions?.length ? s.conditions : [null]).map((condition) => ({ stage: name, condition, manual: !!s.manual, builtin: !s.run && !s.manual }));
   });
+}
+
+/**
+ * Automatic checks Lastro performs itself (a `check` stage that is not manual). `examples`: every example of
+ * the requester has a linked test that passed. A check Lastro does not know needs a person to decide.
+ */
+function builtinCheck(name: string, examples: number, passingTests: number): { fix?: string; person?: string } {
+  if (name === "examples") {
+    if (examples === 0) return { fix: "examples: the requirement has no example of the requester" };
+    if (passingTests < examples) return { fix: `examples: ${examples} examples, ${passingTests} linked tests passing` };
+    return {};
+  }
+  return { person: `check ${name} has no automatic implementation: make it manual (signed) or a command` };
 }
 
 /** Latest result of each test, by ref, on the commit when given. */
@@ -83,7 +96,17 @@ export async function evaluateGate(tx: Tx, config: ProjectConfig, requirementId:
   const graph = await loadGraph(tx, requirementId);
   const agentCanFix: string[] = [];
   const needsPerson: string[] = [];
+  const extra = await extraTests(tx, graph.projectId, requirementId);
+  const refs = [...graph.criteria.flatMap((c) => c.tests.map((t) => t.testRef)), ...extra.map((e) => e.ref)];
+  const latest = await latestByRef(tx, graph.projectId, refs, ctx.commit);
   for (const need of requiredStages(config, graph.type)) {
+    if (need.builtin) {
+      const passing = new Set(graph.criteria.flatMap((c) => c.tests.map((t) => t.testRef)).filter((ref) => latest.get(ref) === "passed")).size;
+      const result = builtinCheck(need.stage, Array.isArray(graph.examples) ? graph.examples.length : 0, passing);
+      if (result.fix) agentCanFix.push(result.fix);
+      if (result.person) needsPerson.push(result.person);
+      continue;
+    }
     const found = latestStages.find((s) => s.stage === need.stage && s.condition === need.condition);
     const label = `${need.stage}${need.condition ? ` · ${need.condition}` : ""}`;
     if (need.manual && found?.status !== "passed") needsPerson.push(`manual stage ${label} not signed`);
@@ -92,9 +115,6 @@ export async function evaluateGate(tx: Tx, config: ProjectConfig, requirementId:
       for (const f of found?.findings ?? []) agentCanFix.push(`${label}: ${f.file ?? "?"}${f.line ? `:${f.line}` : ""} ${f.ruleId ?? ""} ${f.message}`.trim());
     }
   }
-  const extra = await extraTests(tx, graph.projectId, requirementId);
-  const refs = [...graph.criteria.flatMap((c) => c.tests.map((t) => t.testRef)), ...extra.map((e) => e.ref)];
-  const latest = await latestByRef(tx, graph.projectId, refs, ctx.commit);
   for (const c of graph.criteria) {
     if (c.tests.length === 0) agentCanFix.push(`${c.code} has no test`);
     for (const t of c.tests) if (latest.get(t.testRef) !== "passed") agentCanFix.push(`${c.code} ${t.testRef} ${latest.get(t.testRef) ?? "not run"}`);
