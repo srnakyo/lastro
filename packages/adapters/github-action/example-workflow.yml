@@ -1,0 +1,16 @@
+# Copy to .github/workflows/lastro.yml and make "Lastro gate" a required check on the main branch.
+name: Lastro
+on:
+  pull_request:
+  push:
+    branches: [main]
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Set up your project here (install dependencies, browsers for e2e) so `lastro verify` can run its commands.
+      - uses: srnakyo/lastro/packages/adapters/github-action@main
+        with:
+          server-url: ${{ vars.LASTRO_URL }}
+          token: ${{ secrets.LASTRO_TOKEN }}

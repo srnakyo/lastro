@@ -1,0 +1,56 @@
+name: Lastro gate
+description: Runs the Lastro QA flow of the requirements in building and fails the job while the gate is red.
+author: Lastro
+branding:
+  icon: check-square
+  color: blue
+inputs:
+  server-url:
+    description: URL of your Lastro server.
+    required: true
+  token:
+    description: A person's or CI token from Settings › Access tokens (store it as a secret).
+    required: true
+  verify:
+    description: Run `lastro verify` first, so the run in CI becomes the evidence.
+    default: "true"
+  version:
+    description: Version of the lastro CLI from npm.
+    default: latest
+  working-directory:
+    description: Folder that holds .lastro/lastro.yml.
+    default: "."
+outputs:
+  result:
+    description: '"green" or "red".'
+    value: ${{ steps.gate.outputs.result }}
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 22
+    - name: Verify
+      if: inputs.verify == 'true'
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        LASTRO_URL: ${{ inputs.server-url }}
+        LASTRO_TOKEN: ${{ inputs.token }}
+        LASTRO_CLI: lastro@${{ inputs.version }}
+      run: npx -y "$LASTRO_CLI" verify || true
+    - name: Gate
+      id: gate
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        LASTRO_URL: ${{ inputs.server-url }}
+        LASTRO_TOKEN: ${{ inputs.token }}
+        LASTRO_CLI: lastro@${{ inputs.version }}
+      run: |
+        set +e
+        npx -y "$LASTRO_CLI" gate --markdown > "$RUNNER_TEMP/lastro-gate.md"
+        status=$?
+        cat "$RUNNER_TEMP/lastro-gate.md" >> "$GITHUB_STEP_SUMMARY"
+        if [ "$status" -eq 0 ]; then echo "result=green" >> "$GITHUB_OUTPUT"; else echo "result=red" >> "$GITHUB_OUTPUT"; fi
+        exit "$status"

@@ -1,0 +1,6 @@
+version: 1
+description: "Does this change stay within the requirements Lastro has in building?"
+model: sonnet
+tools: [findings, code]
+outputs:
+  scope: { type: criteria, values: [in_scope, out_of_scope] }

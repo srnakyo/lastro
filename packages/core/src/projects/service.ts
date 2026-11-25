@@ -1,3 +1,4 @@
+import { requireHuman } from "../scope/actor";
 import { projectConfigSchema, projectInputSchema, type Actor, type ProjectConfigInput, type ProjectInput } from "@lastro/shared";
 import { auditService } from "../audit/service";
 import { db, transaction } from "../db";
@@ -5,6 +6,7 @@ import { LastroError, notFound } from "../errors";
 
 export const projectsService = {
   async create(workspaceId: string, actor: Actor, raw: ProjectInput) {
+    requireHuman(actor, "creating a project");
     const input = projectInputSchema.parse(raw);
     return transaction(async (tx) => {
       const taken = await tx.project.findUnique({ where: { workspaceId_key: { workspaceId, key: input.key } } });

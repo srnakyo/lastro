@@ -1,0 +1,9 @@
+{
+  "name": "lastro",
+  "version": "0.1.0",
+  "description": "Keeps Claude Code on the requirements: context after every compaction, no edits to locked tests, no human commands, and no 'done' while the Lastro gate is red.",
+  "author": { "name": "Lastro" },
+  "homepage": "https://github.com/srnakyo/lastro",
+  "license": "MIT",
+  "keywords": ["requirements", "qa", "quality-gate", "traceability"]
+}

@@ -83,3 +83,24 @@ describe("MCP", () => {
     expect(res.result.content[0]?.text).toContain("not found");
   });
 });
+
+describe("agent limits and hooks endpoints", () => {
+  it("refuses an agent's import, which could loosen the QA flow", async () => {
+    const { agent, person } = await setup();
+    const snapshot = await (await call(person, "GET", "/projects/billing/export")).json();
+    expect((await call(agent, "POST", "/projects/billing/import", snapshot)).status).toBe(403);
+  });
+
+  it("records touched files on requirements in building and lists the locked test files", async () => {
+    const { agent, person, source, project, actor } = await setup();
+    const input = { ...discountRequirement(source.code), criteria: [{ code: "AC-1", text: "8% at 60 seats", tests: ["tests/discount.test.ts::60 seats"] }] };
+    const { code } = (await (await call(person, "POST", "/projects/billing/requirements", input)).json()) as { code: string };
+    await sourcesService.markFinal(project.id, actor, source.code);
+    await call(person, "POST", `/projects/billing/requirements/${code}/approve`);
+    await call(agent, "POST", `/projects/billing/requirements/${code}/start`, { branch: "feat/discount" });
+    const touched = (await (await call(agent, "POST", "/projects/billing/touches", { files: ["./src/discount.ts", ".lastro/x.yml"], branch: "feat/discount" })).json()) as { updated: string[] };
+    expect(touched.updated).toEqual([code]);
+    const locked = await (await call(agent, "GET", "/projects/billing/locked-tests")).json();
+    expect(locked).toEqual([{ file: "tests/discount.test.ts", criteria: [`${code} AC-1`] }]);
+  });
+});

@@ -1,0 +1,3 @@
+#!/bin/sh
+# Lastro pre-push hook: refuses the push while the gate is red. Install with `lastro install-hooks`.
+exec lastro gate

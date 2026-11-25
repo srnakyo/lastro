@@ -1,5 +1,6 @@
 import { authenticate, errorResponse, json } from "./http";
 import { projectRoutes } from "./handlers/projects";
+import { agentRoutes } from "./handlers/agent";
 import { docsRoutes } from "./handlers/docs";
 import { runRoutes } from "./handlers/runs";
 import { intakeRoutes, specRoutes } from "./handlers/spec";
@@ -11,6 +12,7 @@ specRoutes(apiRouter);
 intakeRoutes(apiRouter);
 runRoutes(apiRouter);
 docsRoutes(apiRouter);
+agentRoutes(apiRouter);
 
 /** Entry for /api/v1/*: token, route, JSON. */
 export async function handleApi(request: Request): Promise<Response> {

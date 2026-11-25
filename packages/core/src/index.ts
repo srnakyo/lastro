@@ -38,3 +38,4 @@ export type { GateResult } from "./runs/gate";
 export { diagramsData, requirementQa } from "./runs/qa";
 export { docsData } from "./docs/data";
 export { docBuildsService, type BuiltFile } from "./docs/service";
+export { addTouches, lockedTestFiles } from "./agent/touches";

@@ -1,12 +1,13 @@
 import { createInterface } from "node:readline";
 import type { LastroClient } from "../api/client";
 import { runVerify } from "../commands/verify-run";
+import { HookState } from "../hooks/state";
 
 interface Message {
   jsonrpc: "2.0";
   id?: string | number | null;
   method?: string;
-  params?: { name?: string; arguments?: { code?: string } };
+  params?: { name?: string; arguments?: { code?: string; reason?: string } };
 }
 
 const write = (value: unknown) => process.stdout.write(`${JSON.stringify(value)}\n`);
@@ -40,6 +41,7 @@ export class McpBridge {
     }
     try {
       if (message.method === "tools/call" && message.params?.name === "lastro_verify") return write(await this.verify(message));
+      if (message.method === "tools/call" && message.params?.name === "lastro_pause") new HookState(this.root).pause(message.params.arguments?.reason ?? "");
       const res = await this.client.mcp(this.project, message, this.session);
       this.session = res.session ?? this.session;
       if (res.status !== 202 && res.body) process.stdout.write(`${res.body.trim()}\n`);

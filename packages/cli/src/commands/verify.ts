@@ -10,6 +10,11 @@ function printGate(code: string, gate: GateState) {
   for (const item of gate.needsPerson) console.log(`    person: ${item}`);
 }
 
+function gateMarkdown(result: { pass: boolean; requirements: Record<string, GateState> }): string {
+  const rows = Object.entries(result.requirements).map(([code, g]) => `| ${g.pass ? "✅" : "❌"} | \`${code}\` | ${g.status ?? ""} | ${[...g.agentCanFix, ...g.needsPerson].join("<br>") || "—"} |`);
+  return [`### Lastro gate: ${result.pass ? "green" : "red"}`, "", rows.length ? "| | Requirement | Status | Missing |\n|---|---|---|---|" : "Nothing in building or verified.", ...rows].join("\n");
+}
+
 export function verifyCommands(program: Command) {
   program
     .command("verify")
@@ -28,12 +33,16 @@ export function verifyCommands(program: Command) {
     .command("gate")
     .description("fail when anything in building is not verified or verified evidence went stale (for CI and hooks)")
     .option("--json", "print the result as JSON")
-    .action(async (o: { json?: boolean }) => {
+    .option("--markdown", "print a Markdown summary (for a CI job summary or a PR comment)")
+    .action(async (o: { json?: boolean; markdown?: boolean }) => {
       const root = findRoot();
       const result = await runGate(new LastroClient(), root, linkedProject(root));
       if (o.json) console.log(JSON.stringify(result, null, 2));
-      else for (const [code, gate] of Object.entries(result.requirements)) printGate(code, gate);
-      if (!o.json) console.log(result.pass ? "gate: green" : "gate: red");
+      else if (o.markdown) console.log(gateMarkdown(result));
+      else {
+        for (const [code, gate] of Object.entries(result.requirements)) printGate(code, gate);
+        console.log(result.pass ? "gate: green" : "gate: red");
+      }
       if (!result.pass) process.exitCode = 1;
     });
 

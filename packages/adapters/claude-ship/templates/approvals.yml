@@ -1,0 +1,12 @@
+version: 1
+mode: observe
+rules:
+  - purpose: "A change takes two people. When Claude's review passes and the change stays within the requirements Lastro has in building, one is enough and Claude approves."
+    paths: ["**"]
+    verdict: { claude: comments, seats: 2 }  # holds on a fail, out of scope, and when a review has no result
+    override:
+      - { if: "claude/code_review = pass AND repo/lastro_scope = in_scope", verdict: { claude: approves, seats: 1 } }
+  - purpose: "A change to the review rules or to a classifier always takes two people."
+    paths: ["**/.claude/**", "**/REVIEW.md", "**/.gitattributes", "**/.gitmodules"]
+    nested: inherit  # once enforced, also holds under a directory's policy file
+    verdict: { claude: comments, seats: 2 }

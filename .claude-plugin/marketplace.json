@@ -1,0 +1,11 @@
+{
+  "name": "lastro",
+  "owner": { "name": "Lastro" },
+  "plugins": [
+    {
+      "name": "lastro",
+      "source": "./packages/adapters/claude-code",
+      "description": "Requirements, evidence and quality gates for Claude Code: context after compaction, guards on locked tests and human commands, and the gate on stop."
+    }
+  ]
+}

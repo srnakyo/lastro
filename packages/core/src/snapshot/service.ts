@@ -3,6 +3,7 @@ import { auditService } from "../audit/service";
 import { db } from "../db";
 import { reevaluate } from "../requirements/evaluate";
 import { requirementsService } from "../requirements/service";
+import { requireHuman } from "../scope/actor";
 import { loadScope } from "../scope/project-scope";
 import { recheckCitations } from "../sources/recheck";
 import { importDecisions, importGlossary, importPackages, importQuestions } from "./import-entities";
@@ -22,6 +23,8 @@ export const snapshotService = {
    * lifecycle rules, never copied, so an import cannot approve or accept anything on its own.
    */
   async import(projectId: string, actor: Actor, raw: SnapshotInput): Promise<ImportReport> {
+    // An import replaces the QA flows and the gate settings: an agent must not be able to loosen its own gate.
+    requireHuman(actor, "importing a snapshot");
     const snapshot = snapshotSchema.parse(raw);
     const report: ImportReport = { sources: 0, requirementsCreated: 0, requirementsUpdated: 0, decisions: 0, questions: 0 };
     await db().$transaction(async (tx) => {

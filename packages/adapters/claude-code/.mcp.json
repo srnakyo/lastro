@@ -1,0 +1,5 @@
+{
+  "mcpServers": {
+    "lastro": { "command": "lastro", "args": ["mcp"] }
+  }
+}

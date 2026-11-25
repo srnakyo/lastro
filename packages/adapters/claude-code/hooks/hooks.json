@@ -1,0 +1,17 @@
+{
+  "description": "Lastro: context at session start and after compaction, guards on tools, touched files and the gate on stop.",
+  "hooks": {
+    "SessionStart": [
+      { "matcher": "startup|resume|clear|compact", "hooks": [{ "type": "command", "command": "lastro hook session-start", "timeout": 20 }] }
+    ],
+    "PreToolUse": [
+      { "matcher": "Bash|Edit|Write|MultiEdit|NotebookEdit", "hooks": [{ "type": "command", "command": "lastro hook pre-tool-use", "timeout": 15 }] }
+    ],
+    "PostToolUse": [
+      { "matcher": "Edit|Write|MultiEdit|NotebookEdit", "hooks": [{ "type": "command", "command": "lastro hook post-tool-use", "timeout": 15 }] }
+    ],
+    "Stop": [
+      { "hooks": [{ "type": "command", "command": "lastro hook stop", "timeout": 60 }] }
+    ]
+  }
+}
