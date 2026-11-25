@@ -2,7 +2,7 @@ import { existsSync, readFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import type { ProjectConfig } from "@lastro/shared";
 import { runCommand } from "./exec";
-import { commitInfo, treeHash } from "./git";
+import { commitInfo, fileHashes, treeHash } from "./git";
 import { parseJunit, type TestCaseResult } from "./junit";
 import { planStages } from "./plan";
 import { parseSarif, type Finding } from "./sarif";
@@ -11,6 +11,8 @@ export interface RequirementToVerify {
   code: string;
   type: string;
   touches: string[];
+  /** Files of the tests linked to its criteria. */
+  testFiles?: string[];
 }
 
 export interface StageRun {
@@ -36,6 +38,7 @@ export interface RunReport {
   durationMs: number;
   stages: StageRun[];
   trees: Record<string, string>;
+  testFiles: Record<string, string>;
 }
 
 function readReport(cwd: string, path: string | undefined, parse: (text: string) => unknown[]) {
@@ -63,6 +66,9 @@ async function runStage(cwd: string, config: ProjectConfig, name: string, condit
   return { stage: name, condition, command: command.run, exitCode: run.exitCode, status: failed ? "failed" : "passed", durationMs: run.durationMs, output: run.output, results, findings };
 }
 
+/** The files a requirement's evidence is bound to: what it touches, or its test files until it touches anything. */
+export const boundFiles = (r: RequirementToVerify) => (r.touches.length ? r.touches : (r.testFiles ?? []));
+
 /** Runs every automatic stage each requirement needs, once per stage and condition, and builds the report. */
 export async function verify(cwd: string, config: ProjectConfig, requirements: RequirementToVerify[], trigger: RunReport["trigger"]): Promise<RunReport> {
   const started = Date.now();
@@ -78,6 +84,7 @@ export async function verify(cwd: string, config: ProjectConfig, requirements: R
   return {
     trigger, ...commitInfo(cwd), environment: { node: process.version, platform: process.platform },
     startedAt: new Date(started).toISOString(), durationMs: Date.now() - started, stages,
-    trees: Object.fromEntries(requirements.map((r) => [r.code, treeHash(cwd, r.touches)])),
+    trees: Object.fromEntries(requirements.map((r) => [r.code, treeHash(cwd, boundFiles(r))])),
+    testFiles: fileHashes(cwd, requirements.flatMap((r) => r.testFiles ?? [])),
   };
 }

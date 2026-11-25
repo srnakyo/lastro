@@ -18,7 +18,8 @@ export function commitInfo(cwd: string) {
 
 /**
  * Fingerprint of the files a requirement touches, as they are on disk now. When it changes after
- * verification, the evidence is stale. Without touched files, the whole working tree counts.
+ * verification, the evidence is stale. Callers pass the linked test files when nothing was touched yet;
+ * an empty list hashes the whole working tree.
  */
 export function treeHash(cwd: string, touches: string[]): string {
   const hash = createHash("sha256");
@@ -33,4 +34,14 @@ export function treeHash(cwd: string, touches: string[]): string {
     }
   }
   return `sha256:${hash.digest("hex")}`;
+}
+
+/** SHA-256 of each file as it is on disk now ("missing" when it is not there). */
+export function fileHashes(cwd: string, files: string[]): Record<string, string> {
+  return Object.fromEntries(
+    [...new Set(files)].sort().map((file) => {
+      const path = join(cwd, file);
+      return [file, existsSync(path) ? `sha256:${createHash("sha256").update(readFileSync(path)).digest("hex")}` : "missing"];
+    }),
+  );
 }

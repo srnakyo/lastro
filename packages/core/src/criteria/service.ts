@@ -38,6 +38,8 @@ export const criteriaService = {
       const scope = await loadScope(tx, projectId);
       const requirement = await findRequirement(tx, projectId, requirementCode);
       await tx.criterion.updateMany({ where: { requirementId: requirement.id }, data: { lockedHash: null, lockedAt: null, lockedById: null } });
+      // The sealed test files go too: the next approval seals them again on the first run.
+      await tx.criterionTest.updateMany({ where: { criterion: { requirementId: requirement.id } }, data: { lockedHash: null } });
       if (requirement.status === "approved" || requirement.status === "building") {
         await recordTransition(tx, scope, requirement, "specified", systemActor, "criteria unlocked");
       }

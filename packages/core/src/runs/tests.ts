@@ -30,10 +30,15 @@ export async function verifyPlan(projectId: string, code?: string) {
   const project = await db().project.findUniqueOrThrow({ where: { id: projectId }, select: { config: true } });
   const requirements = await db().requirement.findMany({
     where: { projectId, ...(code ? { code } : { status: { in: ["building", "reopened", "verified"] } }) },
-    select: { code: true, type: true, touches: true, status: true },
+    select: { code: true, type: true, touches: true, status: true, criteria: { select: { tests: { select: { testRef: true } } } } },
     orderBy: { code: "asc" },
   });
-  return { config: project.config, requirements };
+  // Each requirement carries the files of its linked tests: their hashes guard the locks, and with no touched
+  // files recorded yet they are what the evidence is bound to.
+  return {
+    config: project.config,
+    requirements: requirements.map(({ criteria, ...r }) => ({ ...r, testFiles: [...new Set(criteria.flatMap((c) => c.tests.map((t) => t.testRef.split("::")[0] ?? t.testRef)))].sort() })),
+  };
 }
 
 /** Criteria of live requirements that no test points to. */

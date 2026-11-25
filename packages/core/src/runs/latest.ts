@@ -1,8 +1,18 @@
 import type { Tx } from "../db";
 
-/** The latest result of every stage and condition recorded for a requirement. */
-export async function latestStages(tx: Tx, requirementId: string) {
-  const stages = await tx.runStage.findMany({ where: { requirementId }, orderBy: { startedAt: "desc" }, select: { stage: true, condition: true, status: true, manual: true } });
+/** The commit of the latest run that covered a requirement: what "the current commit" is on the server's side. */
+export async function latestCommit(tx: Tx, requirementId: string): Promise<string | null> {
+  const stage = await tx.runStage.findFirst({ where: { requirementId }, orderBy: { startedAt: "desc" }, select: { run: { select: { commit: true } } } });
+  return stage?.run.commit ?? null;
+}
+
+/** The latest result of every stage and condition recorded for a requirement, on one commit when given. */
+export async function latestStages(tx: Tx, requirementId: string, commit?: string | null) {
+  const stages = await tx.runStage.findMany({
+    where: { requirementId, ...(commit ? { run: { commit } } : {}) },
+    orderBy: { startedAt: "desc" },
+    select: { stage: true, condition: true, status: true, manual: true },
+  });
   const latest = new Map<string, (typeof stages)[number]>();
   for (const s of stages) if (!latest.has(`${s.stage}|${s.condition ?? ""}`)) latest.set(`${s.stage}|${s.condition ?? ""}`, s);
   return [...latest.values()];

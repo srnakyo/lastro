@@ -5,14 +5,14 @@ import { recordTransition } from "../lifecycle/record";
 import { findRequirement } from "../requirements/service";
 import { requireHuman, systemActor } from "../scope/actor";
 import { loadScope, type ProjectScope } from "../scope/project-scope";
-import { evaluateGate, type GateResult } from "./gate";
-import { latestStages } from "./latest";
+import { evaluateGate, type GateContext, type GateResult } from "./gate";
+import { latestCommit, latestStages } from "./latest";
 import { listRuns } from "./list";
 import { writeRun } from "./record";
 
 /** Applies the gate to one requirement after a run: building becomes verified; a failure sends verified back to building. */
-async function settle(tx: Tx, scope: ProjectScope, requirement: { id: string; code: string; status: string }, runId: string, tree: string | undefined): Promise<GateResult> {
-  const result = await evaluateGate(tx, scope.config, requirement.id, await latestStages(tx, requirement.id));
+async function settle(tx: Tx, scope: ProjectScope, requirement: { id: string; code: string; status: string }, runId: string, tree: string | undefined, ctx: GateContext): Promise<GateResult> {
+  const result = await evaluateGate(tx, scope.config, requirement.id, await latestStages(tx, requirement.id, ctx.commit), ctx);
   const target = { id: requirement.id, code: requirement.code, status: requirement.status as never };
   // A reopened requirement goes back to building through `start`, by a person or the agent, before it can verify again.
   if (result.pass && requirement.status === "building") {
@@ -34,7 +34,7 @@ export const runsService = {
       const gates: Record<string, GateResult> = {};
       for (const code of codes) {
         const requirement = await findRequirement(tx, projectId, code);
-        gates[code] = await settle(tx, scope, requirement, run.id, report.trees[code]);
+        gates[code] = await settle(tx, scope, requirement, run.id, report.trees[code], { commit: report.commit, testFiles: report.testFiles });
       }
       await auditService.record(tx, { workspaceId: scope.workspaceId, projectId, actor, action: "run.record", entity: "run", entityId: run.id, data: { status: run.status } });
       return { runId: run.id, status: run.status, gates };
@@ -48,13 +48,15 @@ export const runsService = {
     return transaction(async (tx) => {
       const scope = await loadScope(tx, projectId);
       const requirement = await findRequirement(tx, projectId, code);
-      const run = await tx.run.create({ data: { projectId, trigger: "dev", status: input.status === "passed" ? "passed" : "failed", finishedAt: new Date(), durationMs: 0 } });
+      // The signature belongs to the commit the requirement was last run on.
+      const commit = await latestCommit(tx, requirement.id);
+      const run = await tx.run.create({ data: { projectId, trigger: "dev", commit, status: input.status === "passed" ? "passed" : "failed", finishedAt: new Date(), durationMs: 0 } });
       await tx.runStage.create({
         data: { runId: run.id, requirementId: requirement.id, stage: input.stage, condition: input.condition ?? null, status: input.status, manual: true, signedBy: actor.id, reference: input.reference },
       });
       await auditService.record(tx, { workspaceId: scope.workspaceId, projectId, actor, action: "stage.sign", entity: "requirement", entityId: code, data: input });
       const last = await tx.evidence.findFirst({ where: { requirementId: requirement.id }, orderBy: { verifiedAt: "desc" } });
-      return settle(tx, scope, requirement, run.id, last?.treeHash);
+      return settle(tx, scope, requirement, run.id, last?.treeHash, { commit });
     });
   },
 
@@ -62,7 +64,7 @@ export const runsService = {
    * The gate for CI and the stop hook: building items must be verified, and verified items whose
    * touched files changed since their evidence go back to building.
    */
-  async gate(projectId: string, trees: Record<string, string>) {
+  async gate(projectId: string, trees: Record<string, string>, ctx: GateContext = {}) {
     return transaction(async (tx) => {
       const scope = await loadScope(tx, projectId);
       const items = await tx.requirement.findMany({ where: { projectId, status: { in: ["building", "verified", "reopened"] } }, select: { id: true, code: true, status: true } });
@@ -71,10 +73,12 @@ export const runsService = {
         const evidence = await tx.evidence.findFirst({ where: { requirementId: item.id }, orderBy: { verifiedAt: "desc" } });
         const tree = trees[item.code];
         if (item.status === "verified" && scope.config.gate.stale_on_change && evidence && tree && evidence.treeHash !== tree) {
-          await recordTransition(tx, scope, { ...item, status: "verified" }, "building", systemActor, "stale evidence: touched files changed");
+          await recordTransition(tx, scope, { ...item, status: "verified" }, "building", systemActor, "stale evidence");
           item.status = "building";
         }
-        const result = await evaluateGate(tx, scope.config, item.id, await latestStages(tx, item.id));
+        // Verified evidence is bound to the tree of the touched files; what is still building must pass on this commit.
+        const commit = item.status === "verified" ? undefined : ctx.commit;
+        const result = await evaluateGate(tx, scope.config, item.id, await latestStages(tx, item.id, commit), { commit, testFiles: ctx.testFiles });
         results[item.code] = { ...result, pass: item.status === "verified" && result.pass, status: item.status };
       }
       return { pass: Object.values(results).every((r) => r.pass), requirements: results };

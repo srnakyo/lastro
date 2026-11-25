@@ -43,6 +43,8 @@ export const runReportSchema = z.object({
   ),
   /** Fingerprint of the files each requirement touches, at the time of the run. */
   trees: z.record(z.string(), z.string()),
+  /** SHA-256 of each test file linked to a criterion, so a locked test cannot change unnoticed. */
+  testFiles: z.record(z.string(), z.string()).default({}),
 });
 
 export type RunReportInput = z.input<typeof runReportSchema>;

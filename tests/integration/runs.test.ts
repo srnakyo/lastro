@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "bun:test";
-import { lifecycleService, requirementsService, runsService, sourcesService, testCatalog } from "@lastro/core";
+import { criteriaService, glossaryService, lifecycleService, requirementsService, runsService, sourcesService, testCatalog } from "@lastro/core";
 import { database } from "@lastro/database";
 import { projectConfigSchema, type RunReportInput } from "@lastro/shared";
 import { resetDatabase } from "../helpers/db";
@@ -88,5 +88,40 @@ describe("runs and the gate", () => {
     const detail = await runsService.get(project.id, second.runId);
     expect(detail.previousId).toBe(first.runId);
     expect(detail.changed).toEqual([{ ref: TEST_REF, from: "failed", to: "passed" }]);
+  });
+});
+
+describe("gate rules beyond stages and tests", () => {
+  it("fails naming a locked test whose file changed after it was sealed, until a person unlocks", async () => {
+    const { project, actor, code } = await building();
+    const sealed = { ...report(code, "passed"), testFiles: { "tests/discount.test.ts": "sha256:one" } };
+    expect((await runsService.record(project.id, agent, sealed)).gates[code]?.pass).toBe(true);
+    const edited = await runsService.gate(project.id, { [code]: "sha256:a" }, { testFiles: { "tests/discount.test.ts": "sha256:two" } });
+    expect(edited.requirements[code]?.agentCanFix.join(" ")).toContain("locked test changed: tests/discount.test.ts (AC-1)");
+    await criteriaService.unlock(project.id, actor, code);
+    const after = await runsService.gate(project.id, { [code]: "sha256:a" }, { testFiles: { "tests/discount.test.ts": "sha256:two" } });
+    expect(after.requirements[code]?.agentCanFix.join(" ")).not.toContain("locked test changed");
+  });
+
+  it("names the stale evidence with exactly that reason", async () => {
+    const { project, code } = await building();
+    await runsService.record(project.id, agent, report(code, "passed", "sha256:a"));
+    await runsService.gate(project.id, { [code]: "sha256:b" });
+    const view = await requirementsService.get(project.id, code);
+    expect(view.history.at(-1)?.reason).toBe("stale evidence");
+  });
+
+  it("requires the regression tests of the requirement's incidents and the invariant tests", async () => {
+    const { project, actor, code } = await building();
+    await glossaryService.upsertInvariant(project.id, actor, { code: "INV-1", text: "Totals are never negative", testRefs: ["tests/totals.test.ts::never negative"] });
+    const result = await runsService.record(project.id, agent, report(code, "passed"));
+    expect(result.gates[code]?.agentCanFix).toEqual(["invariant INV-1: tests/totals.test.ts::never negative not run"]);
+  });
+
+  it("counts only results of the commit under evaluation for what is still building", async () => {
+    const { project, code } = await building(["unit", { check: "preview", manual: true }]);
+    await runsService.record(project.id, agent, report(code, "passed"));
+    const other = await runsService.gate(project.id, {}, { commit: "def5678" });
+    expect(other.requirements[code]?.agentCanFix).toContain("unit not run");
   });
 });

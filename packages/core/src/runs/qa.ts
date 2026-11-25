@@ -4,7 +4,7 @@ import { loadScope } from "../scope/project-scope";
 import { LIFECYCLE_EDGES, allowedActors } from "../lifecycle/transitions";
 import { latestTestResults } from "../overview/tests";
 import { evaluateGate } from "./gate";
-import { latestStages } from "./latest";
+import { latestCommit, latestStages } from "./latest";
 
 const moduleOf = (reach: unknown, type: string) => {
   const modules = (reach as { modules?: unknown } | null)?.modules;
@@ -16,8 +16,10 @@ export async function requirementQa(projectId: string, code: string) {
   const tx = db();
   const scope = await loadScope(tx, projectId);
   const requirement = await findRequirement(tx, projectId, code);
-  const stages = await latestStages(tx, requirement.id);
-  const gate = await evaluateGate(tx, scope.config, requirement.id, stages);
+  // The diagram shows the latest commit that ran this requirement, not results mixed from older commits.
+  const commit = await latestCommit(tx, requirement.id);
+  const stages = await latestStages(tx, requirement.id, commit);
+  const gate = await evaluateGate(tx, scope.config, requirement.id, stages, { commit });
   const evidence = await tx.evidence.findMany({ where: { requirementId: requirement.id }, orderBy: { verifiedAt: "desc" }, take: 5, include: { run: { select: { id: true, commit: true, trigger: true } } } });
   return {
     config: scope.config,

@@ -55,3 +55,14 @@ describe("runner", () => {
     expect(treeHash(dir, ["a.ts"])).not.toBe(before);
   });
 });
+
+describe("evidence binding", () => {
+  it("keeps the fingerprint when only files outside the touched ones change", () => {
+    const dir = mkdtempSync(join(tmpdir(), "lastro-tree-"));
+    writeFileSync(join(dir, "a.ts"), "1");
+    writeFileSync(join(dir, "b.ts"), "1");
+    const before = treeHash(dir, ["a.ts"]);
+    writeFileSync(join(dir, "b.ts"), "2");
+    expect(treeHash(dir, ["a.ts"])).toBe(before);
+  });
+});

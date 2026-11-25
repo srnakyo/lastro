@@ -2,5 +2,5 @@ export { planStages, type PlannedStage } from "./plan";
 export { parseJunit, type TestCaseResult } from "./junit";
 export { parseSarif, type Finding } from "./sarif";
 export { runCommand, type CommandResult } from "./exec";
-export { commitInfo, treeHash } from "./git";
-export { verify, type RequirementToVerify, type RunReport, type StageRun } from "./verify";
+export { commitInfo, fileHashes, treeHash } from "./git";
+export { boundFiles, verify, type RequirementToVerify, type RunReport, type StageRun } from "./verify";

@@ -1,10 +1,10 @@
 import { projectConfigSchema } from "@lastro/shared";
-import { treeHash, verify, type RunReport } from "@lastro/runner";
+import { boundFiles, commitInfo, fileHashes, treeHash, verify, type RunReport } from "@lastro/runner";
 import type { LastroClient } from "../api/client";
 
 interface Plan {
   config: unknown;
-  requirements: { code: string; type: string; touches: string[]; status: string }[];
+  requirements: { code: string; type: string; touches: string[]; status: string; testFiles: string[] }[];
 }
 
 export interface GateState {
@@ -37,8 +37,9 @@ export async function runVerify(client: LastroClient, root: string, project: str
 /** Fingerprints the touched files of every active requirement and asks the server for the gate. */
 export async function runGate(client: LastroClient, root: string, project: string) {
   const plan = await client.get<Plan>(`/projects/${project}/verify-plan`);
-  const trees = Object.fromEntries(plan.requirements.map((r) => [r.code, treeHash(root, r.touches)]));
-  return client.post<{ pass: boolean; requirements: Record<string, GateState> }>(`/projects/${project}/gate`, { trees });
+  const trees = Object.fromEntries(plan.requirements.map((r) => [r.code, treeHash(root, boundFiles(r))]));
+  const testFiles = fileHashes(root, plan.requirements.flatMap((r) => r.testFiles));
+  return client.post<{ pass: boolean; requirements: Record<string, GateState> }>(`/projects/${project}/gate`, { trees, commit: commitInfo(root).commit, testFiles });
 }
 
 export const triggerFromEnv = (): RunReport["trigger"] => (process.env.CI ? "ci" : "dev");
