@@ -5,7 +5,7 @@ status: specified
 package: PKG-M7V0P
 sources:
   - ref: SRC-P4RD7
-    anchor: "@03-domain-model.md#onde-tudo-fica"
+    anchor: "@04-domain-model.md#onde-tudo-fica"
     quote: "é validado por um JSON Schema publicado, para os editores avisarem erro de digitação"
 statement: >
   Each entity file under .lastro/ has a zod schema exported as JSON Schema under schemas/. `lastro doctor` validates every file and reports file, path and message for each error.

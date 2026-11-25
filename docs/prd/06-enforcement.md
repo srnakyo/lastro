@@ -1,4 +1,4 @@
-# 5. Making the agent comply
+# 6. Making the agent comply
 
 No tool can guarantee that an external agent obeys a system it can work around. That is why Lastro works on three levels, and only the third is a real guarantee.
 
@@ -64,7 +64,7 @@ These actions:
 
 - **Git `pre-push` hook** (`lastro setup git`): runs `lastro gate --changed` and blocks the push when a touched requirement isn't verified.
 - **CI check** (`lastro gate --ci`): runs all the automatic stages again in a clean environment, checks the locks and publishes the "Lastro gate" check with a table per requirement. Marked as required in the main branch protection, it prevents the merge.
-- **Block in the PR**: CI writes or updates a marked block in the PR description with the requirements, the decisions and the evidence. It serves reviewers and the integrations (see [Integrations](07-integrations.md)).
+- **Block in the PR**: CI writes or updates a marked block in the PR description with the requirements, the decisions and the evidence. It serves reviewers and the integrations (see [Integrations](08-integrations.md)).
 
 ## Other agents
 

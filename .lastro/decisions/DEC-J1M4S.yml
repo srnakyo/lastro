@@ -6,4 +6,4 @@ reason: "Reach the international community while keeping the Brazilian origin of
 decided_by: agent
 status: proposed
 show_to_client: true
-source: { ref: SRC-P4RD7, anchor: "@08-architecture-roadmap.md#idiomas" }
+source: { ref: SRC-P4RD7, anchor: "@09-architecture-roadmap.md#idiomas" }

@@ -1,11 +1,11 @@
-# 7. Integrações
+# 8. Integrações
 
 ## Claude Code
 
 `lastro setup claude` instala os três pedaços de uma vez:
 
-- **Servidor MCP** no `.mcp.json` do projeto (ver [Interfaces](06-interfaces.md)).
-- **Hooks** no `.claude/settings.json` do projeto (ver [Como obrigar o agente a seguir](05-enforcement.md)).
+- **Servidor MCP** no `.mcp.json` do projeto (ver [Interfaces](07-interfaces.md)).
+- **Hooks** no `.claude/settings.json` do projeto (ver [Como obrigar o agente a seguir](06-enforcement.md)).
 - **Seção marcada** no `CLAUDE.md`.
 
 Também sai como **plugin do Claude Code**, com hooks, MCP e skills juntos:

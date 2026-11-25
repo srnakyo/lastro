@@ -1,4 +1,4 @@
-# 5. Como obrigar o agente a seguir
+# 6. Como obrigar o agente a seguir
 
 Nenhuma ferramenta consegue garantir que um agente externo obedeça a um sistema que ele pode contornar. Por isso o Lastro trabalha em três níveis, e só o terceiro é garantia de verdade.
 
@@ -64,7 +64,7 @@ Elas:
 
 - **Hook `pre-push` do git** (`lastro setup git`): roda `lastro gate --changed` e bloqueia o push quando um requisito tocado não está verificado.
 - **Check no CI** (`lastro gate --ci`): roda todas as etapas automáticas de novo num ambiente limpo, confere os travamentos e publica o check "Lastro gate" com uma tabela por requisito. Marcado como obrigatório na proteção da branch principal, ele impede o merge.
-- **Bloco no PR**: o CI escreve ou atualiza, na descrição do PR, um bloco marcado com os requisitos, as decisões e a evidência. Serve para quem revisa e para as integrações (ver [Integrações](07-integrations.md)).
+- **Bloco no PR**: o CI escreve ou atualiza, na descrição do PR, um bloco marcado com os requisitos, as decisões e a evidência. Serve para quem revisa e para as integrações (ver [Integrações](08-integrations.md)).
 
 ## Outros agentes
 

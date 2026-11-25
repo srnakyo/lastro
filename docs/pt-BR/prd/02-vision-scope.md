@@ -8,7 +8,7 @@
 4. **Suposição é registrada, nunca escondida.** Se o pedido não diz, o agente decide e registra a decisão, que o cliente vê.
 5. **Quem pediu define o aceite.** Os exemplos e números de quem pediu viram os critérios. O agente não edita critério travado.
 6. **Os arquivos no git são a verdade.** Tudo o que importa fica em `.lastro/`, em YAML e Markdown, revisado no mesmo PR que o código.
-7. **Local primeiro.** Funciona sem servidor, sem conta e sem assinatura.
+7. **Local primeiro, servidor quando precisar.** Funciona na máquina, sem configuração, com SQLite. Para time e vários projetos, conecta num Postgres e o painel passa a ser compartilhado.
 8. **Sem LLM dentro.** Quem pensa é o agente que o desenvolvedor já usa. O Lastro guarda, cobra e confere. Sem custo de tokens próprio.
 9. **Agnóstico de agente e de stack.** Claude Code primeiro, mas o formato, a CLI e o MCP servem a qualquer agente e linguagem.
 10. **Só a fase não feita é pendência.** Item feito e verificado não aparece como pendente, nem com ressalva.
@@ -31,11 +31,13 @@
 5. O agente não consegue encerrar a resposta dizendo que terminou com o gate vermelho (Claude Code).
 6. Glossário, invariantes, contrato de layout e decisões voltam ao contexto do agente em toda sessão e depois de toda compactação.
 7. Relatório item a item para o cliente, com o texto literal do pedido.
+8. Um painel visual com os pacotes, os requisitos, o catálogo de testes, as execuções e os resultados, os diagramas vivos dos fluxos de QA e da rastreabilidade, e a geração da documentação do projeto.
+9. Os dados guardados em SQLite local ou num Postgres, com o mesmo esquema e a mesma interface.
 
 ## Fora do escopo do MVP
 
 - Ser um gerenciador de projetos completo (sprints, horas, quadro kanban).
-- Hospedar portal do cliente. A aprovação do cliente entra como referência (id da mensagem, e-mail, assinatura) registrada pelo desenvolvedor.
+- Portal para o cliente entrar e aprovar. No MVP, a aprovação do cliente entra como referência (id da mensagem, e-mail, assinatura) registrada pelo desenvolvedor. O modo servidor do painel é para o time.
 - Gerar código ou testes por conta própria. Isso é trabalho do agente.
 - Substituir o CI. O Lastro roda dentro dele.
 - Ser um linter. O Lastro roda os linters do projeto e lê o resultado em SARIF.

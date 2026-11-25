@@ -42,7 +42,8 @@ flowchart LR
 
 - **Everything lives in the repository**, in `.lastro/`, reviewed in the same PR as the code.
 - **No LLM inside.** The agent you already use does the thinking. Lastro stores, enforces and checks.
-- **Local first.** No server, no account, no subscription.
+- **Visual dashboard.** Tests, runs and results, live diagrams of the QA flows and of traceability, and documentation generated from the data.
+- **Local or with Postgres.** On your machine, with no setup, using SQLite. For a team and several projects, on Postgres with a shared dashboard.
 - **Agnostic.** Claude Code first, with a CLI and MCP for any agent, on any stack that produces JUnit or SARIF.
 
 ## Three levels of assurance
@@ -66,6 +67,8 @@ lastro approve PKG-2R8XW
 lastro verify
 lastro gate
 lastro report PKG-2R8XW --format pdf
+lastro ui                  # dashboard at http://127.0.0.1
+lastro docs build --format pdf
 ```
 
 ## Documentation

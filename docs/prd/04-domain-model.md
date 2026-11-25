@@ -1,4 +1,4 @@
-# 3. Data model and file format
+# 4. Data model, file format and storage
 
 ## Where everything lives
 
@@ -15,13 +15,13 @@
   packages/             delivery rounds (e.g. "Fixes v.4")
   ledger/               the latest evidence that cleared each requirement (small, versioned)
   .store/               source binaries and artifacts (out of git by default)
-  .state/               SQLite index and full run history (out of git)
+  .state/               SQLite database for local mode (out of git)
   .out/                 temporary command output (out of git)
 ```
 
 - What is in YAML and Markdown is the truth and goes into git, reviewed in the same PR as the code.
-- SQLite is only an index and history. It can be deleted and rebuilt.
-- `lastro.yml` has `version: 1` at the top, and every file is validated by a published JSON Schema, so editors can flag typos.
+- The database (SQLite in local mode, Postgres in server mode) keeps the run history, the test catalog, the metrics and a mirror of the spec for the dashboard. See [Storage](#storage).
+- `lastro.yml` has `version: 1` at the top, and every file in `.lastro/` is validated by a published JSON Schema, so editors can flag typos.
 
 ## IDs
 
@@ -37,12 +37,15 @@ erDiagram
   SOURCE ||--o| SOURCE : "supersedes"
   PACKAGE ||--o{ REQUIREMENT : groups
   REQUIREMENT ||--o{ ACCEPTANCE : has
-  ACCEPTANCE }o--o{ TEST_REF : "verified by"
+  ACCEPTANCE }o--o{ TEST : "verified by"
+  RUN ||--o{ RESULT : "contains"
+  TEST ||--o{ RESULT : "has"
+  RUN ||--o{ EVIDENCE : "produces"
   REQUIREMENT ||--o{ DECISION : "about"
   REQUIREMENT ||--o{ QUESTION : "about"
   REQUIREMENT ||--o{ EVIDENCE : "cleared by"
   INCIDENT }o--|| REQUIREMENT : reopens
-  INCIDENT ||--o| TEST_REF : "creates regression test"
+  INCIDENT ||--o| TEST : "creates regression test"
   GLOSSARY ||--o{ INVARIANT : contains
 ```
 
@@ -70,7 +73,7 @@ The extracted text (`SRC-8M2KD.md`) marks the anchors like this:
 
 ```markdown
 <!-- @p3 -->
-10. Invoices: the volume discount has to show on the invoice, including the annual plan. Today it only shows on the monthly one.
+10. Invoices: the volume discount has to show up on the invoice, including on the annual plan. Today it only shows up on the monthly one.
 <!-- @p3/img2 -->
 ![](../.store/SRC-8M2KD/img2.png)
 ```
@@ -84,7 +87,7 @@ Anchors by type:
 | chat | message id (`@msg:3A5B...`), with author and time |
 | audio, video | minute and second (`@t00:34`); for video, also the extracted frame |
 | image | the whole image (`@img`) |
-| text (a file in the repository itself) | file and section heading (`@04-lifecycle-and-gates.md#requirement-states`) |
+| text (a file in the repository itself) | file and section heading (`@05-lifecycle-and-gates.md#requirement-states`) |
 
 ### Requirement (`requirements/REQ-xxxxx.yml`)
 
@@ -152,7 +155,7 @@ The other fields are **required by type**, as set in `lastro.yml`. Starting exam
 - Written in the **Given / when / then** format, or in the requester's own format ("how it is, how it should be, how to check").
 - Uses the requester's examples and numbers whenever they exist.
 - Points to one or more tests (`tests`) or to a manual stage of the flow.
-- `lastro lock` records the hash of the criterion text and of the linked tests. From then on, changing a criterion or a test requires a human command (see [Making the agent comply](05-enforcement.md)).
+- `lastro lock` records the hash of the criterion text and of the linked tests. From then on, changing a criterion or a test requires a human command (see [Making the agent comply](06-enforcement.md)).
 
 ### Decision (`decisions/DEC-xxxxx.yml`)
 
@@ -260,7 +263,32 @@ reference_screens: [ART-1KQ8D, ART-7PM3X]
 
 The contract goes into the agent's context, generates the layout section of `REVIEW.md` and can be checked by a check in the `visual` flow.
 
-### Evidence (`ledger/REQ-xxxxx.json` and `.state/`)
+### Test (catalog, in the database)
+
+Lastro builds the catalog from the JUnit reports of each run. There is no test file inside `.lastro/`: the test is the project's own.
+
+| Field | Content |
+|---|---|
+| `id` | `file::test name`, as it appears in JUnit |
+| `criteria` | The criteria that point to it in `acceptance[].tests` |
+| `first_seen`, `last_seen` | The first and last commit it appeared in |
+| `flaky` | True when it passed and failed with no change to the files it covers |
+| `orphan` | True when no criterion points to it |
+
+### Run (in the database)
+
+Every `lastro verify`, every `lastro gate --ci` and every call to `lastro_verify` by the agent is a run:
+
+| Field | Content |
+|---|---|
+| `id` | The run ID |
+| `trigger` | `dev`, `agent` or `ci` |
+| `commit`, `branch` | Where it ran |
+| `started_at`, `duration_ms` | When, and how long it took |
+| `stages` | Each stage, by condition, with the command, exit code, summarized output and artifacts |
+| `results` | The result of each JUnit test and of each SARIF finding |
+
+### Evidence (`ledger/REQ-xxxxx.json` and the database)
 
 Every run performed by Lastro records:
 
@@ -281,9 +309,64 @@ Every run performed by Lastro records:
 }
 ```
 
-- The full history lives in SQLite.
+- The full history lives in the database.
 - `ledger/` keeps only the evidence that cleared each requirement at delivery, for the PR and the report.
-- Artifacts (screenshots, videos, long output) live in `.store/` by hash. They can go into git or LFS if the project configures it.
+- Artifacts (screenshots, videos, long output) live in `.store/` by hash, or in an S3-compatible bucket in server mode. They can go into git or LFS if the project configures it.
+
+## Storage
+
+### Two modes
+
+| | Local | Server |
+|---|---|---|
+| Database | SQLite in `.lastro/.state/lastro.db` | Postgres 16 or newer |
+| Configuration | None | `storage.driver: postgres` and the URL in an environment variable |
+| Projects | One per repository | Several in the same database, separated by `project_key` |
+| Dashboard | `lastro ui`, on `127.0.0.1`, no login | `lastro server`, with login, for the team |
+| CI | Writes to `ledger/` | Writes to the server with a token |
+| Artifacts | `.store/` | `.store/` or an S3-compatible bucket |
+
+Both modes use the same schema and the same migrations, so you can start locally and move to Postgres later with `lastro db push`.
+
+### What lives where
+
+| Data | Git (`.lastro/`) | Database |
+|---|---|---|
+| Spec: sources (metadata and text), requirements, criteria, decisions, questions, incidents, packages, glossary, contract, configuration | **truth** | a mirror, for the dashboard and queries |
+| Runs, per-test results, test catalog, metrics and state history | only the delivery `ledger/` | **truth** |
+| Artifacts (screenshots, videos, long output) | no, by default | metadata; the file lives in `.store/` or in S3 |
+| Generated documentation | optional, in `docs/lastro/` | a record of each build |
+| Human actions taken in the server dashboard | applied by `lastro sync` | events |
+
+The spec stays in git because it is reviewed in the same PR as the code. The history goes into the database because it keeps growing and needs fast queries in the dashboard.
+
+### Configuration
+
+```yaml
+storage:
+  driver: postgres                 # sqlite (default) | postgres
+  url_env: LASTRO_DATABASE_URL     # name of the variable; the URL never goes into lastro.yml
+  project_key: "my-app"            # separates the projects that share the same database
+artifacts:
+  driver: s3                       # local (default) | s3
+  bucket_env: LASTRO_ARTIFACTS_BUCKET
+server:
+  url_env: LASTRO_SERVER_URL       # for CI and the CLI to send data to the server
+  token_env: LASTRO_TOKEN
+```
+
+### Sync
+
+- Every CLI command and every MCP tool updates the database right away.
+- `lastro sync` reconciles the files with the database. For the spec, the file wins. For the history, the database wins. Events from the server dashboard become changes to the files.
+- CI sends the runs to the server with `LASTRO_TOKEN`, without needing the database password.
+
+### Main tables
+
+`projects`, `sources`, `source_versions`, `requirements`, `criteria`, `tests`, `criteria_tests`, `runs`, `run_stages`, `test_results`, `evidence`, `artifacts`, `decisions`, `questions`, `incidents`, `packages`, `state_events`, `doc_builds`, `users`, `tokens`.
+
+- Migrations are versioned and run with `lastro db migrate`.
+- Every table has `project_id`, so several projects can share the same database.
 
 ## What is sensitive
 
@@ -291,4 +374,5 @@ Client material often contains personal data. By default:
 
 - the source binary stays in `.store/`, out of git;
 - the extracted text goes into git (configurable: `sources.commit: text | none | all`);
-- Lastro never sends anything off the machine. If material goes to an LLM, the agent sends it, under its own rules.
+- in local mode, Lastro never sends anything off the machine. In server mode, it only talks to the Postgres database, the bucket and the server the project configured;
+- Lastro doesn't send material to any LLM. If that happens, the agent does it, under its own rules.

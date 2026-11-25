@@ -11,11 +11,17 @@ commands:
   typecheck: { run: "npx tsc -b" }
   lint:      { run: "npx eslint . -f @microsoft/eslint-formatter-sarif -o .lastro/.out/eslint.sarif", report: { sarif: ".lastro/.out/eslint.sarif" } }
   unit:      { run: "npx vitest run --reporter=junit --outputFile=.lastro/.out/unit.xml", report: { junit: ".lastro/.out/unit.xml" } }
+  e2e:       { run: "npx playwright test --reporter=junit", env: { PLAYWRIGHT_JUNIT_OUTPUT_NAME: ".lastro/.out/e2e.xml" }, report: { junit: ".lastro/.out/e2e.xml" } }
 
 conditions:
   empty-repo:     { setup: "node scripts/fixtures.mjs empty", note: "a git repository with no .lastro/ folder" }
   existing-repo:  { setup: "node scripts/fixtures.mjs existing", note: "a repository with history, branches and an existing .lastro/" }
   windows-paths:  { env: { LASTRO_TEST_PATH_STYLE: "win32" }, note: "paths with backslashes and drive letters" }
+  sqlite:         { env: { LASTRO_TEST_DB: "sqlite" } }
+  postgres:       { setup: "docker compose -f test/postgres.yml up -d --wait", env: { LASTRO_TEST_DB: "postgres" }, note: "Postgres 16 in a throwaway container" }
+  light-theme:    { env: { E2E_THEME: "light" } }
+  dark-theme:     { env: { E2E_THEME: "dark" } }
+  mobile-width:   { env: { E2E_VIEWPORT: "390x844" } }
 
 types:
   behavior:
@@ -29,6 +35,18 @@ types:
       - typecheck
       - unit
       - { check: examples }
+
+  storage:
+    required: [where, examples]
+    flow:
+      - typecheck
+      - { run: unit, conditions: [sqlite, postgres] }
+  ui:
+    required: [where, examples]
+    flow:
+      - typecheck
+      - { run: e2e, conditions: [light-theme, dark-theme, mobile-width] }
+      - { check: preview, manual: true, by: dev }
 
 global_flow: [typecheck, lint]
 

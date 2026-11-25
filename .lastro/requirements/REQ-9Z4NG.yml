@@ -5,7 +5,7 @@ status: specified
 package: PKG-M7V0P
 sources:
   - ref: SRC-P4RD7
-    anchor: "@07-integrations.md#executores-de-teste-e-análise"
+    anchor: "@08-integrations.md#executores-de-teste-e-análise"
     quote: "ele roda o comando do projeto e lê formatos padrão"
 statement: >
   The runner parses JUnit XML (Vitest, Jest, Playwright, pytest, PHPUnit, gotestsum) and SARIF 2.1.0 reports declared under commands.<name>.report, and links test cases to acceptance criteria by 'file::test name'.

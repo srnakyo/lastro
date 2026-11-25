@@ -13,12 +13,13 @@ Lastro is an open source layer between whoever requests the software, the AI age
 |---|---|---|
 | 1 | [The problem](01-problem.md) | Why request and delivery diverge in AI-driven development, with data from a real project |
 | 2 | [Vision and scope](02-vision-scope.md) | Principles, who it is for, what is left out and what already exists on the market |
-| 3 | [Data model and file format](03-domain-model.md) | The entities and how they are stored in `.lastro/` |
-| 4 | [Lifecycle, gate and QA flows](04-lifecycle-and-gates.md) | A requirement's states, what unlocks each transition and how to configure QA |
-| 5 | [Making the agent comply](05-enforcement.md) | Guidance, control through hooks and external blocking |
-| 6 | [Interfaces](06-interfaces.md) | CLI, MCP server, dashboard, reports and material intake |
-| 7 | [Integrations](07-integrations.md) | Claude Code, Claude Ship, GitHub, test runners |
-| 8 | [Architecture and roadmap](08-architecture-roadmap.md) | Packages, storage, MVP order, metrics and open questions |
+| 3 | [Dashboard, documentation and diagrams](03-dashboard.md) | What you see in the dashboard: tests, runs, results, live diagrams and generated documentation |
+| 4 | [Data model, file format and storage](04-domain-model.md) | The entities, and how they are stored in `.lastro/` and in the database (SQLite or Postgres) |
+| 5 | [Lifecycle, gate and QA flows](05-lifecycle-and-gates.md) | A requirement's states, what unlocks each transition and how to configure QA |
+| 6 | [Making the agent comply](06-enforcement.md) | Guidance, control through hooks and external blocking |
+| 7 | [Interfaces](07-interfaces.md) | CLI, MCP server, reports and material intake |
+| 8 | [Integrations](08-integrations.md) | Claude Code, Claude Ship, GitHub, test runners |
+| 9 | [Architecture and roadmap](09-architecture-roadmap.md) | Packages, stack, MVP order and open questions |
 
 ## This PRD is also Lastro's first spec
 

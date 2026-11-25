@@ -5,7 +5,7 @@ status: specified
 package: PKG-M7V0P
 sources:
   - ref: SRC-P4RD7
-    anchor: "@06-interfaces.md#verificação-e-entrega"
+    anchor: "@07-interfaces.md#verificação-e-entrega"
     quote: "Sai com código 0 só se passar."
 statement: >
   `lastro gate` applies the seven gate rules of the PRD to the selected requirements on the current commit and exits 0 only when all pass. The output separates what the agent can fix from what needs a person.

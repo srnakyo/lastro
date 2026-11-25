@@ -5,7 +5,7 @@ status: specified
 package: PKG-M7V0P
 sources:
   - ref: SRC-P4RD7
-    anchor: "@03-domain-model.md#decisão-decisionsdec-xxxxxyml"
+    anchor: "@04-domain-model.md#decisão-decisionsdec-xxxxxyml"
     quote: "Suposição do agente nasce `proposed` e não trava o item."
 statement: >
   A decision recorded by the agent is created with decided_by: agent and status: proposed and does not block its requirement. Only a person can confirm or overturn it; overturning moves verified or later requirements back to building.

@@ -1,6 +1,6 @@
-# 6. Interfaces
+# 7. Interfaces
 
-O Lastro tem quatro portas para o mesmo núcleo: a CLI para pessoas e scripts, o servidor MCP para agentes, o painel local para ver e decidir, e os relatórios para quem pediu.
+O Lastro tem quatro portas para o mesmo núcleo: a CLI para pessoas e scripts, o servidor MCP para agentes, o painel para ver, decidir e gerar documentação, e os relatórios para quem pediu. O painel tem capítulo próprio: [Painel, documentação e diagramas](03-dashboard.md).
 
 ## CLI
 
@@ -48,7 +48,18 @@ O Lastro não chama LLM. A quebra da fonte em requisitos atômicos é feita pelo
 | `lastro accept <REQ\|PKG> --ref "<referência>"` | Aceite de quem pediu. Humano |
 | `lastro incident new "<reclamação>" --source <SRC@âncora>` | Registra incidente e reabre o requisito |
 | `lastro incident triage <INC> --triage bug --cause spec_gap --billing courtesy` | Classifica |
-| `lastro ui` | Abre o painel local |
+
+### Painel, documentação e banco
+
+| Comando | O que faz |
+|---|---|
+| `lastro ui` | Abre o painel no modo local, em `127.0.0.1`, lendo os arquivos e o SQLite |
+| `lastro server` | Sobe o painel no modo servidor, ligado ao Postgres, com login |
+| `lastro docs build [--format md\|html\|pdf] [--out docs/lastro]` | Gera a documentação do projeto a partir dos dados |
+| `lastro db migrate` | Cria ou atualiza as tabelas no banco configurado |
+| `lastro db push` | Copia o histórico do SQLite local para o Postgres |
+| `lastro sync` | Reconcilia os arquivos de `.lastro/` com o banco e aplica os eventos do painel do servidor |
+| `lastro token create --name ci` | Cria o token que o CI usa para enviar execuções ao servidor. Humano |
 
 ## Servidor MCP
 
@@ -75,22 +86,9 @@ Ferramentas para o agente. Nenhuma delas aprova, aceita, destrava ou assina etap
 
 Recursos MCP: `lastro://glossary`, `lastro://design`, `lastro://config`, `lastro://package/<id>`.
 
-## Painel local
+## Painel
 
-`lastro ui` sobe um servidor local (só `127.0.0.1`), que lê os mesmos arquivos e o SQLite e atualiza ao vivo.
-
-| Página | O que mostra |
-|---|---|
-| Visão geral | Pacotes abertos, funil por estado, gate de cada pacote, últimas execuções |
-| Pacote | Os itens na numeração de quem pediu, com estado, origem, evidência e o que falta. "Pendente" aqui é só o que não foi verificado |
-| Requisito | A citação lado a lado com o trecho da fonte, os campos, os critérios, os testes por condição, a evidência por commit, as decisões e as perguntas |
-| Fontes | Versões, diferença entre elas, âncoras, requisitos que cada trecho gerou |
-| Perguntas e decisões | O que está aberto, o que o agente presumiu e ainda não foi confirmado |
-| Incidentes | Triagem, causa e cobrança: quanto foi spec incompleta, quanto foi implementação, quanto foi cortesia |
-| Qualidade | Cobertura de critérios por testes, testes por condição, etapas manuais pendentes |
-| Configuração | Fluxos, condições, glossário e contrato de layout, editáveis |
-
-As ações humanas do painel (aprovar, aceitar, registrar prévia) gravam nos mesmos arquivos que a CLI e entram no próximo commit.
+O painel, os diagramas vivos e a documentação gerada estão em [Painel, documentação e diagramas](03-dashboard.md).
 
 ## Relatórios
 
@@ -101,7 +99,7 @@ As ações humanas do painel (aprovar, aceitar, registrar prévia) gravam nos me
 | Técnico | Dev e revisor | Evidência por requisito, comandos, commits, condições, travamentos, incidentes e regressões |
 | Incidentes do período | Dev | Triagem, causa e cobrança, para a conversa comercial |
 
-Formatos: Markdown, HTML e PDF. O visual do PDF é configurável (logo, cores e capa do desenvolvedor).
+Formatos: Markdown, HTML e PDF. O visual do PDF é configurável (logo, cores e capa do desenvolvedor). Os relatórios fazem parte da [documentação gerada](03-dashboard.md#documentação-gerada).
 
 ## Entrada de material
 

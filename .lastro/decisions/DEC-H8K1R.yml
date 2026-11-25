@@ -6,4 +6,4 @@ reason: "Sequential IDs collide when two branches create items at the same time;
 decided_by: agent
 status: proposed
 show_to_client: true
-source: { ref: SRC-P4RD7, anchor: "@03-domain-model.md#ids" }
+source: { ref: SRC-P4RD7, anchor: "@04-domain-model.md#ids" }

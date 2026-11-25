@@ -6,4 +6,4 @@ reason: "What the agent reports does not count; only what ran."
 decided_by: agent
 status: proposed
 show_to_client: true
-source: { ref: SRC-P4RD7, anchor: "@05-enforcement.md#por-que-o-agente-não-consegue-dizer-que-passou" }
+source: { ref: SRC-P4RD7, anchor: "@06-enforcement.md#por-que-o-agente-não-consegue-dizer-que-passou" }

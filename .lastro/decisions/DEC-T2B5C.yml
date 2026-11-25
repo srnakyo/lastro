@@ -1,0 +1,9 @@
+id: DEC-T2B5C
+about: [REQ-J8M1T, REQ-F7H2Q]
+kind: decision
+text: "One dashboard, two modes: the same server package and UI serve `lastro ui` (SQLite, 127.0.0.1, no login) and `lastro server` (Postgres, login, CI tokens)."
+reason: "One code path to build and test; a developer starts locally and moves to Postgres with lastro db push."
+decided_by: agent
+status: proposed
+show_to_client: true
+source: { ref: SRC-P4RD7, anchor: "@09-architecture-roadmap.md#decisões-de-arquitetura" }

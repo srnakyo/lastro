@@ -1,4 +1,4 @@
-# 4. Lifecycle, gate and QA flows
+# 5. Lifecycle, gate and QA flows
 
 ## Requirement states
 
@@ -50,7 +50,7 @@ stateDiagram-v2
 
 - Human command: `lastro approve REQ-K7Q2M`, or the whole package (`lastro approve PKG-2R8XW`).
 - If `lastro.yml` requires a final source (`approval.require_final_source`), every cited source has `final: true`. A requirement can be specified from a draft, but only approved from the final version.
-- The agent doesn't have this command (see [Making the agent comply](05-enforcement.md)).
+- The agent doesn't have this command (see [Making the agent comply](06-enforcement.md)).
 - Approving locks the acceptance criteria (automatic `lastro lock`).
 
 ### `building` → `verified` (the gate)

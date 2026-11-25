@@ -8,7 +8,7 @@
 4. **Assumptions are recorded, never hidden.** If the request doesn't say, the agent decides and records the decision, which the client sees.
 5. **The requester defines acceptance.** The requester's examples and numbers become the criteria. The agent doesn't edit a locked criterion.
 6. **The files in git are the truth.** Everything that matters lives in `.lastro/`, in YAML and Markdown, reviewed in the same PR as the code.
-7. **Local first.** It works without a server, an account or a subscription.
+7. **Local first, a server when you need one.** It works on your machine, with no setup, using SQLite. For a team and several projects, it connects to Postgres and the dashboard becomes shared.
 8. **No LLM inside.** The agent the developer already uses does the thinking. Lastro stores, enforces and checks. No token costs of its own.
 9. **Agent and stack agnostic.** Claude Code first, but the format, the CLI and the MCP work with any agent and language.
 10. **Only an unfinished phase is pending.** An item that is done and verified doesn't show up as pending, not even with a caveat.
@@ -31,11 +31,13 @@
 5. The agent can't end its response saying it is done while the gate is red (Claude Code).
 6. Glossary, invariants, layout contract and decisions come back into the agent's context in every session and after every compaction.
 7. An item-by-item report for the client, with the literal text of the request.
+8. A visual dashboard with the packages, the requirements, the test catalog, the runs and the results, the live diagrams of the QA flows and of traceability, and the generation of the project's documentation.
+9. Data stored in local SQLite or in Postgres, with the same schema and the same interface.
 
 ## Out of scope for the MVP
 
 - Being a full project manager (sprints, hours, kanban board).
-- Hosting a client portal. Client approval comes in as a reference (message id, email, signature) recorded by the developer.
+- A portal for the client to log in and approve. In the MVP, client approval comes in as a reference (message id, email, signature) recorded by the developer. The dashboard's server mode is for the team.
 - Generating code or tests on its own. That is the agent's job.
 - Replacing CI. Lastro runs inside it.
 - Being a linter. Lastro runs the project's linters and reads the result as SARIF.

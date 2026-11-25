@@ -5,7 +5,7 @@ status: specified
 package: PKG-M7V0P
 sources:
   - ref: SRC-P4RD7
-    anchor: "@06-interfaces.md#projeto"
+    anchor: "@07-interfaces.md#projeto"
     quote: "Cria `.lastro/` com `lastro.yml`, glossário e contrato de layout vazios, e o `.gitignore` das pastas locais"
 statement: >
   `lastro init` creates .lastro/ with lastro.yml, glossary.yml and design.yml, the folders for each entity, and adds .state/, .store/ and .out/ to .gitignore. Running it again never overwrites existing files.

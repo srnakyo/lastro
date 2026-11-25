@@ -1,6 +1,6 @@
-# 6. Interfaces
+# 7. Interfaces
 
-Lastro has four entry points into the same core: the CLI for people and scripts, the MCP server for agents, the local dashboard for viewing and deciding, and the reports for the requester.
+Lastro has four entry points into the same core: the CLI for people and scripts, the MCP server for agents, the dashboard for viewing, deciding and generating documentation, and the reports for the requester. The dashboard has its own chapter: [Dashboard, documentation and diagrams](03-dashboard.md).
 
 ## CLI
 
@@ -48,7 +48,18 @@ Lastro doesn't call an LLM. Breaking the source into atomic requirements is done
 | `lastro accept <REQ\|PKG> --ref "<reference>"` | The requester's acceptance. Human |
 | `lastro incident new "<complaint>" --source <SRC@anchor>` | Records an incident and reopens the requirement |
 | `lastro incident triage <INC> --triage bug --cause spec_gap --billing courtesy` | Classifies |
-| `lastro ui` | Opens the local dashboard |
+
+### Dashboard, documentation and database
+
+| Command | What it does |
+|---|---|
+| `lastro ui` | Opens the dashboard in local mode, on `127.0.0.1`, reading the files and the SQLite database |
+| `lastro server` | Starts the dashboard in server mode, connected to Postgres, with login |
+| `lastro docs build [--format md\|html\|pdf] [--out docs/lastro]` | Generates the project's documentation from the data |
+| `lastro db migrate` | Creates or updates the tables in the configured database |
+| `lastro db push` | Copies the history from the local SQLite database to Postgres |
+| `lastro sync` | Reconciles the files in `.lastro/` with the database and applies the events from the server dashboard |
+| `lastro token create --name ci` | Creates the token CI uses to send runs to the server. Human |
 
 ## MCP server
 
@@ -75,22 +86,9 @@ Tools for the agent. None of them approves, accepts, unlocks or signs off a manu
 
 MCP resources: `lastro://glossary`, `lastro://design`, `lastro://config`, `lastro://package/<id>`.
 
-## Local dashboard
+## Dashboard
 
-`lastro ui` starts a local server (on `127.0.0.1` only) that reads the same files and the SQLite database and updates live.
-
-| Page | What it shows |
-|---|---|
-| Overview | Open packages, funnel by state, each package's gate, latest runs |
-| Package | The items in the requester's numbering, with state, origin, evidence and what is missing. "Pending" here is only what hasn't been verified |
-| Requirement | The quote side by side with the source passage, the fields, the criteria, the tests by condition, the evidence by commit, the decisions and the questions |
-| Sources | Versions, the difference between them, anchors, the requirements each passage generated |
-| Questions and decisions | What is open, what the agent assumed and hasn't been confirmed yet |
-| Incidents | Triage, cause and billing: how much was an incomplete spec, how much was implementation, how much was courtesy |
-| Quality | Criteria coverage by tests, tests by condition, pending manual stages |
-| Configuration | Flows, conditions, glossary and layout contract, all editable |
-
-The human actions in the dashboard (approve, accept, record a preview) write to the same files as the CLI and go into the next commit.
+The dashboard, the live diagrams and the generated documentation are covered in [Dashboard, documentation and diagrams](03-dashboard.md).
 
 ## Reports
 
@@ -101,7 +99,7 @@ The human actions in the dashboard (approve, accept, record a preview) write to 
 | Technical | Dev and reviewer | Evidence per requirement, commands, commits, conditions, locks, incidents and regressions |
 | Incidents for the period | Dev | Triage, cause and billing, for the business conversation |
 
-Formats: Markdown, HTML and PDF. The PDF's look is configurable (the developer's logo, colors and cover).
+Formats: Markdown, HTML and PDF. The PDF's look is configurable (the developer's logo, colors and cover). The reports are part of the [generated documentation](03-dashboard.md#generated-documentation).
 
 ## Material intake
 

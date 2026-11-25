@@ -1,0 +1,28 @@
+id: REQ-F7H2Q
+title: "SQLite and Postgres with one schema and one set of migrations"
+type: storage
+status: specified
+package: PKG-D4S8H
+sources:
+  - ref: SRC-P4RD7
+    anchor: "@04-domain-model.md#dois-modos"
+    quote: "Os dois modos usam o mesmo esquema e as mesmas migrações"
+statement: >
+  The store package exposes one interface with two drivers, SQLite (default) and Postgres 16+. Both run the same versioned migrations through `lastro db migrate`, and `lastro db push` copies the local SQLite history into Postgres.
+where: "lastro db migrate, lastro db push"
+examples:
+  - given: "fresh SQLite and fresh Postgres, lastro db migrate on both"
+    expect: "both report the same migration version and the same tables"
+  - given: "local SQLite with 3 runs, then lastro db push to an empty Postgres"
+    expect: "Postgres has the same 3 runs with the same ids and results"
+acceptance:
+  - id: AC-1
+    text: "Given a fresh SQLite database and a fresh Postgres database, when `lastro db migrate` runs on each, then both report the same migration version and expose the same tables."
+    tests: []
+  - id: AC-2
+    text: "Given a local SQLite with recorded runs, when `lastro db push` runs against an empty Postgres, then every run, result and evidence record exists in Postgres with the same ids."
+    tests: []
+decisions: []
+questions: []
+depends_on: []
+touches: []

@@ -5,7 +5,7 @@ status: specified
 package: PKG-M7V0P
 sources:
   - ref: SRC-P4RD7
-    anchor: "@03-domain-model.md#pergunta-questionsq-xxxxxyml"
+    anchor: "@04-domain-model.md#pergunta-questionsq-xxxxxyml"
     quote: "Pergunta com `blocks: true` trava só o requisito dela, não o pacote."
 statement: >
   An open question with blocks: true keeps its requirements from leaving captured or specified, and nothing else. Answering it with `lastro answer` records a client_answer decision with the answer source and releases the requirement.

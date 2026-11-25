@@ -5,7 +5,7 @@ status: specified
 package: PKG-M7V0P
 sources:
   - ref: SRC-P4RD7
-    anchor: "@03-domain-model.md#ids"
+    anchor: "@04-domain-model.md#ids"
     quote: "Aleatório para não colidir quando dois branches criam itens ao mesmo tempo."
 statement: >
   New entities get IDs of the form <PREFIX>-<5 Crockford base32 characters>, with the prefixes SRC, REQ, DEC, Q, INC, PKG, ART and INV. The requester's numbering is never used as ID; it stays in the source anchor label.

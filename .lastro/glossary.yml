@@ -23,6 +23,6 @@ invariants:
   - id: INV-2
     text: "No MCP tool approves, accepts, unlocks or signs a manual stage."
   - id: INV-3
-    text: "The core makes no network calls; the dashboard listens on 127.0.0.1 only."
+    text: "In local mode the core makes no network calls and the dashboard listens on 127.0.0.1 only; in server mode Lastro talks only to the configured Postgres, bucket and server."
   - id: INV-4
     text: "Every file under .lastro/ that Lastro writes validates against the published JSON Schema."

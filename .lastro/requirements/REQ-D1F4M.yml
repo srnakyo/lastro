@@ -5,7 +5,7 @@ status: specified
 package: PKG-M7V0P
 sources:
   - ref: SRC-P4RD7
-    anchor: "@04-lifecycle-and-gates.md#pacotes-e-o-relatório-item-a-item"
+    anchor: "@05-lifecycle-and-gates.md#pacotes-e-o-relatório-item-a-item"
     quote: "na ordem e na numeração de quem pediu"
 statement: >
   `lastro report <PKG>` writes a Markdown report with one entry per requirement, in the order and numbering of the requester (source anchor label): literal request, status in plain language, what was done, decisions shown to the client as statements, where to see it, evidence links. Open questions go to a separate 'awaiting answer' section.

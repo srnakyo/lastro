@@ -42,7 +42,8 @@ flowchart LR
 
 - **Tudo fica no repositório**, em `.lastro/`, revisado no mesmo PR que o código.
 - **Sem LLM dentro.** Quem pensa é o agente que você já usa. O Lastro guarda, cobra e confere.
-- **Local primeiro.** Sem servidor, sem conta, sem assinatura.
+- **Painel visual.** Testes, execuções e resultados, diagramas vivos dos fluxos de QA e da rastreabilidade, e documentação gerada a partir dos dados.
+- **Local ou com Postgres.** Na máquina, sem configuração, com SQLite. Para o time e vários projetos, num Postgres com o painel compartilhado.
 - **Agnóstico.** Claude Code primeiro, com CLI e MCP para qualquer agente, em qualquer stack que gere JUnit ou SARIF.
 
 ## Três níveis de garantia
@@ -66,6 +67,8 @@ lastro approve PKG-2R8XW
 lastro verify
 lastro gate
 lastro report PKG-2R8XW --format pdf
+lastro ui                  # painel em http://127.0.0.1
+lastro docs build --format pdf
 ```
 
 ## Documentação

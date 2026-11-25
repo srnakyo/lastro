@@ -1,0 +1,28 @@
+id: REQ-G2J5R
+title: "Database URL and tokens come only from environment variables"
+type: storage
+status: specified
+package: PKG-D4S8H
+sources:
+  - ref: SRC-P4RD7
+    anchor: "@09-architecture-roadmap.md#segurança-e-privacidade"
+    quote: "a URL do banco e o token ficam em variáveis de ambiente, nunca no `lastro.yml`"
+statement: >
+  storage.url_env and server.token_env name environment variables. `lastro doctor` fails when lastro.yml contains a literal database URL or token, and no command ever prints the URL with its password.
+where: "lastro.yml, lastro doctor"
+examples:
+  - given: "lastro.yml with storage.url: postgres://user:pass@host/db"
+    expect: "doctor fails: 'database URL must come from storage.url_env'"
+  - given: "LASTRO_DATABASE_URL set and a connection error"
+    expect: "the error shows host and database, never the password"
+acceptance:
+  - id: AC-1
+    text: "Given a lastro.yml with a literal database URL, when `lastro doctor` runs, then it exits with code 1 and tells to use storage.url_env."
+    tests: []
+  - id: AC-2
+    text: "Given a connection error, when any command reports it, then the message contains no password."
+    tests: []
+decisions: []
+questions: []
+depends_on: []
+touches: []

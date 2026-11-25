@@ -1,11 +1,11 @@
-# 7. Integrations
+# 8. Integrations
 
 ## Claude Code
 
 `lastro setup claude` installs the three pieces at once:
 
-- **MCP server** in the project's `.mcp.json` (see [Interfaces](06-interfaces.md)).
-- **Hooks** in the project's `.claude/settings.json` (see [Making the agent comply](05-enforcement.md)).
+- **MCP server** in the project's `.mcp.json` (see [Interfaces](07-interfaces.md)).
+- **Hooks** in the project's `.claude/settings.json` (see [Making the agent comply](06-enforcement.md)).
 - **Marked section** in `CLAUDE.md`.
 
 It also ships as a **Claude Code plugin**, with hooks, MCP and skills together:

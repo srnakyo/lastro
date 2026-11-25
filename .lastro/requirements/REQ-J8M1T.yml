@@ -1,0 +1,28 @@
+id: REQ-J8M1T
+title: "`lastro ui` serves the dashboard locally without login"
+type: ui
+status: specified
+package: PKG-D4S8H
+sources:
+  - ref: SRC-P4RD7
+    anchor: "@03-dashboard.md#duas-formas-de-rodar"
+    quote: "Escuta só em `127.0.0.1`, sem login"
+statement: >
+  `lastro ui` starts the server package on 127.0.0.1 with the SQLite store and opens the dashboard with the pages Overview, Packages, Requirement, Sources and Questions and decisions. It refuses to bind to any other address in local mode.
+where: "lastro ui"
+examples:
+  - given: "lastro ui in a repository with the .lastro/ of this project"
+    expect: "dashboard at http://127.0.0.1:<port> lists PKG-M7V0P and PKG-D4S8H with their requirements"
+  - given: "lastro ui --host 0.0.0.0"
+    expect: "refused in local mode with a message pointing to lastro server"
+acceptance:
+  - id: AC-1
+    text: "Given this repository, when `lastro ui` runs, then the dashboard on 127.0.0.1 lists both packages and every requirement with its status."
+    tests: []
+  - id: AC-2
+    text: "Given `--host 0.0.0.0` in local mode, then the command refuses and points to `lastro server`."
+    tests: []
+decisions: []
+questions: []
+depends_on: []
+touches: []

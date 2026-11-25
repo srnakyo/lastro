@@ -1,0 +1,28 @@
+id: REQ-H5K8S
+title: "`lastro sync` reconciles files and database"
+type: storage
+status: specified
+package: PKG-D4S8H
+sources:
+  - ref: SRC-P4RD7
+    anchor: "@04-domain-model.md#sincronização"
+    quote: "Para a spec, vale o arquivo. Para o histórico, vale o banco."
+statement: >
+  `lastro sync` makes the database mirror the spec files and keeps run history from the database. When they differ, the file wins for spec entities and the database wins for runs, results and state history. Dashboard events from server mode are applied to the files as ordinary file changes.
+where: "lastro sync"
+examples:
+  - given: "requirement title edited in the file and different in the database"
+    expect: "after sync, the database has the file's title"
+  - given: "approval recorded in the server dashboard"
+    expect: "after sync, the requirement file has status approved and the change shows in git diff"
+acceptance:
+  - id: AC-1
+    text: "Given a requirement whose file and database copy differ, when `lastro sync` runs, then the database matches the file."
+    tests: []
+  - id: AC-2
+    text: "Given an approval event recorded in server mode, when `lastro sync` runs, then the requirement file shows the approval and git reports the file as modified."
+    tests: []
+decisions: []
+questions: []
+depends_on: []
+touches: []

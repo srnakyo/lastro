@@ -1,4 +1,4 @@
-# 4. Ciclo de vida, gate e fluxos de QA
+# 5. Ciclo de vida, gate e fluxos de QA
 
 ## Estados de um requisito
 
@@ -50,7 +50,7 @@ stateDiagram-v2
 
 - Comando humano: `lastro approve REQ-K7Q2M` ou o pacote inteiro (`lastro approve PKG-2R8XW`).
 - Se o `lastro.yml` exige fonte final (`approval.require_final_source`), todas as fontes citadas têm `final: true`. Dá para especificar a partir de um rascunho, mas só se aprova a partir da versão final.
-- O agente não tem esse comando (ver [Como obrigar o agente a seguir](05-enforcement.md)).
+- O agente não tem esse comando (ver [Como obrigar o agente a seguir](06-enforcement.md)).
 - Aprovar trava os critérios de aceite (`lastro lock` automático).
 
 ### `building` → `verified` (o gate)

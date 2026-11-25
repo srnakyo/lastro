@@ -5,7 +5,7 @@ status: specified
 package: PKG-M7V0P
 sources:
   - ref: SRC-P4RD7
-    anchor: "@03-domain-model.md#critério-de-aceite-dentro-do-requisito"
+    anchor: "@04-domain-model.md#critério-de-aceite-dentro-do-requisito"
     quote: "`lastro lock` grava o hash do texto do critério e dos testes ligados."
 statement: >
   Approving a requirement locks its acceptance criteria: the hash of each criterion text and of each linked test is stored. A changed hash makes the gate fail with 'locked criterion changed' until a person runs `lastro unlock`.

@@ -1,0 +1,23 @@
+id: REQ-R6Y9A
+title: "QA flow diagram colored by the latest result"
+type: ui
+status: specified
+package: PKG-M7V0P
+sources:
+  - ref: SRC-P4RD7
+    anchor: "@03-dashboard.md#fluxo-de-qa-de-um-requisito-com-o-resultado"
+    quote: "Cada etapa, em cada condição, colorida pelo último resultado no commit atual"
+statement: >
+  For each requirement the dashboard renders its QA flow as a Mermaid diagram with one node per stage and condition, colored by the latest result on the current commit: passed, failed, not run, waiting for a person.
+where: "Dashboard › Requirement"
+examples:
+  - given: "ui requirement: e2e failed on dark-theme, passed on others, preview not signed"
+    expect: "e2e · dark-theme red, other e2e nodes green, preview orange"
+acceptance:
+  - id: AC-1
+    text: "Given a requirement whose e2e stage failed only under dark-theme and whose preview is unsigned, when its QA flow diagram renders, then e2e · dark-theme is red, the other e2e nodes are green and preview is orange."
+    tests: []
+decisions: []
+questions: []
+depends_on: []
+touches: []

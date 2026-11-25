@@ -6,4 +6,4 @@ reason: "Same ecosystem as MCP and the coding agents, distribution through npm, 
 decided_by: agent
 status: proposed
 show_to_client: true
-source: { ref: SRC-P4RD7, anchor: "@08-architecture-roadmap.md#stack" }
+source: { ref: SRC-P4RD7, anchor: "@09-architecture-roadmap.md#stack" }

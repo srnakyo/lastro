@@ -1,9 +1,9 @@
 id: DEC-F2H5P
 about: []
 kind: decision
-text: "Files under .lastro/ in git are the source of truth; SQLite is only an index and history cache."
-reason: "The spec is reviewed in the same pull request as the code, history comes from git, and there is nothing to host. The cache can be deleted and rebuilt."
+text: "The spec lives in git under .lastro/; run history, results and metrics live in the database, SQLite locally or Postgres in server mode, with the same schema."
+reason: "The spec is reviewed in the same pull request as the code. History grows without limit and the dashboard needs fast queries; teams and several projects need a shared Postgres."
 decided_by: agent
 status: proposed
 show_to_client: true
-source: { ref: SRC-P4RD7, anchor: "@08-architecture-roadmap.md#decisões-de-arquitetura" }
+source: { ref: SRC-P4RD7, anchor: "@09-architecture-roadmap.md#decisões-de-arquitetura" }
