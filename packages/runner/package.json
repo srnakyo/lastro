@@ -1,0 +1,20 @@
+{
+  "name": "@lastro/runner",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "fast-xml-parser": "^5.12.1"
+  },
+  "devDependencies": {
+    "@lastro/shared": "workspace:*",
+    "@lastro/tsconfig": "workspace:*",
+    "@types/node": "^26.6.6"
+  }
+}

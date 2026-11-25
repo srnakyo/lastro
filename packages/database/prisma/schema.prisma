@@ -1,7 +1,7 @@
 generator client {
-  provider     = "prisma-client"
-  output       = "../src/generated"
-  moduleFormat = "esm"
+  provider        = "prisma-client"
+  output          = "../src/generated"
+  moduleFormat    = "esm"
   previewFeatures = ["relationJoins"]
 }
 
@@ -300,6 +300,7 @@ model Requirement {
   evidence    Evidence[]
   dependsOn   RequirementDependency[] @relation("dependent")
   dependents  RequirementDependency[] @relation("dependency")
+  runStages   RunStage[]
 
   @@unique([projectId, code])
   @@index([projectId, status])
@@ -574,6 +575,7 @@ model RunStage {
   runId         String       @db.Uuid
   run           Run          @relation(fields: [runId], references: [id], onDelete: Cascade)
   requirementId String?      @db.Uuid
+  requirement   Requirement? @relation(fields: [requirementId], references: [id], onDelete: SetNull)
   stage         String
   condition     String?
   command       String?
@@ -590,6 +592,7 @@ model RunStage {
   artifacts     Artifact[]
 
   @@index([runId])
+  @@index([requirementId, startedAt])
 }
 
 model TestResult {

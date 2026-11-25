@@ -1,6 +1,8 @@
 import { join } from "node:path";
-import { markdownPassages } from "@lastro/core";
+import { markdownPassages } from "@lastro/core/text";
 import { snapshotSchema, type Snapshot } from "@lastro/shared";
+import { existsSync, readFileSync } from "node:fs";
+import { readExtracted } from "./extracted";
 import { markdownFiles, readYaml, sha256, yamlFiles } from "./files";
 
 type Raw = Record<string, unknown>;
@@ -8,13 +10,23 @@ const asList = (v: unknown) => (Array.isArray(v) ? v : []);
 
 async function readSource(root: string, raw: Raw) {
   const path = typeof raw.path === "string" ? raw.path : undefined;
-  if (!path) throw new Error(`${String(raw.id)}: only in-repository sources (with path) can be read from disk`);
+  if (!path) return readStoredSource(root, raw);
   const files = markdownFiles(root, path);
   return {
     code: raw.id, kind: raw.kind, title: raw.title, from: raw.from, receivedAt: raw.received_at,
     final: raw.final === true, machineTranscript: raw.machine_transcript === true, path,
     hash: await sha256(files.map((f) => `${f.name}\n${f.content}`).join("\n")),
     passages: markdownPassages(files).map((p) => ({ anchor: p.anchor, heading: p.heading ?? undefined, text: p.text })),
+  };
+}
+
+/** A source that lives outside the repository: its extracted text sits next to the metadata. */
+function readStoredSource(root: string, raw: Raw) {
+  const file = join(root, ".lastro", "sources", String(raw.extracted ?? `${String(raw.id)}.md`));
+  if (!existsSync(file)) throw new Error(`${String(raw.id)}: extracted text ${file} is missing`);
+  return {
+    code: raw.id, kind: raw.kind, title: raw.title, from: raw.from, receivedAt: raw.received_at, final: raw.final === true,
+    machineTranscript: raw.machine_transcript === true, hash: raw.hash, passages: readExtracted(readFileSync(file, "utf8")),
   };
 }
 

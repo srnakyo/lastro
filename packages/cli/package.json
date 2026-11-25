@@ -1,0 +1,33 @@
+{
+  "name": "lastro",
+  "version": "0.1.0",
+  "description": "Requirements, evidence and quality gates for AI-driven development.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "lastro": "dist/lastro.js"
+  },
+  "files": ["dist"],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/srnakyo/lastro.git"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "bun build src/index.ts --target node --outfile dist/lastro.js",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "commander": "^15.1.0",
+    "yaml": "^2.9.1"
+  },
+  "devDependencies": {
+    "@lastro/runner": "workspace:*",
+    "@lastro/shared": "workspace:*",
+    "@lastro/snapshot": "workspace:*",
+    "@lastro/tsconfig": "workspace:*",
+    "@types/node": "^26.6.6"
+  }
+}

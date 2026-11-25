@@ -68,9 +68,9 @@ bun workspaces and Turborepo: `apps/`, `packages/`, `tooling/`.
 | 0 | Preparation: design plugins enabled, rejected first implementation moved out of the repository, this roadmap | done |
 | 1 | Foundation: bun, turbo, `tooling/`; Prisma schema and migrations; `packages/shared`; `packages/core` with integration tests; PRD and `.lastro/` updated to these decisions | done |
 | 2 | Dashboard base: auth, workspace, projects and switcher, shell, design system, home; `lastro import` of this repository's `.lastro/` | done |
-| 3 | Full spec: sources and intake, requirements, decisions, questions, incidents, packages, lifecycle, blockers, human actions; `lastro export` | todo |
-| 4 | API, CLI and MCP: tokens; `init`, `login`, `link`, `intake`, `req`, `ask`, `decide`, `pending`, `export`, `import`, `mcp`; `/api/mcp` | todo |
-| 5 | Verification: runner, conditions, JUnit and SARIF; `verify` and `gate`; stale evidence and locks; Tests and Runs screens; overview charts; QA flow diagrams | todo |
+| 3 | Full spec: sources and intake, requirements, decisions, questions, incidents, packages, lifecycle, blockers, human actions; `lastro export` | done |
+| 4 | API, CLI and MCP: tokens; `init`, `login`, `link`, `intake`, `req`, `ask`, `decide`, `pending`, `export`, `import`, `mcp`; `/api/mcp` | done |
+| 5 | Verification: runner, conditions, JUnit and SARIF; `verify` and `gate`; stale evidence and locks; Tests and Runs screens; overview charts; QA flow diagrams | in progress: runner, `verify`, `gate`, stale evidence and manual stages done; screens next |
 | 6 | Documentation: every document in md, html and pdf; Documentation screen | todo |
 | 7 | Enforcement: Claude Code plugin, `pre-push`, GitHub Action, Claude Ship templates | todo |
 | 8 | Advanced dashboard: Agents, Audit, module map, timelines, visual flow editor | todo |

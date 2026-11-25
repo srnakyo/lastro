@@ -12,3 +12,4 @@ playwright-report/
 .nitro/
 .tanstack/
 .vinxi/
+.lastro-storage/

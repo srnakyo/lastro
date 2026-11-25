@@ -1,6 +1,6 @@
-import type { MessageKey } from "./en";
+import type { enBase } from "./en";
 
-export const ptBR: Record<MessageKey, string> = {
+export const ptBRBase: Record<keyof typeof enBase, string> = {
   "app.name": "Lastro",
   "nav.home": "Projetos",
   "nav.overview": "Visão geral",

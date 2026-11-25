@@ -1,4 +1,4 @@
-export const en = {
+export const enBase = {
   "app.name": "Lastro",
   "nav.home": "Projects",
   "nav.overview": "Overview",
@@ -131,4 +131,4 @@ export const en = {
   "notFound.back": "Back to projects",
 } as const;
 
-export type MessageKey = keyof typeof en;
+

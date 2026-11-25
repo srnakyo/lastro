@@ -1,6 +1,5 @@
 import { createContext, useContext, type ReactNode } from "react";
-import { en, type MessageKey } from "./en";
-import { ptBR } from "./pt-BR";
+import { en, ptBR, type MessageKey } from "./messages";
 
 export type Lang = "en" | "pt-BR";
 const DICTIONARIES: Record<Lang, Record<MessageKey, string>> = { en, "pt-BR": ptBR };

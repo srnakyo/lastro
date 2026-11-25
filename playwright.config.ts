@@ -3,6 +3,7 @@ import { defineConfig, devices } from "@playwright/test";
 /** E2E against a running dashboard with the dev seed (bun scripts/seed-dev.ts). */
 export default defineConfig({
   testDir: "tests/e2e",
+  globalSetup: "./tests/e2e/global-setup.ts",
   timeout: 60_000,
   fullyParallel: false,
   reporter: [["list"], ["junit", { outputFile: ".lastro/.out/e2e.xml" }]],
