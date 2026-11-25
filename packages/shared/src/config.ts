@@ -18,7 +18,14 @@ export type Stage = z.infer<typeof stageSchema>;
 const commandSchema = z.object({
   run: z.string(),
   env: z.record(z.string(), z.string()).optional(),
-  report: z.object({ junit: z.string().optional(), sarif: z.string().optional() }).optional(),
+  report: z
+    .object({
+      junit: z.string().optional(),
+      sarif: z.string().optional(),
+      /** Prepended to the file of each JUnit test case, when the tool reports it relative to its own folder (Playwright: "tests/e2e/"). */
+      junit_prefix: z.string().optional(),
+    })
+    .optional(),
 });
 
 const conditionSchema = z.object({

@@ -20,7 +20,8 @@ export async function writeRun(tx: Tx, projectId: string, report: RunReportData)
     const stage = await tx.runStage.create({
       data: {
         runId: run.id, startedAt, requirementId: s.requirement ? (idOf.get(s.requirement) ?? null) : null, stage: s.stage, condition: s.condition, command: s.command,
-        exitCode: s.exitCode, status: s.status, durationMs: s.durationMs, output: s.output,
+        exitCode: s.exitCode, status: s.status, durationMs: s.durationMs, output: s.output, env: s.env,
+        treeHash: s.requirement ? (report.trees[s.requirement] ?? null) : null,
         findings: { create: s.findings.map((f) => ({ tool: f.tool, ruleId: f.ruleId, level: f.level, file: f.file, line: f.line, message: f.message })) },
       },
     });

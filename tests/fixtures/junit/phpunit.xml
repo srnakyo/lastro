@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+  <testsuite name="Unit" tests="2" assertions="3" errors="0" failures="0" skipped="0" time="0.02">
+    <testsuite name="Tests\Unit\CouponTest" file="/srv/app/tests/Unit/CouponTest.php" tests="2" assertions="3" errors="0" failures="0" skipped="0" time="0.02">
+      <testcase name="test_refuses_a_second_coupon" file="/srv/app/tests/Unit/CouponTest.php" line="12" class="Tests\Unit\CouponTest" classname="Tests.Unit.CouponTest" assertions="1" time="0.01"/>
+      <testcase name="test_floors_the_total_at_shipping" file="/srv/app/tests/Unit/CouponTest.php" line="20" class="Tests\Unit\CouponTest" classname="Tests.Unit.CouponTest" assertions="2" time="0.01"/>
+    </testsuite>
+  </testsuite>
+</testsuites>

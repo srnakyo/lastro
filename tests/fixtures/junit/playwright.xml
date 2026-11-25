@@ -1,0 +1,11 @@
+<testsuites id="" name="" tests="2" failures="1" skipped="0" errors="0" time="9.1">
+<testsuite name="checkout.spec.ts" timestamp="2026-11-25T12:00:00.000Z" hostname="mobile" tests="2" failures="1" skipped="0" time="8.4" errors="0">
+<testcase name="offers pix and card" classname="checkout.spec.ts" time="3.1">
+</testcase>
+<testcase name="shows the total before confirming" classname="checkout.spec.ts" time="5.3">
+<failure message="checkout.spec.ts:21:5 shows the total before confirming" type="FAILURE">
+expect(locator).toBeVisible() failed
+</failure>
+</testcase>
+</testsuite>
+</testsuites>

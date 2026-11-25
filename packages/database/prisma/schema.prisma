@@ -587,6 +587,10 @@ model RunStage {
   startedAt     DateTime     @default(now())
   durationMs    Int          @default(0)
   output        String       @default("")
+  /// The environment the condition added for this stage (names and values from lastro.yml, never secrets of the project).
+  env           Json         @default("{}")
+  /// Fingerprint of the files the requirement's evidence is bound to, at the time of this stage.
+  treeHash      String?
   results       TestResult[]
   findings      Finding[]
   artifacts     Artifact[]

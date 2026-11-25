@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { parseJunit, parseSarif, planStages, treeHash, verify } from "@lastro/runner";
@@ -64,5 +64,42 @@ describe("evidence binding", () => {
     const before = treeHash(dir, ["a.ts"]);
     writeFileSync(join(dir, "b.ts"), "2");
     expect(treeHash(dir, ["a.ts"])).toBe(before);
+  });
+});
+
+describe("JUnit from each tool (REQ-9Z4NG)", () => {
+  const fixture = (name: string) => readFileSync(join(import.meta.dir, "../fixtures/junit", `${name}.xml`), "utf8");
+  const refs = (name: string, options = {}) => parseJunit(fixture(name), options).map((r) => `${r.ref} ${r.status}`);
+
+  it("reads Vitest, Jest, Playwright, pytest and PHPUnit reports as file::test name", () => {
+    expect(refs("vitest")).toEqual(["tests/cart.test.ts::cart > keeps items for 7 days passed", "tests/cart.test.ts::cart > drops items after 7 days failed"]);
+    expect(refs("jest")).toEqual(["src/cart.test.js::cart keeps items for 7 days passed", "src/cart.test.js::cart drops items after 7 days skipped"]);
+    expect(refs("playwright", { prefix: "tests/e2e/" })).toEqual(["tests/e2e/checkout.spec.ts::offers pix and card passed", "tests/e2e/checkout.spec.ts::shows the total before confirming failed"]);
+    expect(refs("pytest")).toEqual(["tests/test_shipping.py::test_free_above_300 passed", "tests/test_shipping.py::test_charges_elsewhere failed"]);
+    expect(refs("phpunit", { root: "/srv/app" })).toEqual(["tests/Unit/CouponTest.php::test_refuses_a_second_coupon passed", "tests/Unit/CouponTest.php::test_floors_the_total_at_shipping passed"]);
+  });
+
+  it("fails a stage with SARIF errors and keeps file, line and rule of each", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "lastro-sarif-"));
+    // The linter exits 0 but reports an error: the stage still fails on the SARIF error.
+    writeFileSync(join(dir, "eslint-output.json"), SARIF);
+    const config = projectConfigSchema.parse({ project: "p", commands: { lint: { run: "cp eslint-output.json lint.sarif", report: { sarif: "lint.sarif" } } }, global_flow: ["lint"] });
+    const result = await verify(dir, config, [{ code: "REQ-A", type: "none", touches: [] }], "dev");
+    expect(result.stages[0]?.status).toBe("failed");
+    expect(result.stages[0]?.findings[0]).toMatchObject({ file: "src/a.ts", line: 3, ruleId: "no-unused-vars" });
+  });
+
+  it("fails a condition whose setup fails, keeps its output, and still runs the other condition (REQ-8X1MF)", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "lastro-setup-"));
+    const config = projectConfigSchema.parse({
+      project: "p",
+      commands: { e2e: { run: "echo ran" } },
+      conditions: { broken: { setup: "echo seeding failed; exit 3" }, ok: { env: { THEME: "dark" } } },
+      types: { ui: { flow: [{ run: "e2e", conditions: ["broken", "ok"] }] } },
+    });
+    const result = await verify(dir, config, [{ code: "REQ-A", type: "ui", touches: [] }], "dev");
+    expect(result.stages.map((s) => [s.condition, s.status])).toEqual([["broken", "failed"], ["ok", "passed"]]);
+    expect(result.stages[0]?.output).toContain("seeding failed");
+    expect(result.stages[1]?.env).toEqual({ THEME: "dark" });
   });
 });

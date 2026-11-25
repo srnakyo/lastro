@@ -37,6 +37,7 @@ export const runReportSchema = z.object({
       status: z.enum(["passed", "failed", "error"]),
       durationMs: z.number().int().nonnegative(),
       output: z.string(),
+      env: z.record(z.string(), z.string()).default({}),
       results: z.array(testResultSchema),
       findings: z.array(findingSchema),
     }),

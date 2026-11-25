@@ -11,7 +11,7 @@ export async function latestStages(tx: Tx, requirementId: string, commit?: strin
   const stages = await tx.runStage.findMany({
     where: { requirementId, ...(commit ? { run: { commit } } : {}) },
     orderBy: { startedAt: "desc" },
-    select: { stage: true, condition: true, status: true, manual: true },
+    select: { stage: true, condition: true, status: true, manual: true, findings: { where: { level: "error" }, take: 20, select: { file: true, line: true, ruleId: true, message: true } } },
   });
   const latest = new Map<string, (typeof stages)[number]>();
   for (const s of stages) if (!latest.has(`${s.stage}|${s.condition ?? ""}`)) latest.set(`${s.stage}|${s.condition ?? ""}`, s);

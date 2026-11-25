@@ -125,3 +125,15 @@ describe("gate rules beyond stages and tests", () => {
     expect(other.requirements[code]?.agentCanFix).toContain("unit not run");
   });
 });
+
+describe("evidence per condition (REQ-8X1MF)", () => {
+  it("stores each condition's run with its env and result", async () => {
+    const { project, code } = await building([{ run: "unit", conditions: ["dark", "light"] }]);
+    const base = report(code, "passed");
+    const stage = base.stages[0];
+    if (!stage) throw new Error("no stage");
+    await runsService.record(project.id, agent, { ...base, stages: [{ ...stage, condition: "dark", env: { THEME: "dark" } }, { ...stage, condition: "light", env: { THEME: "light" }, status: "failed" }] });
+    const stages = await database().runStage.findMany({ where: { requirement: { code } }, orderBy: { condition: "asc" }, select: { condition: true, env: true, status: true } });
+    expect(stages).toEqual([{ condition: "dark", env: { THEME: "dark" }, status: "passed" }, { condition: "light", env: { THEME: "light" }, status: "failed" }]);
+  });
+});

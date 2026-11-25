@@ -16,6 +16,7 @@ interface StageState {
   condition: string | null;
   status: string;
   manual: boolean;
+  findings?: { file: string | null; line: number | null; ruleId: string | null; message: string }[];
 }
 
 /** Where the gate looks: the commit under evaluation and the hashes of the test files on disk. */
@@ -84,7 +85,10 @@ export async function evaluateGate(tx: Tx, config: ProjectConfig, requirementId:
     const found = latestStages.find((s) => s.stage === need.stage && s.condition === need.condition);
     const label = `${need.stage}${need.condition ? ` · ${need.condition}` : ""}`;
     if (need.manual && found?.status !== "passed") needsPerson.push(`manual stage ${label} not signed`);
-    if (!need.manual && found?.status !== "passed") agentCanFix.push(found ? `${label} ${found.status}` : `${label} not run`);
+    if (!need.manual && found?.status !== "passed") {
+      agentCanFix.push(found ? `${label} ${found.status}` : `${label} not run`);
+      for (const f of found?.findings ?? []) agentCanFix.push(`${label}: ${f.file ?? "?"}${f.line ? `:${f.line}` : ""} ${f.ruleId ?? ""} ${f.message}`.trim());
+    }
   }
   const extra = await extraTests(tx, graph.projectId, requirementId);
   const refs = [...graph.criteria.flatMap((c) => c.tests.map((t) => t.testRef)), ...extra.map((e) => e.ref)];
