@@ -1,3 +1,5 @@
+import { reevaluate } from "../requirements/evaluate";
+import { loadScope } from "../scope/project-scope";
 import { requireHuman } from "../scope/actor";
 import { projectConfigSchema, projectInputSchema, type Actor, type ProjectConfigInput, type ProjectInput } from "@lastro/shared";
 import { auditService } from "../audit/service";
@@ -37,12 +39,17 @@ export const projectsService = {
     return { ...project, config: projectConfigSchema.parse(project.config) };
   },
 
+  /** A person changes the QA flows, conditions, commands or gate; requirements are re-checked against the new required fields. */
   async updateConfig(projectId: string, actor: Actor, raw: ProjectConfigInput) {
+    requireHuman(actor, "changing the QA configuration");
     const config = projectConfigSchema.parse(raw);
     return transaction(async (tx) => {
       const project = await tx.project.update({ where: { id: projectId }, data: { config, language: config.language } });
       await auditService.record(tx, { workspaceId: project.workspaceId, projectId, actor, action: "project.config", entity: "project", entityId: projectId });
+      const scope = await loadScope(tx, projectId);
+      const open = await tx.requirement.findMany({ where: { projectId, status: { in: ["captured", "specified"] } }, select: { id: true } });
+      for (const r of open) await reevaluate(tx, scope, r.id);
       return project;
-    });
+    }, { timeout: 60_000 });
   },
 };

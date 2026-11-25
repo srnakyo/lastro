@@ -3,12 +3,14 @@ import { ptBRBase } from "./pt-BR";
 import { specEn } from "./spec-en";
 import { specPtBR } from "./spec-pt-BR";
 import { settingsEn } from "./settings-en";
+import { adminEn } from "./admin-en";
+import { adminPtBR } from "./admin-pt-BR";
 import { docsEn } from "./docs-en";
 import { docsPtBR } from "./docs-pt-BR";
 import { qualityEn } from "./quality-en";
 import { qualityPtBR } from "./quality-pt-BR";
 import { settingsPtBR } from "./settings-pt-BR";
 
-export const en = { ...enBase, ...specEn, ...settingsEn, ...qualityEn, ...docsEn };
+export const en = { ...enBase, ...specEn, ...settingsEn, ...qualityEn, ...docsEn, ...adminEn };
 export type MessageKey = keyof typeof en;
-export const ptBR: Record<MessageKey, string> = { ...ptBRBase, ...specPtBR, ...settingsPtBR, ...qualityPtBR, ...docsPtBR };
+export const ptBR: Record<MessageKey, string> = { ...ptBRBase, ...specPtBR, ...settingsPtBR, ...qualityPtBR, ...docsPtBR, ...adminPtBR };

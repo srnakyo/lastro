@@ -39,3 +39,5 @@ export { diagramsData, requirementQa } from "./runs/qa";
 export { docsData } from "./docs/data";
 export { docBuildsService, type BuiltFile } from "./docs/service";
 export { addTouches, lockedTestFiles } from "./agent/touches";
+export { membersService } from "./workspaces/members";
+export { activityTimeline } from "./overview/timeline";

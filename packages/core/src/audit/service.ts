@@ -28,9 +28,14 @@ export const auditService = {
     });
   },
 
-  async list(projectId: string, options: { limit?: number; before?: Date } = {}) {
+  async list(projectId: string, options: { limit?: number; before?: Date; action?: string; actorType?: "user" | "agent" | "system" } = {}) {
     return db().auditEvent.findMany({
-      where: { projectId, ...(options.before ? { createdAt: { lt: options.before } } : {}) },
+      where: {
+        projectId,
+        ...(options.before ? { createdAt: { lt: options.before } } : {}),
+        ...(options.action ? { action: { startsWith: options.action } } : {}),
+        ...(options.actorType ? { actorType: options.actorType } : {}),
+      },
       orderBy: { createdAt: "desc" },
       take: options.limit ?? 50,
     });

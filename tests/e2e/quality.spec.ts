@@ -37,7 +37,7 @@ test("a run opens with its stages, the failing test and its message", async ({ p
 test("the diagrams render from the project data", async ({ page }) => {
   await signIn(page);
   await open(page, "/projects/shop-demo/diagrams");
-  await expect(page.locator("svg[id^=m]")).toHaveCount(3, { timeout: 15_000 });
+  await expect(page.locator("svg[id^=m]")).toHaveCount(4, { timeout: 15_000 });
   await expect(page.locator("svg[id^=m]").nth(1)).toContainText("REQ-PAY01");
 });
 

@@ -36,8 +36,8 @@ function enqueue(id: string, source: string): Promise<string> {
   return next;
 }
 
-/** Renders Mermaid source in the browser (Mermaid is loaded on demand), following the light or dark theme. */
-export function MermaidView({ source, className, minHeight = 160 }: { source: string; className?: string; minHeight?: number }) {
+/** Renders Mermaid source in the browser (Mermaid is loaded on demand), following the light or dark theme. `fit` shrinks a wide diagram to the container instead of scrolling. */
+export function MermaidView({ source, className, minHeight = 160, fit = false }: { source: string; className?: string; minHeight?: number; fit?: boolean }) {
   const { t } = useI18n();
   const id = useId().replace(/[^a-zA-Z0-9]/g, "");
   const [svg, setSvg] = useState<string | null>(null);
@@ -60,7 +60,7 @@ export function MermaidView({ source, className, minHeight = 160 }: { source: st
       {error ? (
         <pre className="overflow-auto rounded-md bg-muted p-3 font-mono text-[11.5px] text-destructive">{error}</pre>
       ) : svg ? (
-        <div className="overflow-x-auto [&_svg]:mx-auto [&_svg]:block [&_svg]:h-auto" dangerouslySetInnerHTML={{ __html: svg }} />
+        <div className={cn("overflow-x-auto [&_svg]:mx-auto [&_svg]:block [&_svg]:h-auto", fit && "[&_svg]:max-w-full")} dangerouslySetInnerHTML={{ __html: svg }} />
       ) : (
         <div style={{ height: minHeight }}><Skeleton className="size-full" /></div>
       )}

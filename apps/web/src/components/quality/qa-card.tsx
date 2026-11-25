@@ -50,7 +50,7 @@ export function QaCard({ projectKey, code, status }: { projectKey: string; code:
         {active && <Badge tone={qa.gate.pass ? "success" : "danger"}>{qa.gate.pass ? t("qa.gate.pass") : t("qa.gate.fail")}</Badge>}
       </CardHeader>
       <div className="grid gap-4 px-5 py-4">
-        <MermaidView source={qaFlowDiagram(qa.config, qa.type, qa.states)} minHeight={120} />
+        <MermaidView source={qaFlowDiagram(qa.config, qa.type, qa.states)} minHeight={120} fit />
         {active && <GateLists qa={qa} />}
         {active && pendingManual.length > 0 && (
           <div className="flex flex-wrap gap-2">{pendingManual.map((m) => <SignStageDialog key={`${m.stage}${m.condition}`} projectKey={projectKey} code={code} stage={m.stage} condition={m.condition} />)}</div>

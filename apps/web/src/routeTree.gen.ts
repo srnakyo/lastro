@@ -19,8 +19,11 @@ import { Route as AppProjectsKeyRouteImport } from './routes/_app.projects.$key'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiV1SplatRouteImport } from './routes/api/v1/$'
 import { Route as AppProjectsKeyIndexRouteImport } from './routes/_app.projects.$key.index'
+import { Route as AppProjectsKeyAgentsRouteImport } from './routes/_app.projects.$key.agents'
+import { Route as AppProjectsKeyAuditRouteImport } from './routes/_app.projects.$key.audit'
 import { Route as AppProjectsKeyBugsRouteImport } from './routes/_app.projects.$key.bugs'
 import { Route as AppProjectsKeyDiagramsRouteImport } from './routes/_app.projects.$key.diagrams'
+import { Route as AppProjectsKeyGlossaryRouteImport } from './routes/_app.projects.$key.glossary'
 import { Route as AppProjectsKeyRequirementsRouteImport } from './routes/_app.projects.$key.requirements'
 import { Route as AppProjectsKeySettingsRouteImport } from './routes/_app.projects.$key.settings'
 import { Route as AppProjectsKeyTestsRouteImport } from './routes/_app.projects.$key.tests'
@@ -88,6 +91,16 @@ const AppProjectsKeyIndexRoute = AppProjectsKeyIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppProjectsKeyRoute,
 } as any)
+const AppProjectsKeyAgentsRoute = AppProjectsKeyAgentsRouteImport.update({
+  id: '/agents',
+  path: '/agents',
+  getParentRoute: () => AppProjectsKeyRoute,
+} as any)
+const AppProjectsKeyAuditRoute = AppProjectsKeyAuditRouteImport.update({
+  id: '/audit',
+  path: '/audit',
+  getParentRoute: () => AppProjectsKeyRoute,
+} as any)
 const AppProjectsKeyBugsRoute = AppProjectsKeyBugsRouteImport.update({
   id: '/bugs',
   path: '/bugs',
@@ -96,6 +109,11 @@ const AppProjectsKeyBugsRoute = AppProjectsKeyBugsRouteImport.update({
 const AppProjectsKeyDiagramsRoute = AppProjectsKeyDiagramsRouteImport.update({
   id: '/diagrams',
   path: '/diagrams',
+  getParentRoute: () => AppProjectsKeyRoute,
+} as any)
+const AppProjectsKeyGlossaryRoute = AppProjectsKeyGlossaryRouteImport.update({
+  id: '/glossary',
+  path: '/glossary',
   getParentRoute: () => AppProjectsKeyRoute,
 } as any)
 const AppProjectsKeyRequirementsRoute =
@@ -202,8 +220,11 @@ export interface FileRoutesByFullPath {
   '/projects/$key': typeof AppProjectsKeyRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/v1/$': typeof ApiV1SplatRoute
+  '/projects/$key/agents': typeof AppProjectsKeyAgentsRoute
+  '/projects/$key/audit': typeof AppProjectsKeyAuditRoute
   '/projects/$key/bugs': typeof AppProjectsKeyBugsRoute
   '/projects/$key/diagrams': typeof AppProjectsKeyDiagramsRoute
+  '/projects/$key/glossary': typeof AppProjectsKeyGlossaryRoute
   '/projects/$key/requirements': typeof AppProjectsKeyRequirementsRouteWithChildren
   '/projects/$key/settings': typeof AppProjectsKeySettingsRoute
   '/projects/$key/tests': typeof AppProjectsKeyTestsRoute
@@ -231,8 +252,11 @@ export interface FileRoutesByTo {
   '/': typeof AppIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/v1/$': typeof ApiV1SplatRoute
+  '/projects/$key/agents': typeof AppProjectsKeyAgentsRoute
+  '/projects/$key/audit': typeof AppProjectsKeyAuditRoute
   '/projects/$key/bugs': typeof AppProjectsKeyBugsRoute
   '/projects/$key/diagrams': typeof AppProjectsKeyDiagramsRoute
+  '/projects/$key/glossary': typeof AppProjectsKeyGlossaryRoute
   '/projects/$key/settings': typeof AppProjectsKeySettingsRoute
   '/projects/$key/tests': typeof AppProjectsKeyTestsRoute
   '/api/projects/$key/sources': typeof ApiProjectsKeySourcesRoute
@@ -262,8 +286,11 @@ export interface FileRoutesById {
   '/_app/projects/$key': typeof AppProjectsKeyRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/v1/$': typeof ApiV1SplatRoute
+  '/_app/projects/$key/agents': typeof AppProjectsKeyAgentsRoute
+  '/_app/projects/$key/audit': typeof AppProjectsKeyAuditRoute
   '/_app/projects/$key/bugs': typeof AppProjectsKeyBugsRoute
   '/_app/projects/$key/diagrams': typeof AppProjectsKeyDiagramsRoute
+  '/_app/projects/$key/glossary': typeof AppProjectsKeyGlossaryRoute
   '/_app/projects/$key/requirements': typeof AppProjectsKeyRequirementsRouteWithChildren
   '/_app/projects/$key/settings': typeof AppProjectsKeySettingsRoute
   '/_app/projects/$key/tests': typeof AppProjectsKeyTestsRoute
@@ -294,8 +321,11 @@ export interface FileRouteTypes {
     | '/projects/$key'
     | '/api/auth/$'
     | '/api/v1/$'
+    | '/projects/$key/agents'
+    | '/projects/$key/audit'
     | '/projects/$key/bugs'
     | '/projects/$key/diagrams'
+    | '/projects/$key/glossary'
     | '/projects/$key/requirements'
     | '/projects/$key/settings'
     | '/projects/$key/tests'
@@ -323,8 +353,11 @@ export interface FileRouteTypes {
     | '/'
     | '/api/auth/$'
     | '/api/v1/$'
+    | '/projects/$key/agents'
+    | '/projects/$key/audit'
     | '/projects/$key/bugs'
     | '/projects/$key/diagrams'
+    | '/projects/$key/glossary'
     | '/projects/$key/settings'
     | '/projects/$key/tests'
     | '/api/projects/$key/sources'
@@ -353,8 +386,11 @@ export interface FileRouteTypes {
     | '/_app/projects/$key'
     | '/api/auth/$'
     | '/api/v1/$'
+    | '/_app/projects/$key/agents'
+    | '/_app/projects/$key/audit'
     | '/_app/projects/$key/bugs'
     | '/_app/projects/$key/diagrams'
+    | '/_app/projects/$key/glossary'
     | '/_app/projects/$key/requirements'
     | '/_app/projects/$key/settings'
     | '/_app/projects/$key/tests'
@@ -460,6 +496,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppProjectsKeyIndexRouteImport
       parentRoute: typeof AppProjectsKeyRoute
     }
+    '/_app/projects/$key/agents': {
+      id: '/_app/projects/$key/agents'
+      path: '/agents'
+      fullPath: '/projects/$key/agents'
+      preLoaderRoute: typeof AppProjectsKeyAgentsRouteImport
+      parentRoute: typeof AppProjectsKeyRoute
+    }
+    '/_app/projects/$key/audit': {
+      id: '/_app/projects/$key/audit'
+      path: '/audit'
+      fullPath: '/projects/$key/audit'
+      preLoaderRoute: typeof AppProjectsKeyAuditRouteImport
+      parentRoute: typeof AppProjectsKeyRoute
+    }
     '/_app/projects/$key/bugs': {
       id: '/_app/projects/$key/bugs'
       path: '/bugs'
@@ -472,6 +522,13 @@ declare module '@tanstack/react-router' {
       path: '/diagrams'
       fullPath: '/projects/$key/diagrams'
       preLoaderRoute: typeof AppProjectsKeyDiagramsRouteImport
+      parentRoute: typeof AppProjectsKeyRoute
+    }
+    '/_app/projects/$key/glossary': {
+      id: '/_app/projects/$key/glossary'
+      path: '/glossary'
+      fullPath: '/projects/$key/glossary'
+      preLoaderRoute: typeof AppProjectsKeyGlossaryRouteImport
       parentRoute: typeof AppProjectsKeyRoute
     }
     '/_app/projects/$key/requirements': {
@@ -622,8 +679,11 @@ const AppProjectsKeyRequirementsRouteWithChildren =
   )
 
 interface AppProjectsKeyRouteChildren {
+  AppProjectsKeyAgentsRoute: typeof AppProjectsKeyAgentsRoute
+  AppProjectsKeyAuditRoute: typeof AppProjectsKeyAuditRoute
   AppProjectsKeyBugsRoute: typeof AppProjectsKeyBugsRoute
   AppProjectsKeyDiagramsRoute: typeof AppProjectsKeyDiagramsRoute
+  AppProjectsKeyGlossaryRoute: typeof AppProjectsKeyGlossaryRoute
   AppProjectsKeyRequirementsRoute: typeof AppProjectsKeyRequirementsRouteWithChildren
   AppProjectsKeySettingsRoute: typeof AppProjectsKeySettingsRoute
   AppProjectsKeyTestsRoute: typeof AppProjectsKeyTestsRoute
@@ -637,8 +697,11 @@ interface AppProjectsKeyRouteChildren {
 }
 
 const AppProjectsKeyRouteChildren: AppProjectsKeyRouteChildren = {
+  AppProjectsKeyAgentsRoute: AppProjectsKeyAgentsRoute,
+  AppProjectsKeyAuditRoute: AppProjectsKeyAuditRoute,
   AppProjectsKeyBugsRoute: AppProjectsKeyBugsRoute,
   AppProjectsKeyDiagramsRoute: AppProjectsKeyDiagramsRoute,
+  AppProjectsKeyGlossaryRoute: AppProjectsKeyGlossaryRoute,
   AppProjectsKeyRequirementsRoute: AppProjectsKeyRequirementsRouteWithChildren,
   AppProjectsKeySettingsRoute: AppProjectsKeySettingsRoute,
   AppProjectsKeyTestsRoute: AppProjectsKeyTestsRoute,

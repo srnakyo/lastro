@@ -6,6 +6,11 @@ import { latestTestResults } from "../overview/tests";
 import { evaluateGate } from "./gate";
 import { latestStages } from "./latest";
 
+const moduleOf = (reach: unknown, type: string) => {
+  const modules = (reach as { modules?: unknown } | null)?.modules;
+  return Array.isArray(modules) && typeof modules[0] === "string" ? modules[0] : type;
+};
+
 /** What the QA card of a requirement shows: its flow with the latest result per stage, the gate and the evidence. */
 export async function requirementQa(projectId: string, code: string) {
   const tx = db();
@@ -31,7 +36,7 @@ export async function diagramsData(projectId: string) {
     where: { projectId, status: { not: "dropped" } },
     orderBy: { code: "asc" },
     select: {
-      code: true, title: true, status: true, type: true,
+      code: true, title: true, status: true, type: true, reach: true,
       citations: { select: { anchor: true, found: true, source: { select: { code: true } } } },
       criteria: { orderBy: { code: "asc" }, select: { code: true, tests: { select: { testRef: true } } } },
     },
@@ -43,7 +48,7 @@ export async function diagramsData(projectId: string) {
     config: scope.config,
     types: Object.keys(scope.config.types),
     requirements: requirements.map((r) => ({
-      code: r.code, title: r.title, status: r.status,
+      code: r.code, title: r.title, status: r.status, module: moduleOf(r.reach, r.type),
       citations: r.citations.map((c) => ({ source: c.source.code, anchor: c.anchor, found: c.found })),
       criteria: r.criteria.map((c) => ({ code: c.code, tests: c.tests.map((t) => t.testRef) })),
     })),

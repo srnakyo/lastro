@@ -7,6 +7,7 @@ test("a person creates an agent token, sees it once, and revokes it in a dialog"
   await signIn(page);
   await page.goto("/projects/e2e-demo/settings");
   await page.waitForLoadState("networkidle");
+  await page.getByRole("tab", { name: "Access tokens" }).click();
   await page.getByRole("button", { name: "New token" }).click();
   const dialog = page.getByRole("dialog");
   await dialog.getByLabel("Name").fill("e2e agent");

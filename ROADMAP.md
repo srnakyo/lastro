@@ -73,7 +73,7 @@ bun workspaces and Turborepo: `apps/`, `packages/`, `tooling/`.
 | 5 | Verification: runner, conditions, JUnit and SARIF; `verify` and `gate`; stale evidence and locks; Tests and Runs screens; overview charts; QA flow diagrams | done |
 | 6 | Documentation: every document in md, html and pdf; Documentation screen | done |
 | 7 | Enforcement: Claude Code plugin, `pre-push`, GitHub Action, Claude Ship templates | done |
-| 8 | Advanced dashboard: Agents, Audit, module map, timelines, visual flow editor | todo |
+| 8 | Advanced dashboard: Agents, Audit, module map, timelines, visual flow editor | done |
 | 9 | Distribution: Docker image and production compose, npm package, README in English and Portuguese with real screenshots | todo |
 | 10 | Dogfood: Lastro tracks itself on its own server, tests linked to criteria, gate in CI | todo |
 

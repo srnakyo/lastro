@@ -1,6 +1,7 @@
-import { decisionsService, incidentsService, lifecycleService, markdownPassages, projectsService, questionsService, requirementsService, runsService, sourcesService } from "@lastro/core";
+import { decisionsService, glossaryService, incidentsService, lifecycleService, markdownPassages, projectsService, questionsService, requirementsService, runsService, sourcesService } from "@lastro/core";
 import { database } from "@lastro/database";
 import { projectConfigSchema, type Actor } from "@lastro/shared";
+import { seedAgentSessions } from "./agents";
 import { SHOP_BRIEF, SHOP_CONFIG } from "./brief";
 import { shopRequirements } from "./requirements";
 import { SHOP_RUNS, shopReport } from "./runs";
@@ -43,5 +44,10 @@ export async function seedShop(workspaceId: string, actor: Actor) {
   const project = await freshProject(workspaceId, actor);
   await spec(project.id, actor);
   await build(project.id, actor);
+  await seedAgentSessions(project.id);
+  await glossaryService.upsertTerm(project.id, actor, { term: "Southeast", means: "SP, RJ, MG and ES, by the ZIP code of the delivery address" });
+  await glossaryService.upsertTerm(project.id, actor, { term: "Subtotal", means: "Items after the coupon, before shipping" });
+  await glossaryService.upsertInvariant(project.id, actor, { code: "INV-1", text: "An order total is never below its shipping cost.", testRefs: ["tests/coupon.test.ts::floors the total at shipping"] });
+  await glossaryService.setDesignContract(project.id, actor, { forbidden: ["Native alert or confirm dialogs", "Prices without the R$ prefix"], components: { Dialog: "every confirmation" }, palette: { primary: "#1d63d8", danger: "#e11d48" } });
   return project;
 }

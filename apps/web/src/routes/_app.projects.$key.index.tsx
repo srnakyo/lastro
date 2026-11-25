@@ -9,6 +9,7 @@ import { LatestRuns } from "@/components/overview/latest-runs";
 import { ModuleQuality } from "@/components/overview/module-quality";
 import { ResultDistribution } from "@/components/overview/result-distribution";
 import { StatusFunnel } from "@/components/overview/status-funnel";
+import { ActivityCard } from "@/components/overview/activity-card";
 import { PageHeader } from "@/components/page-header";
 import { overviewQuery, projectQuery } from "@/hooks/queries";
 import { useI18n } from "@/lib/i18n";
@@ -34,8 +35,9 @@ function Overview() {
         <KpiCard label={t("overview.kpi.failed")} value={o.tests.failed} icon={<CircleX />} tone={o.tests.failed > 0 ? "danger" : "neutral"} />
       </div>
       <div className="mt-4 grid items-start gap-4 lg:grid-cols-12">
-        <div className="grid content-start gap-4 lg:col-span-8">
+        <div className="grid min-w-0 content-start gap-4 lg:col-span-8">
           <ResultDistribution passed={o.tests.passed} failed={o.tests.failed} pending={o.tests.pending} />
+          <ActivityCard projectKey={key} />
           <LatestRuns projectKey={key} runs={o.runs} />
           <ModuleQuality modules={o.modules} />
         </div>

@@ -1,4 +1,4 @@
-import { lifecycleDiagram, qaFlowDiagram, traceabilityDiagram } from "@lastro/docs";
+import { lifecycleDiagram, moduleMapDiagram, qaFlowDiagram, traceabilityDiagram } from "@lastro/docs";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
@@ -60,6 +60,7 @@ function Diagrams() {
           source={traceabilityDiagram(traced, data.tests)}
           minHeight={320}
         />
+        <DiagramCard title={t("diagrams.modules")} lead={t("diagrams.modules.lead")} source={moduleMapDiagram(data.requirements)} minHeight={220} />
         <DiagramCard title={t("diagrams.lifecycle")} lead={t("diagrams.lifecycle.lead")} source={lifecycleDiagram(data.edges, data.counts)} minHeight={260} />
       </div>
     </>
