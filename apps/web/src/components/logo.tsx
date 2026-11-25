@@ -1,21 +1,28 @@
+import { BRAND, type BrandShape } from "@lastro/shared/brand";
 import { cn } from "@/lib/utils";
 
-/** The mark: an L that closes with a check, the item that only counts once it is backed. */
-export function LogoMark({ className }: { className?: string }) {
+/** Draws one brand shape in the current text colour; the class sets its size. */
+function Shape({ shape, className }: { shape: BrandShape; className?: string }) {
   return (
-    <svg viewBox="0 0 32 32" className={cn("size-7 shrink-0", className)} aria-hidden="true">
-      <rect width="32" height="32" rx="7" className="fill-primary" />
-      <path d="M9 7v18h14" stroke="white" strokeWidth="3.2" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M14 18l3 3 6-7" stroke="#5be39a" strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+    <svg viewBox={`0 0 ${shape.width} ${shape.height}`} className={cn("block shrink-0", className)} fill="currentColor" aria-hidden="true">
+      {shape.paths.map((d) => (
+        <path key={d.slice(0, 24)} d={d} />
+      ))}
     </svg>
   );
 }
 
-export function Logo({ className, collapsed = false }: { className?: string; collapsed?: boolean }) {
+/** The symbol alone, 28 px by default: the collapsed sidebar and other small slots. */
+export function LogoMark({ className }: { className?: string }) {
+  return <Shape shape={BRAND.mark} className={cn("size-7", className)} />;
+}
+
+/** The signature, symbol and word. `sidebar` fits the 56 px dashboard header; `large` is for roomier places like sign-in. */
+export function Logo({ className, collapsed = false, size = "sidebar" }: { className?: string; collapsed?: boolean; size?: "sidebar" | "large" }) {
   return (
-    <span className={cn("inline-flex items-center gap-2.5", className)}>
-      <LogoMark />
-      {!collapsed && <span className="text-[17px] font-semibold tracking-tight">lastro</span>}
+    <span className={cn("inline-flex text-foreground", className)}>
+      <span className="sr-only">Lastro</span>
+      {collapsed ? <LogoMark /> : <Shape shape={BRAND.lockup} className={cn("w-auto", size === "large" ? "h-9" : "h-[23px]")} />}
     </span>
   );
 }

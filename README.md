@@ -1,4 +1,9 @@
-# Lastro
+<p>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/brand/readme-dark.svg">
+    <img src="docs/brand/readme-light.svg" width="840" alt="Lastro">
+  </picture>
+</p>
 
 **Requirements, evidence and quality gates for AI-driven development. Nothing is done without lastro.**
 

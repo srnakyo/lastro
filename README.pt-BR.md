@@ -1,4 +1,9 @@
-# Lastro
+<p>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/brand/readme-dark.svg">
+    <img src="docs/brand/readme-light.svg" width="840" alt="Lastro">
+  </picture>
+</p>
 
 **Requisitos, evidência e quality gates para desenvolvimento com IA. Sem lastro, não está pronto.**
 

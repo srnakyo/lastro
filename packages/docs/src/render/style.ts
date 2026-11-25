@@ -5,9 +5,8 @@ export const DOC_CSS = `
 html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.6 "Inter Variable", Inter, ui-sans-serif, system-ui, sans-serif; }
 main { max-width: 920px; margin: 0 auto; padding: 48px 40px 64px; }
-.brand { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 12px; letter-spacing: .04em; text-transform: uppercase; margin-bottom: 28px; }
-.brand b { color: var(--primary); font-size: 13px; letter-spacing: 0; text-transform: none; }
-.brand i { width: 22px; height: 22px; border-radius: 6px; background: var(--primary); display: inline-block; }
+.brand { color: var(--fg); margin-bottom: 28px; }
+.brand svg { display: block; height: 22px; width: auto; }
 h1 { font-size: 28px; line-height: 1.2; margin: 0 0 6px; letter-spacing: -.01em; }
 h1 + p em { color: var(--muted); font-style: normal; font-size: 12.5px; }
 h2 { font-size: 19px; margin: 36px 0 10px; padding-top: 14px; border-top: 1px solid var(--line); }

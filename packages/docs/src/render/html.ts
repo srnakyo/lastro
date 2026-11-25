@@ -1,4 +1,5 @@
 import { Marked, type Tokens } from "marked";
+import { brandMarkup } from "./brand";
 import { DOC_CSS } from "./style";
 
 const escape = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -28,6 +29,6 @@ export function toHtml(markdown: string, title: string, lang: string): string {
 <title>${escape(title)}</title>
 <style>${DOC_CSS}</style>
 </head>
-<body><main><div class="brand"><i></i><b>lastro</b></div>${body}</main></body>
+<body><main>${brandMarkup()}${body}</main></body>
 </html>`;
 }

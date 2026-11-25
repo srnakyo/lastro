@@ -32,8 +32,9 @@ export function Sidebar({ projectKey, collapsed }: { projectKey: string | null; 
   const base = projectKey ? `/projects/${projectKey}` : "";
   return (
     <aside className={cn("sticky top-0 hidden h-screen shrink-0 flex-col border-r bg-sidebar transition-[width] duration-200 md:flex", collapsed ? "w-[60px]" : "w-64")}>
-      <div className={cn("flex h-14 items-center border-b px-4", collapsed && "justify-center px-0")}>
-        <Link to="/" aria-label="Lastro">
+      {/* Whole-pixel offsets: the 23 px signature centres at 16 in the 55 px bar, the 28 px mark sits at 13 and 15. */}
+      <div className={cn("flex h-14 border-b", collapsed ? "items-start pl-[15px] pt-[13px]" : "items-center px-4")}>
+        <Link to="/" aria-label="Lastro" className="flex">
           <Logo collapsed={collapsed} />
         </Link>
       </div>

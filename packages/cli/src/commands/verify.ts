@@ -1,6 +1,7 @@
 import type { Command } from "commander";
 import { LastroClient } from "../api/client";
 import { findRoot, linkedProject } from "../config/project";
+import { signature } from "../output";
 import { offlineGate } from "./gate-ci";
 import { runGate, runVerify, triggerFromEnv, type GateState } from "./verify-run";
 
@@ -22,6 +23,7 @@ export function verifyCommands(program: Command) {
     .argument("[code]")
     .action(async (code?: string) => {
       const root = findRoot();
+      signature(code ? `verify ${code}` : "verify");
       const outcome = await runVerify(new LastroClient(), root, linkedProject(root), code, triggerFromEnv());
       for (const s of outcome.report.stages) console.log(`  ${s.status === "passed" ? "✓" : "✗"} ${s.requirement} ${s.stage}${s.condition ? ` · ${s.condition}` : ""} (${s.durationMs} ms)`);
       for (const [c, gate] of Object.entries(outcome.gates)) printGate(c, gate);
@@ -43,6 +45,7 @@ export function verifyCommands(program: Command) {
       if (o.json) console.log(JSON.stringify(result, null, 2));
       else if (o.markdown) console.log(gateMarkdown(result));
       else {
+        signature("gate");
         for (const [code, gate] of Object.entries(result.requirements)) printGate(code, gate);
         console.log(result.pass ? "gate: green" : "gate: red");
       }

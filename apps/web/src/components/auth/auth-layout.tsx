@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 export function AuthLayout({ title, lead, children, footer }: { title: string; lead?: string; children: ReactNode; footer?: ReactNode }) {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center px-4 py-12">
-      <Logo className="mb-8" />
+      <Logo size="large" className="mb-8" />
       <Card className="w-full max-w-[400px] p-7">
         <h1 className="text-[20px] font-bold tracking-tight">{title}</h1>
         {lead && <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">{lead}</p>}
