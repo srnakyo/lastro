@@ -32,8 +32,8 @@ export function Sidebar({ projectKey, collapsed }: { projectKey: string | null; 
   const base = projectKey ? `/projects/${projectKey}` : "";
   return (
     <aside className={cn("sticky top-0 hidden h-screen shrink-0 flex-col border-r bg-sidebar transition-[width] duration-200 md:flex", collapsed ? "w-[60px]" : "w-64")}>
-      {/* The signatures are fitted to the pixel grid and drawn 1:1 at whole-pixel offsets: the 30 px lockup and the 28 px mark both start at 13. */}
-      <div className={cn("flex h-14 items-start border-b pt-[13px]", collapsed ? "pl-[15px]" : "px-4")}>
+      {/* The signatures are fitted to the pixel grid and drawn 1:1 at whole-pixel offsets: the 32 px lockup at 12, the 28 px mark at 13. */}
+      <div className={cn("flex h-14 items-start border-b", collapsed ? "pl-[15px] pt-[13px]" : "px-4 pt-3")}>
         <Link to="/" aria-label="Lastro" className="flex">
           <Logo collapsed={collapsed} />
         </Link>
