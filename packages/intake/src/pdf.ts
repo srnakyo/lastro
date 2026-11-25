@@ -1,8 +1,8 @@
-import { getDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
+import type { getDocument as GetDocument } from "pdfjs-dist/legacy/build/pdf.mjs";
 import { pageBlocks, type PlacedText } from "./pdf-layout";
 import type { ExtractedPassage, Extraction, IntakeFile } from "./types";
 
-type PdfDocument = Awaited<ReturnType<typeof getDocument>["promise"]>;
+type PdfDocument = Awaited<ReturnType<typeof GetDocument>["promise"]>;
 
 async function pageItems(document: PdfDocument, pageNumber: number): Promise<PlacedText[]> {
   const page = await document.getPage(pageNumber);
@@ -19,6 +19,8 @@ async function pageItems(document: PdfDocument, pageNumber: number): Promise<Pla
 
 /** PDF text, page by page, in blocks separated by vertical gaps: anchors "@pg<page>/b<block>". */
 export async function extractPdf(file: IntakeFile): Promise<Extraction> {
+  // Loaded on demand: pdfjs warns about missing canvas polyfills as soon as it is imported.
+  const { getDocument } = await import("pdfjs-dist/legacy/build/pdf.mjs");
   // pdf.js takes ownership of the buffer it reads, so it gets a copy.
   const task = getDocument({ data: new Uint8Array(file.bytes), disableFontFace: true, useSystemFonts: false, verbosity: 0 });
   const document = await task.promise;

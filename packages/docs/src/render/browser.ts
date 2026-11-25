@@ -32,7 +32,8 @@ async function launch(): Promise<Browser | null> {
 async function openMermaidPage(page: Page) {
   const dir = mkdtempSync(join(tmpdir(), "lastro-docs-"));
   const file = join(dir, "draw.html");
-  writeFileSync(file, `<!doctype html><html><body><script src="${pathToFileURL(require.resolve("mermaid/dist/mermaid.min.js")).href}"></script></body></html>`);
+  const mermaid = process.env.LASTRO_MERMAID_JS || require.resolve("mermaid/dist/mermaid.min.js");
+  writeFileSync(file, `<!doctype html><html><body><script src="${pathToFileURL(mermaid).href}"></script></body></html>`);
   try {
     await page.goto(pathToFileURL(file).href, { waitUntil: "load" });
   } finally {

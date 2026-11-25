@@ -1,0 +1,13 @@
+**/node_modules
+**/.output
+**/.nitro
+**/.turbo
+.git
+.env
+.env.*
+!.env.example
+.lastro/.out
+.lastro-storage
+**/dist
+test-results
+playwright-report

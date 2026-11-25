@@ -1,0 +1,20 @@
+# Postgres for development, if you do not run one already.
+#   docker compose -f docker/compose.dev.yml up -d
+# Then LASTRO_DATABASE_URL=postgresql://lastro:lastro@localhost:5433/lastro
+name: lastro-dev
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: lastro
+      POSTGRES_USER: lastro
+      POSTGRES_PASSWORD: lastro
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init-test-db.sql:/docker-entrypoint-initdb.d/init-test-db.sql:ro
+
+volumes:
+  pgdata:

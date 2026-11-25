@@ -2,32 +2,49 @@
   "name": "lastro",
   "version": "0.1.0",
   "description": "Requirements, evidence and quality gates for AI-driven development.",
+  "keywords": [
+    "requirements",
+    "qa",
+    "quality-gate",
+    "traceability",
+    "mcp",
+    "claude-code",
+    "ai-agents",
+    "cli"
+  ],
+  "homepage": "https://github.com/srnakyo/lastro#readme",
+  "bugs": {
+    "url": "https://github.com/srnakyo/lastro/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/srnakyo/lastro.git"
+  },
   "license": "MIT",
   "type": "module",
   "bin": {
     "lastro": "dist/lastro.js"
   },
-  "files": ["dist"],
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/srnakyo/lastro.git"
-  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "engines": {
     "node": ">=20"
   },
   "scripts": {
     "build": "bun build src/index.ts --target node --outfile dist/lastro.js",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
-  },
-  "dependencies": {
-    "commander": "^15.1.0",
-    "yaml": "^2.9.1"
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "prepublishOnly": "bun run build"
   },
   "devDependencies": {
     "@lastro/runner": "workspace:*",
     "@lastro/shared": "workspace:*",
     "@lastro/snapshot": "workspace:*",
     "@lastro/tsconfig": "workspace:*",
-    "@types/node": "^26.6.6"
+    "@types/node": "^26.6.6",
+    "commander": "^15.1.0",
+    "yaml": "^2.9.1"
   }
 }

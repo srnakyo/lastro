@@ -33,7 +33,14 @@ async function spec(projectId: string, actor: Actor) {
 async function build(projectId: string, actor: Actor) {
   for (const code of ["REQ-CRT01", "REQ-SHP01", "REQ-PAY01", "REQ-CPN01", "REQ-STK01", "REQ-DRK01"]) await lifecycleService.approve(projectId, actor, code);
   for (const code of ["REQ-CRT01", "REQ-SHP01", "REQ-PAY01", "REQ-CPN01", "REQ-STK01"]) await lifecycleService.start(projectId, AGENT, code, "feat/checkout");
-  for (const run of SHOP_RUNS) await runsService.record(projectId, AGENT, shopReport(run));
+  // The history happened over days: date the state changes so far before the first run.
+  await database().stateEvent.updateMany({ where: { projectId }, data: { createdAt: new Date(Date.now() - 150 * 3_600_000) } });
+  for (const run of SHOP_RUNS) {
+    const before = new Date();
+    const report = shopReport(run);
+    await runsService.record(projectId, AGENT, report);
+    await database().stateEvent.updateMany({ where: { projectId, createdAt: { gte: before } }, data: { createdAt: new Date(String(report.startedAt)) } });
+  }
   const incident = await incidentsService.report(projectId, actor, { reported: "Customer says the free shipping did not apply to an order of R$ 305 to Porto Alegre.", sourceRef: "support ticket #4127", requirement: "REQ-SHP01" });
   await incidentsService.triage(projectId, actor, incident.code, { triage: "bug", cause: "implementation", billing: "fix", regressionTest: "tests/shipping.test.ts::free above 300 in the south" });
   await incidentsService.report(projectId, actor, { reported: "The coupon field is hard to find on the phone.", sourceRef: "client call 2026-11-20" });

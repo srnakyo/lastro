@@ -1,0 +1,56 @@
+# One VPS, everything inside: Postgres, the migrations and the Lastro server.
+#   cp .env.example .env   # set BETTER_AUTH_SECRET, POSTGRES_PASSWORD and LASTRO_URL
+#   docker compose -f docker/compose.prod.yml --env-file .env up -d
+name: lastro
+
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: lastro
+      POSTGRES_USER: lastro
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lastro -d lastro"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  migrate:
+    build: { context: .., dockerfile: docker/Dockerfile, target: migrate }
+    environment:
+      LASTRO_DATABASE_URL: postgresql://lastro:${POSTGRES_PASSWORD}@postgres:5432/lastro
+    depends_on:
+      postgres: { condition: service_healthy }
+    restart: "no"
+
+  web:
+    build: { context: .., dockerfile: docker/Dockerfile, target: web }
+    restart: unless-stopped
+    ports:
+      - "${LASTRO_PORT:-4317}:4317"
+    environment:
+      LASTRO_DATABASE_URL: postgresql://lastro:${POSTGRES_PASSWORD}@postgres:5432/lastro
+      LASTRO_URL: ${LASTRO_URL:?set LASTRO_URL, the address people open}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?set BETTER_AUTH_SECRET}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
+      LASTRO_STORAGE: ${LASTRO_STORAGE:-local}
+      LASTRO_S3_ENDPOINT: ${LASTRO_S3_ENDPOINT:-}
+      LASTRO_S3_REGION: ${LASTRO_S3_REGION:-}
+      LASTRO_S3_BUCKET: ${LASTRO_S3_BUCKET:-}
+      LASTRO_S3_ACCESS_KEY_ID: ${LASTRO_S3_ACCESS_KEY_ID:-}
+      LASTRO_S3_SECRET_ACCESS_KEY: ${LASTRO_S3_SECRET_ACCESS_KEY:-}
+      LASTRO_TRANSCRIBE_COMMAND: ${LASTRO_TRANSCRIBE_COMMAND:-}
+      LASTRO_FFMPEG: ${LASTRO_FFMPEG:-}
+    volumes:
+      - storage:/data
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+
+volumes:
+  pgdata:
+  storage:
