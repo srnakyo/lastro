@@ -11,7 +11,7 @@ The idea: every vessel in the mark is filled to the same line, the level. The sy
 | `lockup.svg` | Horizontal signature (symbol and word). Dashboard, documents, large screens. | 3177 × 735 ratio; 19 px tall and up |
 | `wordmark.svg` | The word alone, when the symbol is already nearby. | 2277 × 735 |
 | `mark.svg` | Master symbol. Collapsed sidebar, icons, print. | 1000 × 1000 |
-| `lockup-sidebar.svg`, `mark-28.svg` | Optional versions fitted to the pixel grid (straight edges only; curves stay true circles and ellipses). Use 1:1 at whole-pixel positions. | 88 × 19, 28 × 28 |
+| `lockup-sidebar.svg`, `mark-28.svg` | Optional versions fitted to the pixel grid (straight edges only; curves stay true circles and ellipses). Use 1:1 at whole-pixel positions. | 127 × 30, 28 × 28 |
 | `favicon.svg` | Browser tab, drawn on the 16 px grid. Ink on light, light on dark through `prefers-color-scheme`. | 16 × 16 |
 | `readme-light.svg` / `readme-dark.svg` | README header with the blue level line, for #ffffff and #0d1117. | 840 × 218 |
 | `avatar.png` | Square avatar for GitHub and npm; survives the round crop. | 512 × 512 |

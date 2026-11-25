@@ -17,7 +17,7 @@ export function LogoMark({ className }: { className?: string }) {
   return <Shape shape={BRAND.mark28} className={className} />;
 }
 
-/** The signature. `sidebar` is the 88 x 19 pixel-fitted version, drawn 1:1 on whole pixels; `large` is the master for sign-in. */
+/** The signature. `sidebar` is the 127 x 30 pixel-fitted version, drawn 1:1 on whole pixels; `large` is the master for sign-in. */
 export function Logo({ className, collapsed = false, size = "sidebar" }: { className?: string; collapsed?: boolean; size?: "sidebar" | "large" }) {
   return (
     <span className={cn("inline-flex text-foreground", className)}>

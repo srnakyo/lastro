@@ -9,7 +9,7 @@ A ideia: todo vaso da marca está cheio até a mesma linha, o nível. O símbolo
 | Arquivo | Uso | Tamanho |
 |---|---|---|
 | `lockup.svg` | Assinatura horizontal (símbolo e palavra). Site, PDF, telas grandes. | proporção 3177 × 735; a partir de 24 px de altura |
-| `lockup-sidebar.svg` | Versão ajustada no pixel para 19 px (só retas: base, altura de x, nível e hastes caem no pixel; as curvas continuam círculos e elipses verdadeiros). Opcional: o mestre `lockup.svg` renderiza bem em 19 px. Usar 1:1, em posição de pixel inteiro. A linha de base é a borda de baixo (y = 19 a partir do topo). Numa barra de 56: `padding-top: 18px` deixa a base em y = 37. | 88 × 19 px |
+| `lockup-sidebar.svg` | Versão ajustada no pixel para a barra lateral, 30 px de altura com altura de x de 20 px (só retas: base, altura de x, nível e hastes caem no pixel; as curvas continuam círculos e elipses verdadeiros). Usar 1:1, em posição de pixel inteiro. A linha de base fica em y = 29 a partir do topo. | 127 × 30 px |
 | `wordmark.svg` | Só a palavra, quando o símbolo já está perto (ex.: rodapé com o favicon ao lado). | 2277 × 735 |
 | `mark.svg` | Símbolo mestre. Ícones a partir de 40 px, app, impressão. | 1000 × 1000 |
 | `mark-28.svg` | Símbolo desenhado no pixel para 28 px (barra recolhida): paredes de 5 px, chão na linha 10. Serve de 24 a 32 px. | 28 × 28 |
@@ -54,7 +54,7 @@ A marca é sempre de uma cor só. Sem degradê, sombra, contorno ou caixa em vol
 
 ## Tamanhos mínimos
 
-- `lockup.svg`: 24 px de altura. Abaixo disso, `lockup-sidebar.svg` em 19 px.
+- `lockup.svg`: 24 px de altura. Na barra lateral, `lockup-sidebar.svg` em 30 px.
 - `mark.svg`: 40 px. De 24 a 39 px, `mark-28.svg`. Em 16 px, `favicon.svg`.
 - `wordmark.svg`: altura de x de 9 px.
 
