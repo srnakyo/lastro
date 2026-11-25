@@ -76,3 +76,7 @@ lastro report PKG-2R8XW --format pdf
 ## Contributing
 
 The project is in the design phase. Open an issue to discuss the PRD, tell us how the problem shows up in your workflow, or propose an adapter for your agent or stack.
+
+## License
+
+[MIT](LICENSE)

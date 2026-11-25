@@ -108,9 +108,8 @@ A ordem segue o valor: primeiro o que acaba com o "o que está pendente?", depoi
 
 | # | Pergunta |
 |---|---|
-| 1 | Licença: Apache-2.0 (concessão explícita de patentes) ou MIT? |
-| 2 | Relação com a Loqivo: integração por exportação, ou a Loqivo vira o portal hospedado do cliente para aprovação e aceite? |
-| 3 | Aceite do cliente no MVP: só por referência registrada pelo dev, ou também por um link do painel exposto temporariamente? |
-| 4 | O `ledger/` vai no git por padrão, ou só no artefato do CI? |
-| 5 | Quantos bloqueios seguidos o hook de fim de resposta permite antes de liberar? |
-| 6 | A etapa `design_contract` fica só em regras simples sobre o diff, ou aceita um classificador opcional via agente? |
+| 1 | Relação com a Loqivo: integração por exportação, ou a Loqivo vira o portal hospedado do cliente para aprovação e aceite? |
+| 2 | Aceite do cliente no MVP: só por referência registrada pelo dev, ou também por um link do painel exposto temporariamente? |
+| 3 | O `ledger/` vai no git por padrão, ou só no artefato do CI? |
+| 4 | Quantos bloqueios seguidos o hook de fim de resposta permite antes de liberar? |
+| 5 | A etapa `design_contract` fica só em regras simples sobre o diff, ou aceita um classificador opcional via agente? |

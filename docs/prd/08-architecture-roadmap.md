@@ -108,9 +108,8 @@ The order follows value: first what ends the "what is pending?" question, then w
 
 | # | Question |
 |---|---|
-| 1 | License: Apache-2.0 (explicit patent grant) or MIT? |
-| 2 | Relationship with Loqivo: integration through export, or does Loqivo become the hosted client portal for approval and acceptance? |
-| 3 | Client acceptance in the MVP: only through a reference recorded by the dev, or also through a temporarily exposed dashboard link? |
-| 4 | Does `ledger/` go into git by default, or only into the CI artifact? |
-| 5 | How many consecutive blocks does the end-of-response hook allow before letting the agent stop? |
-| 6 | Does the `design_contract` stage stay limited to simple rules on the diff, or does it accept an optional classifier through the agent? |
+| 1 | Relationship with Loqivo: integration through export, or does Loqivo become the hosted client portal for approval and acceptance? |
+| 2 | Client acceptance in the MVP: only through a reference recorded by the dev, or also through a temporarily exposed dashboard link? |
+| 3 | Does `ledger/` go into git by default, or only into the CI artifact? |
+| 4 | How many consecutive blocks does the end-of-response hook allow before letting the agent stop? |
+| 5 | Does the `design_contract` stage stay limited to simple rules on the diff, or does it accept an optional classifier through the agent? |

@@ -76,3 +76,7 @@ lastro report PKG-2R8XW --format pdf
 ## Contribuindo
 
 O projeto está na fase de desenho. Abra uma issue para discutir o PRD, contar como o problema aparece no seu fluxo ou propor um adaptador para o seu agente ou stack.
+
+## Licença
+
+[MIT](LICENSE)
