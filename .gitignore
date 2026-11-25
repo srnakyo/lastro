@@ -3,3 +3,4 @@ dist/
 .lastro/.state/
 .lastro/.store/
 .lastro/.out/
+.env
