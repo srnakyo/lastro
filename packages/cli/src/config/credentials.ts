@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
+import { serverSettings } from "./project";
 
 export interface Credentials {
   url: string;
@@ -9,9 +10,16 @@ export interface Credentials {
 
 const file = () => join(process.env.XDG_CONFIG_HOME ?? join(homedir(), ".config"), "lastro", "credentials.json");
 
-/** LASTRO_URL and LASTRO_TOKEN win (CI); otherwise the file written by `lastro login`. */
-export function readCredentials(): Credentials | null {
-  if (process.env.LASTRO_URL && process.env.LASTRO_TOKEN) return { url: process.env.LASTRO_URL, token: process.env.LASTRO_TOKEN };
+/**
+ * The server and token, in this order: the environment variables that lastro.yml names in server.url_env and
+ * server.token_env (LASTRO_URL and LASTRO_TOKEN when it names none), then the file written by `lastro login`.
+ * lastro.yml only ever holds variable names, never the values.
+ */
+export function readCredentials(cwd = process.cwd()): Credentials | null {
+  const names = serverSettings(cwd);
+  const url = process.env[names.urlEnv];
+  const token = process.env[names.tokenEnv];
+  if (url && token) return { url, token };
   if (!existsSync(file())) return null;
   return JSON.parse(readFileSync(file(), "utf8")) as Credentials;
 }
@@ -23,6 +31,9 @@ export function writeCredentials(credentials: Credentials) {
 
 export function requireCredentials(): Credentials {
   const credentials = readCredentials();
-  if (!credentials) throw new Error("not logged in: run `lastro login --url <server> --token <token>` or set LASTRO_URL and LASTRO_TOKEN");
+  if (!credentials) {
+    const names = serverSettings(process.cwd());
+    throw new Error(`not logged in: run \`lastro login --url <server> --token <token>\` or set ${names.urlEnv} and ${names.tokenEnv}`);
+  }
   return credentials;
 }

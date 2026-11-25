@@ -2,6 +2,7 @@ import { authenticate, errorResponse, json } from "./http";
 import { projectRoutes } from "./handlers/projects";
 import { agentRoutes } from "./handlers/agent";
 import { docsRoutes } from "./handlers/docs";
+import { humanRoutes } from "./handlers/human";
 import { runRoutes } from "./handlers/runs";
 import { intakeRoutes, specRoutes } from "./handlers/spec";
 import { ApiRouter } from "./router";
@@ -13,6 +14,7 @@ intakeRoutes(apiRouter);
 runRoutes(apiRouter);
 docsRoutes(apiRouter);
 agentRoutes(apiRouter);
+humanRoutes(apiRouter);
 
 /** Entry for /api/v1/*: token, route, JSON. */
 export async function handleApi(request: Request): Promise<Response> {

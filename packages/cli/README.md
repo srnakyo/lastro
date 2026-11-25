@@ -20,7 +20,7 @@ lastro init my-project            # or: lastro link my-project
 | `lastro gate` | Fail while anything in building is not verified or its evidence went stale (CI, `pre-push`) |
 | `lastro docs` | Generate the project documents and write them into the repository |
 | `lastro export`, `lastro import` | Write the project to `.lastro/`, or load `.lastro/` into the server (a person) |
-| `lastro approve`, `lastro sign` | Human actions: they ask for confirmation in a terminal |
+| `lastro approve`, `lastro check` | Human actions: they ask for confirmation in a terminal |
 | `lastro mcp` | MCP server over stdio for Claude Code and other agents |
 | `lastro hook <event>` | The Claude Code hooks (used by the Lastro plugin) |
 | `lastro install-hooks` | Install the git `pre-push` hook |

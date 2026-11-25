@@ -5,6 +5,7 @@ import { accountCommands } from "./commands/account";
 import { snapshotCommands } from "./commands/snapshot";
 import { docsCommand } from "./commands/docs";
 import { hookCommands } from "./commands/hook";
+import { humanCommands } from "./commands/human";
 import { intakeCommand } from "./commands/intake";
 import { mcpCommand } from "./commands/mcp";
 import { specCommands } from "./commands/spec";
@@ -20,6 +21,7 @@ mcpCommand(program);
 intakeCommand(program);
 docsCommand(program);
 hookCommands(program);
+humanCommands(program);
 
 program.parseAsync().catch((error: unknown) => {
   if (error instanceof ApiError) console.error(`lastro: ${error.message} (${error.code})`);

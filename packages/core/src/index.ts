@@ -41,3 +41,4 @@ export { docBuildsService, type BuiltFile } from "./docs/service";
 export { addTouches, lockedTestFiles } from "./agent/touches";
 export { membersService } from "./workspaces/members";
 export { activityTimeline } from "./overview/timeline";
+export { pendingList, type PendingItem, type PendingReason } from "./overview/pending";

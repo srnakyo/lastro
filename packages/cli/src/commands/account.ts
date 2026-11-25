@@ -1,10 +1,12 @@
-import { mkdirSync, writeFileSync, existsSync } from "node:fs";
-import { join } from "node:path";
+import { execFileSync } from "node:child_process";
+import { appendFileSync, existsSync, readFileSync } from "node:fs";
+import { basename, join } from "node:path";
+import { snapshotSchema, type Snapshot } from "@lastro/shared";
+import { writeSnapshot } from "@lastro/snapshot";
 import type { Command } from "commander";
-import { stringify } from "yaml";
 import { LastroClient } from "../api/client";
 import { writeCredentials } from "../config/credentials";
-import { findRoot, writeLink } from "../config/project";
+import { findRoot, linkedProject, writeLink } from "../config/project";
 
 const STARTER_CONFIG = (project: string) => ({
   version: 1,
@@ -17,6 +19,23 @@ const STARTER_CONFIG = (project: string) => ({
   global_flow: [],
   server: { project },
 });
+
+/** The git repository's root, or the current folder outside git. */
+function repositoryRoot(): string {
+  try {
+    return execFileSync("git", ["rev-parse", "--show-toplevel"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+  } catch {
+    return process.cwd();
+  }
+}
+
+/** Adds .lastro/.out/ (runs, reports, hook state) to .gitignore once. */
+function ignoreOutput(root: string) {
+  const file = join(root, ".gitignore");
+  const current = existsSync(file) ? readFileSync(file, "utf8") : "";
+  if (current.split("\n").some((line) => line.trim() === ".lastro/.out/")) return;
+  appendFileSync(file, `${current && !current.endsWith("\n") ? "\n" : ""}.lastro/.out/\n`);
+}
 
 export function accountCommands(program: Command) {
   program
@@ -32,18 +51,23 @@ export function accountCommands(program: Command) {
 
   program
     .command("init")
-    .description("create .lastro/ here and the project on the server")
-    .argument("<key>", "project key: lowercase letters, digits and hyphens")
+    .description("create the project on the server and write the first .lastro/ export at the repository root")
+    .argument("[key]", "project key: lowercase letters, digits and hyphens (default: the folder name)")
     .option("--name <name>", "project name")
-    .action(async (key: string, o: { name?: string }) => {
-      const dir = join(process.cwd(), ".lastro");
-      if (existsSync(join(dir, "lastro.yml"))) throw new Error(".lastro/lastro.yml already exists: use `lastro link` or `lastro import`");
-      const config = STARTER_CONFIG(key);
-      await new LastroClient().post("/projects", { key, name: o.name ?? key, config });
-      mkdirSync(dir, { recursive: true });
-      writeFileSync(join(dir, "lastro.yml"), stringify(config));
-      writeFileSync(join(dir, "glossary.yml"), stringify({ terms: [], invariants: [] }));
-      console.log(`created project ${key} and .lastro/`);
+    .action(async (key: string | undefined, o: { name?: string }) => {
+      const root = repositoryRoot();
+      if (existsSync(join(root, ".lastro", "lastro.yml"))) {
+        console.log(`already initialized: .lastro/lastro.yml is linked to ${linkedProject(root)}`);
+        return;
+      }
+      const project = key ?? basename(root).toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "");
+      const client = new LastroClient();
+      const existing = await client.get(`/projects/${project}`).then(() => true, () => false);
+      if (!existing) await client.post("/projects", { key: project, name: o.name ?? project, config: STARTER_CONFIG(project) });
+      const snapshot = snapshotSchema.parse(await client.get<Snapshot>(`/projects/${project}/export`));
+      writeSnapshot(root, { ...snapshot, config: { ...snapshot.config, server: { ...snapshot.config.server, project } } });
+      ignoreOutput(root);
+      console.log(`${existing ? "linked to the existing project" : "created project"} ${project} and wrote .lastro/ in ${root}`);
     });
 
   program

@@ -1,6 +1,5 @@
 import type { Command } from "commander";
 import { LastroClient } from "../api/client";
-import { confirmHuman } from "../confirm";
 import { findRoot, linkedProject } from "../config/project";
 import { json, table } from "../output";
 
@@ -8,23 +7,34 @@ interface Pending {
   code: string;
   title: string;
   status: string;
-  blockers: { kind: string; detail: string }[];
+  reason: (typeof REASONS)[number];
+  details: string[];
 }
+
+const REASONS = ["missing_fields", "open_question", "awaiting_approval", "building", "gate_red"] as const;
+const LABELS: Record<(typeof REASONS)[number], string> = {
+  missing_fields: "missing fields",
+  open_question: "open question",
+  awaiting_approval: "awaiting approval",
+  building: "building",
+  gate_red: "gate red",
+};
 
 const project = () => linkedProject(findRoot());
 
 export function specCommands(program: Command) {
   program
     .command("pending")
-    .description("what has not reached verified, grouped by what holds it")
-    .action(async () => {
-      const items = await new LastroClient().get<Pending[]>(`/projects/${project()}/pending`);
+    .description("what has not reached verified, grouped by what it waits on")
+    .argument("[package]", "only this package, like PKG-2R8XW")
+    .action(async (pkg?: string) => {
+      const items = await new LastroClient().get<Pending[]>(`/projects/${project()}/pending${pkg ? `?package=${pkg}` : ""}`);
       if (items.length === 0) return console.log("nothing pending");
-      const groups = new Map<string, Pending[]>();
-      for (const i of items) groups.set(i.blockers[0]?.kind ?? "ready", [...(groups.get(i.blockers[0]?.kind ?? "ready") ?? []), i]);
-      for (const [reason, list] of groups) {
-        console.log(`\n${reason} (${list.length})`);
-        table(list.map((i) => [`  ${i.code}`, i.status, i.title]));
+      for (const reason of REASONS) {
+        const list = items.filter((i) => i.reason === reason);
+        if (list.length === 0) continue;
+        console.log(`\n${LABELS[reason]} (${list.length})`);
+        table(list.map((i) => [`  ${i.code}`, i.status, i.title, i.details.length ? `${reason === "missing_fields" ? "missing" : reason === "open_question" ? "questions" : "holding"}: ${i.details.join(", ")}` : ""]));
       }
     });
 
@@ -42,17 +52,6 @@ export function specCommands(program: Command) {
     await new LastroClient().post(`/projects/${project()}/requirements/${code}/tests`, { criterion, test });
     console.log(`${test} linked to ${code} ${criterion}`);
   });
-
-  program
-    .command("approve")
-    .description("approve a requirement (a person only)")
-    .argument("<code>")
-    .option("--yes", "skip the terminal confirmation (needs a person's token)")
-    .action(async (code: string, o: { yes?: boolean }) => {
-      await confirmHuman(`Approve ${code}? Its criteria and tests get locked.`, !!o.yes);
-      await new LastroClient().post(`/projects/${project()}/requirements/${code}/approve`);
-      console.log(`${code} approved`);
-    });
 
   program
     .command("ask")

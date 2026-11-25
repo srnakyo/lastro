@@ -9,3 +9,4 @@ export * from "./spec/incident";
 export * from "./spec/project";
 export * from "./snapshot/schema";
 export * from "./run";
+export * from "./lock";
