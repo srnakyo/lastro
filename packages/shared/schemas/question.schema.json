@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/srnakyo/lastro/schemas/question.schema.json",
+  "title": ".lastro/questions/Q-*.yml",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^Q-[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{5}$"
+    },
+    "about": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "text": {
+      "type": "string",
+      "minLength": 1
+    },
+    "blocks": {
+      "default": false,
+      "type": "boolean"
+    },
+    "asked_to": {
+      "type": "string",
+      "enum": [
+        "client",
+        "dev",
+        "team"
+      ]
+    },
+    "asked_via": {
+      "type": "string"
+    },
+    "asked_at": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {}
+      ]
+    },
+    "answer": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "answer_source": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "decision": {
+      "type": "string",
+      "pattern": "^DEC-[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{5}$"
+    }
+  },
+  "required": [
+    "id",
+    "text",
+    "asked_to"
+  ]
+}

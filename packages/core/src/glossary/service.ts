@@ -1,6 +1,7 @@
 import { designContractInputSchema, glossaryTermInputSchema, invariantInputSchema, type Actor } from "@lastro/shared";
 import type { z } from "zod";
 import { auditService } from "../audit/service";
+import { newCode } from "../codes/generate";
 import { db, transaction } from "../db";
 import { loadScope } from "../scope/project-scope";
 
@@ -24,8 +25,10 @@ export const glossaryService = {
     return transaction(async (tx) => {
       const scope = await loadScope(tx, projectId);
       const data = { text: input.text, testRefs: input.testRefs };
-      await tx.invariant.upsert({ where: { projectId_code: { projectId, code: input.code } }, create: { projectId, code: input.code, ...data }, update: data });
-      await auditService.record(tx, { workspaceId: scope.workspaceId, projectId, actor, action: "glossary.invariant", entity: "invariant", entityId: input.code });
+      const code = input.code ?? (await newCode("INV", async (c) => !!(await tx.invariant.findUnique({ where: { projectId_code: { projectId, code: c } } }))));
+      await tx.invariant.upsert({ where: { projectId_code: { projectId, code } }, create: { projectId, code, ...data }, update: data });
+      await auditService.record(tx, { workspaceId: scope.workspaceId, projectId, actor, action: "glossary.invariant", entity: "invariant", entityId: code });
+      return { code };
     });
   },
 

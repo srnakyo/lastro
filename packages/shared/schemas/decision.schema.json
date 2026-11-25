@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/srnakyo/lastro/schemas/decision.schema.json",
+  "title": ".lastro/decisions/DEC-*.yml",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^DEC-[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{5}$"
+    },
+    "about": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "assumption",
+        "decision",
+        "client_answer"
+      ]
+    },
+    "text": {
+      "type": "string",
+      "minLength": 1
+    },
+    "reason": {
+      "type": "string"
+    },
+    "decided_by": {
+      "type": "string",
+      "enum": [
+        "client",
+        "dev",
+        "team",
+        "agent"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "proposed",
+        "confirmed",
+        "overturned"
+      ]
+    },
+    "show_to_client": {
+      "default": true,
+      "type": "boolean"
+    },
+    "source": {
+      "anyOf": [
+        {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "ref": {
+                  "type": "string"
+                },
+                "anchor": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "ref"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "id",
+    "kind",
+    "text",
+    "decided_by",
+    "status"
+  ]
+}

@@ -113,3 +113,29 @@ describe("lastro pending and lastro gate", () => {
     expect(red.stdout).toContain("locked criterion changed: AC-1");
   });
 });
+
+describe("lastro doctor (REQ-1F7QA, REQ-G2J5R)", () => {
+  it("names the file, the field and the allowed values of an invalid status, and exits 1", async () => {
+    const { run, repo, project, actor } = await setup();
+    const source = await createBriefSource(project.id, actor);
+    const req = await requirementsService.create(project.id, actor, discountRequirement(source.code));
+    await run(["init", "billing"]);
+    expect((await run(["doctor"])).code).toBe(0);
+    const file = join(repo, ".lastro", "requirements", `${req.code}.yml`);
+    writeFileSync(file, readFileSync(file, "utf8").replace(/^status: .*$/m, "status: done"));
+    const res = await run(["doctor"]);
+    expect(res.code).toBe(1);
+    expect(res.stdout).toContain(`.lastro/requirements/${req.code}.yml › status`);
+    expect(res.stdout).toContain('"specified"');
+  });
+
+  it("fails on a literal token or database URL with credentials in lastro.yml", async () => {
+    const { run, repo } = await setup();
+    await run(["init", "billing"]);
+    const yml = join(repo, ".lastro", "lastro.yml");
+    writeFileSync(yml, `${readFileSync(yml, "utf8")}\nnotes: postgresql://lastro:secret@db:5432/lastro\n`);
+    const res = await run(["doctor"]);
+    expect(res.code).toBe(1);
+    expect(res.stdout).toContain("server.url_env");
+  });
+});

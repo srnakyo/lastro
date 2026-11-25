@@ -197,6 +197,8 @@ model Source {
 
 model SourceVersion {
   id            String    @id @default(uuid(7)) @db.Uuid
+  /// Filled by the database from the parent row: every project-scoped table answers "which project?" on its own.
+  projectId     String?   @db.Uuid
   sourceId      String    @db.Uuid
   source        Source    @relation(fields: [sourceId], references: [id], onDelete: Cascade)
   version       Int
@@ -211,11 +213,14 @@ model SourceVersion {
   passages      Passage[]
 
   @@unique([sourceId, version])
+  @@index([projectId])
 }
 
 /// One anchored passage of a source version: a paragraph, a page block, a message, a timestamp.
 model Passage {
   id              String        @id @default(uuid(7)) @db.Uuid
+  /// Filled by the database from the parent row: every project-scoped table answers "which project?" on its own.
+  projectId       String?       @db.Uuid
   sourceVersionId String        @db.Uuid
   sourceVersion   SourceVersion @relation(fields: [sourceVersionId], references: [id], onDelete: Cascade)
   anchor          String
@@ -226,6 +231,7 @@ model Passage {
 
   @@unique([sourceVersionId, anchor])
   @@index([sourceVersionId, position])
+  @@index([projectId])
 }
 
 // ─── Spec ───────────────────────────────────────────────────────────────────
@@ -317,6 +323,8 @@ model RequirementDependency {
 
 model Citation {
   id            String      @id @default(uuid(7)) @db.Uuid
+  /// Filled by the database from the parent row: every project-scoped table answers "which project?" on its own.
+  projectId     String?     @db.Uuid
   requirementId String      @db.Uuid
   requirement   Requirement @relation(fields: [requirementId], references: [id], onDelete: Cascade)
   sourceId      String      @db.Uuid
@@ -332,10 +340,13 @@ model Citation {
   confirmed     Boolean     @default(false)
 
   @@index([requirementId])
+  @@index([projectId])
 }
 
 model Criterion {
   id            String          @id @default(uuid(7)) @db.Uuid
+  /// Filled by the database from the parent row: every project-scoped table answers "which project?" on its own.
+  projectId     String?         @db.Uuid
   requirementId String          @db.Uuid
   requirement   Requirement     @relation(fields: [requirementId], references: [id], onDelete: Cascade)
   code          String
@@ -347,10 +358,13 @@ model Criterion {
   tests         CriterionTest[]
 
   @@unique([requirementId, code])
+  @@index([projectId])
 }
 
 model CriterionTest {
   id          String    @id @default(uuid(7)) @db.Uuid
+  /// Filled by the database from the parent row: every project-scoped table answers "which project?" on its own.
+  projectId   String?   @db.Uuid
   criterionId String    @db.Uuid
   criterion   Criterion @relation(fields: [criterionId], references: [id], onDelete: Cascade)
   /// "file::test name", as it appears in JUnit.
@@ -359,6 +373,7 @@ model CriterionTest {
   lockedHash  String?
 
   @@unique([criterionId, testRef])
+  @@index([projectId])
 }
 
 enum DecisionKind {
@@ -572,6 +587,8 @@ model Run {
 
 model RunStage {
   id            String       @id @default(uuid(7)) @db.Uuid
+  /// Filled by the database from the parent row: every project-scoped table answers "which project?" on its own.
+  projectId     String?      @db.Uuid
   runId         String       @db.Uuid
   run           Run          @relation(fields: [runId], references: [id], onDelete: Cascade)
   requirementId String?      @db.Uuid
@@ -597,10 +614,13 @@ model RunStage {
 
   @@index([runId])
   @@index([requirementId, startedAt])
+  @@index([projectId])
 }
 
 model TestResult {
   id         String     @id @default(uuid(7)) @db.Uuid
+  /// Filled by the database from the parent row: every project-scoped table answers "which project?" on its own.
+  projectId  String?    @db.Uuid
   runStageId String     @db.Uuid
   runStage   RunStage   @relation(fields: [runStageId], references: [id], onDelete: Cascade)
   testId     String     @db.Uuid
@@ -610,10 +630,13 @@ model TestResult {
   message    String?
 
   @@index([testId])
+  @@index([projectId])
 }
 
 model Finding {
   id         String       @id @default(uuid(7)) @db.Uuid
+  /// Filled by the database from the parent row: every project-scoped table answers "which project?" on its own.
+  projectId  String?      @db.Uuid
   runStageId String       @db.Uuid
   runStage   RunStage     @relation(fields: [runStageId], references: [id], onDelete: Cascade)
   tool       String
@@ -622,6 +645,8 @@ model Finding {
   file       String?
   line       Int?
   message    String
+
+  @@index([projectId])
 }
 
 model Artifact {
@@ -644,6 +669,8 @@ model Artifact {
 /// The run that released a requirement, bound to the tree hash of the files it touches.
 model Evidence {
   id            String      @id @default(uuid(7)) @db.Uuid
+  /// Filled by the database from the parent row: every project-scoped table answers "which project?" on its own.
+  projectId     String?     @db.Uuid
   requirementId String      @db.Uuid
   requirement   Requirement @relation(fields: [requirementId], references: [id], onDelete: Cascade)
   runId         String      @db.Uuid
@@ -652,6 +679,7 @@ model Evidence {
   verifiedAt    DateTime    @default(now())
 
   @@index([requirementId])
+  @@index([projectId])
 }
 
 // ─── History ────────────────────────────────────────────────────────────────
@@ -694,6 +722,8 @@ model AgentSession {
 
 model AgentEvent {
   id        String       @id @default(uuid(7)) @db.Uuid
+  /// Filled by the database from the parent row: every project-scoped table answers "which project?" on its own.
+  projectId String?      @db.Uuid
   sessionId String       @db.Uuid
   session   AgentSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   kind      String
@@ -701,6 +731,7 @@ model AgentEvent {
   createdAt DateTime     @default(now())
 
   @@index([sessionId, createdAt])
+  @@index([projectId])
 }
 
 /// Append-only: a trigger in the migration refuses UPDATE and DELETE.

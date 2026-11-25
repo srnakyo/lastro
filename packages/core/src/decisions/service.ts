@@ -58,8 +58,8 @@ export const decisionsService = {
       await tx.decision.update({ where: { id: decision.id }, data: { status: "overturned" } });
       for (const { requirement } of decision.requirements) {
         const target = { id: requirement.id, code: requirement.code, status: requirement.status };
-        if (target.status === "verified") await recordTransition(tx, scope, target, "building", systemActor, `decision ${code} overturned`);
-        if (target.status === "delivered" || target.status === "accepted") await recordTransition(tx, scope, target, "reopened", systemActor, `decision ${code} overturned`);
+        if (target.status === "verified") await recordTransition(tx, scope, target, "building", systemActor, "decision overturned");
+        if (target.status === "delivered" || target.status === "accepted") await recordTransition(tx, scope, target, "reopened", systemActor, "decision overturned");
       }
       await auditService.record(tx, { workspaceId: scope.workspaceId, projectId, actor, action: "decision.overturn", entity: "decision", entityId: code, data: { reason } });
     });

@@ -39,6 +39,7 @@ describe("decisions", () => {
     const view = await requirementsService.get(project.id, code);
     expect(view.status).toBe("building");
     expect(view.blockers.map((b) => b.kind)).toContain("decision_overturned");
+    expect(view.history.at(-1)?.reason).toBe("decision overturned");
   });
 });
 
@@ -61,5 +62,16 @@ describe("packages", () => {
     const source = await database().source.findFirstOrThrow();
     await requirementsService.create(project.id, actor, { ...discountRequirement(source.code), package: pkg.code });
     await expect(packagesService.close(project.id, actor, pkg.code)).rejects.toThrow("still has pending");
+  });
+});
+
+describe("answers and overturned decisions (REQ-5R2HC, REQ-6T3JD)", () => {
+  it("records an answer with its source as a client_answer decision and closes the question", async () => {
+    const { project, actor } = await createProject();
+    const question = await questionsService.ask(project.id, actor, { text: "Annual plan too?", askedTo: "client" });
+    const decision = await questionsService.answer(project.id, actor, question.code, { answer: "Yes, annual too.", answerSource: "WhatsApp 2026-11-20 14:02" });
+    expect(decision).toMatchObject({ kind: "client_answer", sourceRef: "WhatsApp 2026-11-20 14:02" });
+    const closed = await database().question.findUniqueOrThrow({ where: { projectId_code: { projectId: project.id, code: question.code } } });
+    expect(closed.answer).toBe("Yes, annual too.");
   });
 });

@@ -32,16 +32,16 @@ export function TermDialog({ projectKey, initial }: { projectKey: string; initia
   );
 }
 
-export function InvariantDialog({ projectKey, next, initial }: { projectKey: string; next: string; initial?: { code: string; text: string; testRefs: string[] } }) {
+export function InvariantDialog({ projectKey, initial }: { projectKey: string; initial?: { code: string; text: string; testRefs: string[] } }) {
   const { t } = useI18n();
   const { run } = useAction(projectKey);
   const [text, setText] = useState(initial?.text ?? "");
   const [tests, setTests] = useState(toLines(initial?.testRefs ?? []));
-  const code = initial?.code ?? next;
+  const code = initial?.code;
   return (
     <FormDialog
       trigger={initial ? <Button size="sm" variant="ghost" aria-label={`${t("common.edit")} ${initial.code}`}><Pencil /></Button> : <Button size="sm" variant="outline"><Plus /> {t("glossary.addInvariant")}</Button>}
-      title={code}
+      title={code ?? t("glossary.addInvariant")}
       submitLabel={t("common.save")}
       disabled={!text.trim()}
       onSubmit={() => run(() => saveInvariant({ data: { key: projectKey, invariant: { code, text: text.trim(), testRefs: fromLines(tests) } } }), t("action.done"))}

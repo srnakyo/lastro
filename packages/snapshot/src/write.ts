@@ -55,7 +55,7 @@ export function writeSnapshot(root: string, snapshot: Snapshot) {
     status: d.status, show_to_client: d.showToClient, source: d.sourceRef ? { ref: d.sourceRef.split(" ")[0], anchor: d.sourceRef.split(" ").slice(1).join(" ") } : null,
   }))])));
   writeFolder(join(dir, "incidents"), Object.fromEntries(snapshot.incidents.map((i) => [`${i.code}.yml`, yaml(clean({
-    id: i.code, about: i.requirement, reported: i.reported, source: i.sourceRef, triage: i.triage, cause: i.cause, billing: i.billing, regression_test: i.regressionTest,
+    id: i.code, reported: i.reported, source: i.sourceRef, triage: i.triage, cause: i.cause, requirement: i.requirement, regression_test: i.regressionTest, billing: i.billing,
   }))])));
   writeFolder(join(dir, "questions"), Object.fromEntries(snapshot.questions.map((q) => [`${q.code}.yml`, yaml({
     id: q.code, about: q.requirements, text: q.text, blocks: q.blocks, asked_to: q.askedTo, ...(q.askedVia ? { asked_via: q.askedVia } : {}),

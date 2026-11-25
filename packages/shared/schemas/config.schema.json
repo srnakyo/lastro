@@ -1,0 +1,271 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/srnakyo/lastro/schemas/config.schema.json",
+  "title": ".lastro/lastro.yml",
+  "type": "object",
+  "properties": {
+    "version": {
+      "default": 1,
+      "type": "number",
+      "const": 1
+    },
+    "project": {
+      "type": "string",
+      "minLength": 1
+    },
+    "language": {
+      "default": "en",
+      "type": "string",
+      "enum": [
+        "en",
+        "pt-BR"
+      ]
+    },
+    "approval": {
+      "default": {
+        "spec": [
+          "dev"
+        ],
+        "require_final_source": false
+      },
+      "type": "object",
+      "properties": {
+        "spec": {
+          "default": [
+            "dev"
+          ],
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "require_final_source": {
+          "default": false,
+          "type": "boolean"
+        }
+      }
+    },
+    "commands": {
+      "default": {},
+      "type": "object",
+      "propertyNames": {
+        "type": "string"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "run": {
+            "type": "string"
+          },
+          "env": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "report": {
+            "type": "object",
+            "properties": {
+              "junit": {
+                "type": "string"
+              },
+              "sarif": {
+                "type": "string"
+              },
+              "junit_prefix": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "required": [
+          "run"
+        ]
+      }
+    },
+    "conditions": {
+      "default": {},
+      "type": "object",
+      "propertyNames": {
+        "type": "string"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "env": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "setup": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "types": {
+      "default": {},
+      "type": "object",
+      "propertyNames": {
+        "type": "string"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "required": {
+            "default": [],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "flow": {
+            "default": [],
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "run": {
+                      "type": "string"
+                    },
+                    "check": {
+                      "type": "string"
+                    },
+                    "conditions": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "manual": {
+                      "type": "boolean"
+                    },
+                    "by": {
+                      "type": "string"
+                    },
+                    "note": {
+                      "type": "string"
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "global_flow": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "run": {
+                "type": "string"
+              },
+              "check": {
+                "type": "string"
+              },
+              "conditions": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "manual": {
+                "type": "boolean"
+              },
+              "by": {
+                "type": "string"
+              },
+              "note": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "gate": {
+      "default": {
+        "block_agent_stop": true,
+        "stale_on_change": true,
+        "max_stop_blocks": 3,
+        "ci": "required",
+        "human_identities": []
+      },
+      "type": "object",
+      "properties": {
+        "block_agent_stop": {
+          "default": true,
+          "type": "boolean"
+        },
+        "stale_on_change": {
+          "default": true,
+          "type": "boolean"
+        },
+        "max_stop_blocks": {
+          "default": 3,
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "ci": {
+          "default": "required",
+          "type": "string",
+          "enum": [
+            "required",
+            "optional",
+            "off"
+          ]
+        },
+        "human_identities": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "server": {
+      "type": "object",
+      "properties": {
+        "project": {
+          "type": "string"
+        },
+        "url_env": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]*$"
+        },
+        "token_env": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]*$"
+        }
+      }
+    }
+  },
+  "required": [
+    "project"
+  ]
+}

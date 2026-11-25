@@ -1,4 +1,5 @@
 import { LastroError, tokensService, type VerifiedToken } from "@lastro/core";
+import { redactSecrets } from "@lastro/shared";
 import { ZodError } from "zod";
 
 const STATUS: Record<string, number> = { NOT_FOUND: 404, VALIDATION: 422, CONFLICT: 409, HUMAN_ONLY: 403, FORBIDDEN: 403, INVALID_TRANSITION: 409, BLOCKED: 409 };
@@ -7,9 +8,9 @@ export const json = (body: unknown, status = 200) => Response.json(body, { statu
 
 /** Domain errors become JSON with a stable code; everything else is a 500 without internals. */
 export function errorResponse(error: unknown): Response {
-  if (error instanceof LastroError) return json({ error: error.message, code: error.code, details: error.details ?? null }, STATUS[error.code] ?? 400);
+  if (error instanceof LastroError) return json({ error: redactSecrets(error.message), code: error.code, details: error.details ?? null }, STATUS[error.code] ?? 400);
   if (error instanceof ZodError) return json({ error: "invalid request", code: "VALIDATION", details: error.issues }, 422);
-  console.error(error);
+  console.error(redactSecrets(error instanceof Error ? (error.stack ?? error.message) : String(error)));
   return json({ error: "internal error", code: "INTERNAL" }, 500);
 }
 

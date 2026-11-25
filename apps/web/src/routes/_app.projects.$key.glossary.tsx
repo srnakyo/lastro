@@ -17,7 +17,6 @@ function Glossary() {
   const { t } = useI18n();
   const { key } = Route.useParams();
   const { data } = useSuspenseQuery(glossaryQuery(key));
-  const nextInvariant = `INV-${Math.max(0, ...data.invariants.map((i) => Number(i.code.slice(4)) || 0)) + 1}`;
   const design = { components: asMap(data.design?.components), forbidden: data.design?.forbidden ?? [], palette: asMap(data.design?.palette), referenceScreens: data.design?.referenceScreens ?? [] };
   const none = <p className="px-5 py-4 text-[13px] text-muted-foreground">{t("glossary.none")}</p>;
   return (
@@ -43,7 +42,7 @@ function Glossary() {
         </Card>
         <div className="grid gap-5">
           <Card>
-            <CardHeader><CardTitle>{t("glossary.invariants")}</CardTitle><InvariantDialog projectKey={key} next={nextInvariant} /></CardHeader>
+            <CardHeader><CardTitle>{t("glossary.invariants")}</CardTitle><InvariantDialog projectKey={key} /></CardHeader>
             {data.invariants.length === 0 ? none : (
               <ul className="divide-y">
                 {data.invariants.map((inv) => (
@@ -53,7 +52,7 @@ function Glossary() {
                       <p className="text-[13px]">{inv.text}</p>
                       {inv.testRefs.map((r) => <p key={r} className="truncate font-mono text-[11.5px] text-muted-foreground">{r}</p>)}
                     </div>
-                    <InvariantDialog projectKey={key} next={nextInvariant} initial={inv} />
+                    <InvariantDialog projectKey={key} initial={inv} />
                   </li>
                 ))}
               </ul>

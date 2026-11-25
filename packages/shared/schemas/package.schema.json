@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/srnakyo/lastro/schemas/package.schema.json",
+  "title": ".lastro/packages/PKG-*.yml",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^PKG-[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{5}$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sources": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^SRC-[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{5}$"
+      }
+    },
+    "opened_at": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {}
+      ]
+    },
+    "closed_at": {
+      "anyOf": [
+        {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {}
+          ]
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "report": {
+      "default": true,
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "id",
+    "title"
+  ]
+}

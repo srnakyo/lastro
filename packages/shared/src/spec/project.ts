@@ -23,7 +23,7 @@ export type PackageData = z.output<typeof packageInputSchema>;
 
 export const glossaryTermInputSchema = z.object({ term: z.string().min(1), means: z.string().min(1), note: z.string().optional() });
 export const invariantInputSchema = z.object({
-  code: invariantCodeSchema,
+  code: invariantCodeSchema.optional(),
   text: z.string().min(1),
   testRefs: z.array(z.string()).default([]),
 });

@@ -1,0 +1,210 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/srnakyo/lastro/schemas/requirement.schema.json",
+  "title": ".lastro/requirements/REQ-*.yml",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^REQ-[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{5}$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "type": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "captured",
+        "specified",
+        "approved",
+        "building",
+        "verified",
+        "previewed",
+        "delivered",
+        "accepted",
+        "reopened",
+        "dropped"
+      ]
+    },
+    "package": {
+      "type": "string",
+      "pattern": "^PKG-[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{5}$"
+    },
+    "sources": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "ref": {
+            "type": "string",
+            "pattern": "^SRC-[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{5}$"
+          },
+          "anchor": {
+            "type": "string",
+            "minLength": 1
+          },
+          "label": {
+            "type": "string"
+          },
+          "quote": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "ref",
+          "anchor",
+          "quote"
+        ]
+      }
+    },
+    "statement": {
+      "type": "string",
+      "minLength": 1
+    },
+    "where": {
+      "type": "string"
+    },
+    "who": {
+      "type": "object",
+      "properties": {
+        "sees": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "uses": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "scope": {
+          "type": "string"
+        }
+      }
+    },
+    "data_source": {
+      "type": "string"
+    },
+    "period": {
+      "type": "string"
+    },
+    "reach": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string"
+      },
+      "additionalProperties": {}
+    },
+    "visual_ref": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "when_missing": {
+      "type": "string"
+    },
+    "examples": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "given": {
+            "type": "string"
+          },
+          "expect": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "given",
+          "expect"
+        ]
+      }
+    },
+    "acceptance": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^AC-\\d+$"
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1
+          },
+          "tests": {
+            "default": [],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "locked": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "text"
+        ]
+      }
+    },
+    "decisions": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^DEC-[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{5}$"
+      }
+    },
+    "questions": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^Q-[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{5}$"
+      }
+    },
+    "depends_on": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^REQ-[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{5}$"
+      }
+    },
+    "touches": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "id",
+    "title",
+    "type",
+    "status",
+    "sources",
+    "statement",
+    "acceptance"
+  ]
+}

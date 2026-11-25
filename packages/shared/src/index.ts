@@ -10,3 +10,5 @@ export * from "./spec/project";
 export * from "./snapshot/schema";
 export * from "./run";
 export * from "./lock";
+export * from "./export/files";
+export * from "./redact";

@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/srnakyo/lastro/schemas/glossary.schema.json",
+  "title": ".lastro/glossary.yml",
+  "type": "object",
+  "properties": {
+    "terms": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "term": {
+            "type": "string",
+            "minLength": 1
+          },
+          "means": {
+            "type": "string",
+            "minLength": 1
+          },
+          "note": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "term",
+          "means"
+        ]
+      }
+    },
+    "invariants": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^INV-([0-9A-HJKMNP-TV-Z]{5}|\\d+)$"
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1
+          },
+          "tests": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "text"
+        ]
+      }
+    }
+  }
+}

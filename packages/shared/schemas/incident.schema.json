@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/srnakyo/lastro/schemas/incident.schema.json",
+  "title": ".lastro/incidents/INC-*.yml",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^INC-[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{5}$"
+    },
+    "reported": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "ref": {
+              "type": "string"
+            },
+            "anchor": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "ref"
+          ]
+        }
+      ]
+    },
+    "requirement": {
+      "type": "string",
+      "pattern": "^REQ-[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{5}$"
+    },
+    "triage": {
+      "type": "string",
+      "enum": [
+        "bug",
+        "config",
+        "missing_data",
+        "usage",
+        "improvement",
+        "not_a_defect"
+      ]
+    },
+    "cause": {
+      "type": "string",
+      "enum": [
+        "spec_gap",
+        "implementation",
+        "regression",
+        "client_change",
+        "environment"
+      ]
+    },
+    "billing": {
+      "type": "string",
+      "enum": [
+        "fix",
+        "courtesy",
+        "quote"
+      ]
+    },
+    "regression_test": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "reported"
+  ]
+}

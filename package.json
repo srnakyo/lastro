@@ -39,7 +39,8 @@
     "pdf-lib": "^1.17.1",
     "turbo": "^2.11.13",
     "typescript": "6.0.3",
-    "typescript-eslint": "^8.74.0"
+    "typescript-eslint": "^8.74.0",
+    "yaml": "^2.9.1"
   },
   "overrides": {
     "effect": "3.22.5"

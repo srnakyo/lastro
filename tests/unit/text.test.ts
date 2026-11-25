@@ -1,3 +1,4 @@
+import { redactSecrets } from "@lastro/shared";
 import { describe, expect, it } from "bun:test";
 import { markdownPassages, matchQuote, slugify, splitMarkdown } from "@lastro/core";
 
@@ -59,5 +60,16 @@ describe("matchQuote", () => {
 
   it("rejects a quote under the wrong anchor", () => {
     expect(matchQuote(passages, "@doc.md#other", "Intro.").found).toBe(false);
+  });
+});
+
+describe("redactSecrets (REQ-G2J5R)", () => {
+  it("removes the password of a connection URL, tokens and password settings from a message", () => {
+    const message = "connect failed: postgresql://lastro:s3cret@db:5432/lastro; token lst_abcdefgh_0123456789abcdef0123; password=hunter2";
+    const clean = redactSecrets(message);
+    expect(clean).not.toContain("s3cret");
+    expect(clean).not.toContain("0123456789abcdef0123");
+    expect(clean).not.toContain("hunter2");
+    expect(clean).toContain("postgresql://lastro:***@db:5432/lastro");
   });
 });

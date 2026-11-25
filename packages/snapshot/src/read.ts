@@ -3,6 +3,7 @@ import { markdownPassages } from "@lastro/core/text";
 import { snapshotSchema, type Snapshot } from "@lastro/shared";
 import { existsSync, readFileSync } from "node:fs";
 import { readExtracted } from "./extracted";
+import { validateExport } from "./validate";
 import { markdownFiles, readYaml, sha256, yamlFiles } from "./files";
 
 type Raw = Record<string, unknown>;
@@ -44,8 +45,10 @@ function readRequirement(raw: Raw) {
   };
 }
 
-/** Reads a .lastro/ folder (the export format) into a validated snapshot. */
+/** Reads a .lastro/ folder (the export format) into a validated snapshot; invalid files are named with the field and the reason. */
 export async function readSnapshot(root: string): Promise<Snapshot> {
+  const problems = validateExport(root);
+  if (problems.length) throw new Error(`.lastro/ has invalid files:\n${problems.map((p) => `  ${p.file}${p.path ? ` ${p.path}` : ""}: ${p.message}`).join("\n")}`);
   const dir = join(root, ".lastro");
   const glossary = (readYaml(join(dir, "glossary.yml")) ?? {}) as Raw;
   const design = (existsSync(join(dir, "design.yml")) ? (readYaml(join(dir, "design.yml")) ?? {}) : {}) as Raw;
@@ -58,7 +61,9 @@ export async function readSnapshot(root: string): Promise<Snapshot> {
     design: { components: design.components ?? {}, forbidden: design.forbidden ?? [], palette: design.palette ?? {}, referenceScreens: design.reference_screens ?? [] },
     incidents: yamlFiles(join(dir, "incidents")).map((f) => {
       const i = readYaml(f) as Raw;
-      return { code: i.id, reported: i.reported, sourceRef: i.source, requirement: i.about, triage: i.triage, cause: i.cause, billing: i.billing, regressionTest: i.regression_test };
+      const source = i.source as Raw | string | undefined;
+      const sourceRef = typeof source === "object" && source ? `${String(source.ref)}${source.anchor ? ` ${String(source.anchor)}` : ""}` : source;
+      return { code: i.id, reported: i.reported, sourceRef, requirement: i.requirement ?? i.about, triage: i.triage, cause: i.cause, billing: i.billing, regressionTest: i.regression_test };
     }),
     sources: await Promise.all(yamlFiles(join(dir, "sources")).map((f) => readSource(root, readYaml(f) as Raw))),
     packages: yamlFiles(join(dir, "packages")).map((f) => {

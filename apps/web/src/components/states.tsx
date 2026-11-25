@@ -1,3 +1,4 @@
+import { redactSecrets } from "@lastro/shared";
 import { Link } from "@tanstack/react-router";
 import { AlertTriangle, Loader2 } from "lucide-react";
 import type { ReactNode } from "react";
@@ -18,7 +19,7 @@ export function ErrorState({ error, reset }: { error: Error; reset?: () => void 
   return (
     <div className="mx-auto flex max-w-md flex-col items-center gap-3 py-16 text-center">
       <AlertTriangle className="size-6 text-destructive" />
-      <p className="text-[14px] font-medium">{t("common.error", { message: error.message })}</p>
+      <p className="text-[14px] font-medium">{t("common.error", { message: redactSecrets(error.message) })}</p>
       {reset && (
         <Button variant="outline" onClick={reset}>
           {t("common.retry")}

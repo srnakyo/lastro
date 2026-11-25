@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/srnakyo/lastro/schemas/source.schema.json",
+  "title": ".lastro/sources/SRC-*.yml",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^SRC-[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{5}$"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "docx",
+        "pdf",
+        "chat",
+        "audio",
+        "video",
+        "image",
+        "meeting",
+        "text"
+      ]
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "from": {
+      "type": "string",
+      "enum": [
+        "client",
+        "dev",
+        "team"
+      ]
+    },
+    "received_at": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {}
+      ]
+    },
+    "hash": {
+      "type": "string"
+    },
+    "version": {
+      "type": "integer",
+      "exclusiveMinimum": 0,
+      "maximum": 9007199254740991
+    },
+    "supersedes": {
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^SRC-[0123456789ABCDEFGHJKMNPQRSTVWXYZ]{5}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "final": {
+      "default": false,
+      "type": "boolean"
+    },
+    "machine_transcript": {
+      "default": false,
+      "type": "boolean"
+    },
+    "path": {
+      "type": "string"
+    },
+    "extracted": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "kind",
+    "title",
+    "from",
+    "received_at"
+  ]
+}
