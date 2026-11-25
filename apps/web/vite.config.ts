@@ -5,7 +5,7 @@ import { nitro } from "nitro/vite";
 import { defineConfig } from "vite";
 
 /** Server-only packages load from node_modules at runtime instead of being bundled. */
-const serverExternal = ["@prisma/client", "@prisma/adapter-pg", "pg", "better-auth", "mermaid"];
+const serverExternal = ["@prisma/client", "@prisma/adapter-pg", "pg", "better-auth", "mermaid", "playwright", "@aws-sdk/client-s3", "mammoth", "pdfjs-dist"];
 
 export default defineConfig({
   server: { port: 4317, strictPort: true },

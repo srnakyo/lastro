@@ -36,3 +36,5 @@ export { runsService } from "./runs/service";
 export { testCatalog, uncoveredCriteria, verifyPlan } from "./runs/tests";
 export type { GateResult } from "./runs/gate";
 export { diagramsData, requirementQa } from "./runs/qa";
+export { docsData } from "./docs/data";
+export { docBuildsService, type BuiltFile } from "./docs/service";

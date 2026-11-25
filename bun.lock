@@ -126,6 +126,11 @@
     "packages/docs": {
       "name": "@lastro/docs",
       "version": "0.1.0",
+      "dependencies": {
+        "marked": "^18.3.0",
+        "mermaid": "^12.3.0",
+        "playwright": "^1.65.1",
+      },
       "devDependencies": {
         "@lastro/shared": "workspace:*",
         "@lastro/tsconfig": "workspace:*",

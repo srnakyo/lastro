@@ -71,7 +71,7 @@ bun workspaces and Turborepo: `apps/`, `packages/`, `tooling/`.
 | 3 | Full spec: sources and intake, requirements, decisions, questions, incidents, packages, lifecycle, blockers, human actions; `lastro export` | done |
 | 4 | API, CLI and MCP: tokens; `init`, `login`, `link`, `intake`, `req`, `ask`, `decide`, `pending`, `export`, `import`, `mcp`; `/api/mcp` | done |
 | 5 | Verification: runner, conditions, JUnit and SARIF; `verify` and `gate`; stale evidence and locks; Tests and Runs screens; overview charts; QA flow diagrams | done |
-| 6 | Documentation: every document in md, html and pdf; Documentation screen | todo |
+| 6 | Documentation: every document in md, html and pdf; Documentation screen | done |
 | 7 | Enforcement: Claude Code plugin, `pre-push`, GitHub Action, Claude Ship templates | todo |
 | 8 | Advanced dashboard: Agents, Audit, module map, timelines, visual flow editor | todo |
 | 9 | Distribution: Docker image and production compose, npm package, README in English and Portuguese with real screenshots | todo |

@@ -25,6 +25,8 @@ import { Route as AppProjectsKeyRequirementsRouteImport } from './routes/_app.pr
 import { Route as AppProjectsKeySettingsRouteImport } from './routes/_app.projects.$key.settings'
 import { Route as AppProjectsKeyTestsRouteImport } from './routes/_app.projects.$key.tests'
 import { Route as ApiProjectsKeySourcesRouteImport } from './routes/api/projects.$key.sources'
+import { Route as AppProjectsKeyDocsIndexRouteImport } from './routes/_app.projects.$key.docs.index'
+import { Route as AppProjectsKeyDocsDocRouteImport } from './routes/_app.projects.$key.docs.$doc'
 import { Route as AppProjectsKeyRequirementsIndexRouteImport } from './routes/_app.projects.$key.requirements.index'
 import { Route as AppProjectsKeyRequirementsCodeRouteImport } from './routes/_app.projects.$key.requirements.$code'
 import { Route as AppProjectsKeyRequirementsDecisionsRouteImport } from './routes/_app.projects.$key.requirements.decisions'
@@ -35,6 +37,7 @@ import { Route as AppProjectsKeyRunsIdRouteImport } from './routes/_app.projects
 import { Route as AppProjectsKeySourcesIndexRouteImport } from './routes/_app.projects.$key.sources.index'
 import { Route as AppProjectsKeySourcesCodeRouteImport } from './routes/_app.projects.$key.sources.$code'
 import { Route as ApiProjectsKeyArtifactsCodeRouteImport } from './routes/api/projects.$key.artifacts.$code'
+import { Route as ApiProjectsKeyDocsFileRouteImport } from './routes/api/projects.$key.docs.$file'
 
 const AppRoute = AppRouteImport.update({
   id: '/_app',
@@ -116,6 +119,16 @@ const ApiProjectsKeySourcesRoute = ApiProjectsKeySourcesRouteImport.update({
   path: '/api/projects/$key/sources',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppProjectsKeyDocsIndexRoute = AppProjectsKeyDocsIndexRouteImport.update({
+  id: '/docs/',
+  path: '/docs/',
+  getParentRoute: () => AppProjectsKeyRoute,
+} as any)
+const AppProjectsKeyDocsDocRoute = AppProjectsKeyDocsDocRouteImport.update({
+  id: '/docs/$doc',
+  path: '/docs/$doc',
+  getParentRoute: () => AppProjectsKeyRoute,
+} as any)
 const AppProjectsKeyRequirementsIndexRoute =
   AppProjectsKeyRequirementsIndexRouteImport.update({
     id: '/',
@@ -174,6 +187,11 @@ const ApiProjectsKeyArtifactsCodeRoute =
     path: '/api/projects/$key/artifacts/$code',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiProjectsKeyDocsFileRoute = ApiProjectsKeyDocsFileRouteImport.update({
+  id: '/api/projects/$key/docs/$file',
+  path: '/api/projects/$key/docs/$file',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
@@ -191,6 +209,7 @@ export interface FileRoutesByFullPath {
   '/projects/$key/tests': typeof AppProjectsKeyTestsRoute
   '/api/projects/$key/sources': typeof ApiProjectsKeySourcesRoute
   '/projects/$key/': typeof AppProjectsKeyIndexRoute
+  '/projects/$key/docs/$doc': typeof AppProjectsKeyDocsDocRoute
   '/projects/$key/requirements/$code': typeof AppProjectsKeyRequirementsCodeRoute
   '/projects/$key/requirements/decisions': typeof AppProjectsKeyRequirementsDecisionsRoute
   '/projects/$key/requirements/packages': typeof AppProjectsKeyRequirementsPackagesRoute
@@ -198,6 +217,8 @@ export interface FileRoutesByFullPath {
   '/projects/$key/runs/$id': typeof AppProjectsKeyRunsIdRoute
   '/projects/$key/sources/$code': typeof AppProjectsKeySourcesCodeRoute
   '/api/projects/$key/artifacts/$code': typeof ApiProjectsKeyArtifactsCodeRoute
+  '/api/projects/$key/docs/$file': typeof ApiProjectsKeyDocsFileRoute
+  '/projects/$key/docs/': typeof AppProjectsKeyDocsIndexRoute
   '/projects/$key/requirements/': typeof AppProjectsKeyRequirementsIndexRoute
   '/projects/$key/runs/': typeof AppProjectsKeyRunsIndexRoute
   '/projects/$key/sources/': typeof AppProjectsKeySourcesIndexRoute
@@ -216,6 +237,7 @@ export interface FileRoutesByTo {
   '/projects/$key/tests': typeof AppProjectsKeyTestsRoute
   '/api/projects/$key/sources': typeof ApiProjectsKeySourcesRoute
   '/projects/$key': typeof AppProjectsKeyIndexRoute
+  '/projects/$key/docs/$doc': typeof AppProjectsKeyDocsDocRoute
   '/projects/$key/requirements/$code': typeof AppProjectsKeyRequirementsCodeRoute
   '/projects/$key/requirements/decisions': typeof AppProjectsKeyRequirementsDecisionsRoute
   '/projects/$key/requirements/packages': typeof AppProjectsKeyRequirementsPackagesRoute
@@ -223,6 +245,8 @@ export interface FileRoutesByTo {
   '/projects/$key/runs/$id': typeof AppProjectsKeyRunsIdRoute
   '/projects/$key/sources/$code': typeof AppProjectsKeySourcesCodeRoute
   '/api/projects/$key/artifacts/$code': typeof ApiProjectsKeyArtifactsCodeRoute
+  '/api/projects/$key/docs/$file': typeof ApiProjectsKeyDocsFileRoute
+  '/projects/$key/docs': typeof AppProjectsKeyDocsIndexRoute
   '/projects/$key/requirements': typeof AppProjectsKeyRequirementsIndexRoute
   '/projects/$key/runs': typeof AppProjectsKeyRunsIndexRoute
   '/projects/$key/sources': typeof AppProjectsKeySourcesIndexRoute
@@ -245,6 +269,7 @@ export interface FileRoutesById {
   '/_app/projects/$key/tests': typeof AppProjectsKeyTestsRoute
   '/api/projects/$key/sources': typeof ApiProjectsKeySourcesRoute
   '/_app/projects/$key/': typeof AppProjectsKeyIndexRoute
+  '/_app/projects/$key/docs/$doc': typeof AppProjectsKeyDocsDocRoute
   '/_app/projects/$key/requirements/$code': typeof AppProjectsKeyRequirementsCodeRoute
   '/_app/projects/$key/requirements/decisions': typeof AppProjectsKeyRequirementsDecisionsRoute
   '/_app/projects/$key/requirements/packages': typeof AppProjectsKeyRequirementsPackagesRoute
@@ -252,6 +277,8 @@ export interface FileRoutesById {
   '/_app/projects/$key/runs/$id': typeof AppProjectsKeyRunsIdRoute
   '/_app/projects/$key/sources/$code': typeof AppProjectsKeySourcesCodeRoute
   '/api/projects/$key/artifacts/$code': typeof ApiProjectsKeyArtifactsCodeRoute
+  '/api/projects/$key/docs/$file': typeof ApiProjectsKeyDocsFileRoute
+  '/_app/projects/$key/docs/': typeof AppProjectsKeyDocsIndexRoute
   '/_app/projects/$key/requirements/': typeof AppProjectsKeyRequirementsIndexRoute
   '/_app/projects/$key/runs/': typeof AppProjectsKeyRunsIndexRoute
   '/_app/projects/$key/sources/': typeof AppProjectsKeySourcesIndexRoute
@@ -274,6 +301,7 @@ export interface FileRouteTypes {
     | '/projects/$key/tests'
     | '/api/projects/$key/sources'
     | '/projects/$key/'
+    | '/projects/$key/docs/$doc'
     | '/projects/$key/requirements/$code'
     | '/projects/$key/requirements/decisions'
     | '/projects/$key/requirements/packages'
@@ -281,6 +309,8 @@ export interface FileRouteTypes {
     | '/projects/$key/runs/$id'
     | '/projects/$key/sources/$code'
     | '/api/projects/$key/artifacts/$code'
+    | '/api/projects/$key/docs/$file'
+    | '/projects/$key/docs/'
     | '/projects/$key/requirements/'
     | '/projects/$key/runs/'
     | '/projects/$key/sources/'
@@ -299,6 +329,7 @@ export interface FileRouteTypes {
     | '/projects/$key/tests'
     | '/api/projects/$key/sources'
     | '/projects/$key'
+    | '/projects/$key/docs/$doc'
     | '/projects/$key/requirements/$code'
     | '/projects/$key/requirements/decisions'
     | '/projects/$key/requirements/packages'
@@ -306,6 +337,8 @@ export interface FileRouteTypes {
     | '/projects/$key/runs/$id'
     | '/projects/$key/sources/$code'
     | '/api/projects/$key/artifacts/$code'
+    | '/api/projects/$key/docs/$file'
+    | '/projects/$key/docs'
     | '/projects/$key/requirements'
     | '/projects/$key/runs'
     | '/projects/$key/sources'
@@ -327,6 +360,7 @@ export interface FileRouteTypes {
     | '/_app/projects/$key/tests'
     | '/api/projects/$key/sources'
     | '/_app/projects/$key/'
+    | '/_app/projects/$key/docs/$doc'
     | '/_app/projects/$key/requirements/$code'
     | '/_app/projects/$key/requirements/decisions'
     | '/_app/projects/$key/requirements/packages'
@@ -334,6 +368,8 @@ export interface FileRouteTypes {
     | '/_app/projects/$key/runs/$id'
     | '/_app/projects/$key/sources/$code'
     | '/api/projects/$key/artifacts/$code'
+    | '/api/projects/$key/docs/$file'
+    | '/_app/projects/$key/docs/'
     | '/_app/projects/$key/requirements/'
     | '/_app/projects/$key/runs/'
     | '/_app/projects/$key/sources/'
@@ -349,6 +385,7 @@ export interface RootRouteChildren {
   ApiV1SplatRoute: typeof ApiV1SplatRoute
   ApiProjectsKeySourcesRoute: typeof ApiProjectsKeySourcesRoute
   ApiProjectsKeyArtifactsCodeRoute: typeof ApiProjectsKeyArtifactsCodeRoute
+  ApiProjectsKeyDocsFileRoute: typeof ApiProjectsKeyDocsFileRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -465,6 +502,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiProjectsKeySourcesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_app/projects/$key/docs/': {
+      id: '/_app/projects/$key/docs/'
+      path: '/docs'
+      fullPath: '/projects/$key/docs/'
+      preLoaderRoute: typeof AppProjectsKeyDocsIndexRouteImport
+      parentRoute: typeof AppProjectsKeyRoute
+    }
+    '/_app/projects/$key/docs/$doc': {
+      id: '/_app/projects/$key/docs/$doc'
+      path: '/docs/$doc'
+      fullPath: '/projects/$key/docs/$doc'
+      preLoaderRoute: typeof AppProjectsKeyDocsDocRouteImport
+      parentRoute: typeof AppProjectsKeyRoute
+    }
     '/_app/projects/$key/requirements/': {
       id: '/_app/projects/$key/requirements/'
       path: '/'
@@ -535,6 +586,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiProjectsKeyArtifactsCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/projects/$key/docs/$file': {
+      id: '/api/projects/$key/docs/$file'
+      path: '/api/projects/$key/docs/$file'
+      fullPath: '/api/projects/$key/docs/$file'
+      preLoaderRoute: typeof ApiProjectsKeyDocsFileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -570,8 +628,10 @@ interface AppProjectsKeyRouteChildren {
   AppProjectsKeySettingsRoute: typeof AppProjectsKeySettingsRoute
   AppProjectsKeyTestsRoute: typeof AppProjectsKeyTestsRoute
   AppProjectsKeyIndexRoute: typeof AppProjectsKeyIndexRoute
+  AppProjectsKeyDocsDocRoute: typeof AppProjectsKeyDocsDocRoute
   AppProjectsKeyRunsIdRoute: typeof AppProjectsKeyRunsIdRoute
   AppProjectsKeySourcesCodeRoute: typeof AppProjectsKeySourcesCodeRoute
+  AppProjectsKeyDocsIndexRoute: typeof AppProjectsKeyDocsIndexRoute
   AppProjectsKeyRunsIndexRoute: typeof AppProjectsKeyRunsIndexRoute
   AppProjectsKeySourcesIndexRoute: typeof AppProjectsKeySourcesIndexRoute
 }
@@ -583,8 +643,10 @@ const AppProjectsKeyRouteChildren: AppProjectsKeyRouteChildren = {
   AppProjectsKeySettingsRoute: AppProjectsKeySettingsRoute,
   AppProjectsKeyTestsRoute: AppProjectsKeyTestsRoute,
   AppProjectsKeyIndexRoute: AppProjectsKeyIndexRoute,
+  AppProjectsKeyDocsDocRoute: AppProjectsKeyDocsDocRoute,
   AppProjectsKeyRunsIdRoute: AppProjectsKeyRunsIdRoute,
   AppProjectsKeySourcesCodeRoute: AppProjectsKeySourcesCodeRoute,
+  AppProjectsKeyDocsIndexRoute: AppProjectsKeyDocsIndexRoute,
   AppProjectsKeyRunsIndexRoute: AppProjectsKeyRunsIndexRoute,
   AppProjectsKeySourcesIndexRoute: AppProjectsKeySourcesIndexRoute,
 }
@@ -615,6 +677,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiV1SplatRoute: ApiV1SplatRoute,
   ApiProjectsKeySourcesRoute: ApiProjectsKeySourcesRoute,
   ApiProjectsKeyArtifactsCodeRoute: ApiProjectsKeyArtifactsCodeRoute,
+  ApiProjectsKeyDocsFileRoute: ApiProjectsKeyDocsFileRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -37,6 +37,16 @@ export class LastroClient {
     return data as T;
   }
 
+  /** Raw bytes of a file the server generated (documents). */
+  async download(path: string): Promise<Uint8Array> {
+    const res = await fetch(`${this.baseUrl}/api/v1${path}`, { headers: { authorization: `Bearer ${this.credentials.token}` } });
+    if (!res.ok) {
+      const data = (await res.json().catch(() => ({}))) as { error?: string; code?: string };
+      throw new ApiError(res.status, data.code ?? "HTTP", data.error ?? res.statusText, null);
+    }
+    return new Uint8Array(await res.arrayBuffer());
+  }
+
   get<T>(path: string) {
     return this.request<T>("GET", path);
   }
