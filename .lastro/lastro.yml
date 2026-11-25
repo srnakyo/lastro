@@ -46,6 +46,7 @@ types:
       - examples
     flow:
       - typecheck
+      - unit
       - run: e2e
         conditions:
           - light-theme

@@ -117,3 +117,13 @@ describe("repeated test cases", () => {
     expect(merged.map((r) => `${r.ref} ${r.status}`)).toEqual(["a.spec.ts::x passed", "a.spec.ts::y failed", "a.spec.ts::z skipped"]);
   });
 });
+
+describe("suppressed SARIF results", () => {
+  it("does not count a result the tool reports as suppressed (eslint-disable, baseline)", () => {
+    const log = JSON.stringify({ runs: [{ tool: { driver: { name: "ESLint" } }, results: [
+      { ruleId: "no-explicit-any", level: "error", message: { text: "Unexpected any" }, suppressions: [{ kind: "inSource" }] },
+      { ruleId: "no-unused-vars", level: "error", message: { text: "x is unused" }, suppressions: [{ kind: "external", status: "rejected" }] },
+    ] }] });
+    expect(parseSarif(log).map((f) => f.ruleId)).toEqual(["no-unused-vars"]);
+  });
+});

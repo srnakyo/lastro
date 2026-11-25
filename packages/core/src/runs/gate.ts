@@ -47,15 +47,28 @@ function builtinCheck(name: string, examples: number, passingTests: number): { f
   return { person: `check ${name} has no automatic implementation: make it manual (signed) or a command` };
 }
 
-/** Latest result of each test, by ref, on the commit when given. */
+const RANK: Record<string, number> = { error: 3, failed: 2, passed: 1, skipped: 0 };
+
+/**
+ * Result of each test, by ref, from the latest run that ran it (on the commit when given). A run can hold the
+ * test under several conditions: it failed if it failed under any, passed if it passed under one and was
+ * skipped (did not apply) under the others.
+ */
 async function latestByRef(tx: Tx, projectId: string, refs: string[], commit?: string | null) {
   const results = await tx.testResult.findMany({
     where: { test: { projectId, ref: { in: refs } }, ...(commit ? { runStage: { run: { commit } } } : {}) },
     orderBy: { runStage: { startedAt: "desc" } },
-    select: { status: true, test: { select: { ref: true } } },
+    select: { status: true, test: { select: { ref: true } }, runStage: { select: { runId: true } } },
   });
+  const run = new Map<string, string>();
   const latest = new Map<string, string>();
-  for (const r of results) if (!latest.has(r.test.ref)) latest.set(r.test.ref, r.status);
+  for (const r of results) {
+    const ref = r.test.ref;
+    if (!run.has(ref)) run.set(ref, r.runStage.runId);
+    if (run.get(ref) !== r.runStage.runId) continue;
+    const seen = latest.get(ref);
+    if (!seen || (RANK[r.status] ?? 0) > (RANK[seen] ?? 0)) latest.set(ref, r.status);
+  }
   return latest;
 }
 

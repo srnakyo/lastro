@@ -194,3 +194,18 @@ describe("automatic checks and run comparison", () => {
     expect(detail.comparisons[0]).toMatchObject({ newlyFailing: [TEST_REF], newlyPassing: ["tests/discount.test.ts::annual plan"] });
   });
 });
+
+describe("tests under several conditions", () => {
+  it("passes a test that passed under one condition and was skipped where it does not apply", async () => {
+    const { project, code } = await building([{ run: "unit", conditions: ["desktop", "phone"] }]);
+    const base = report(code, "passed");
+    const stage = base.stages[0];
+    const passed = stage?.results[0];
+    if (!stage || !passed) throw new Error("no stage");
+    const result = await runsService.record(project.id, agent, {
+      ...base,
+      stages: [{ ...stage, condition: "desktop" }, { ...stage, condition: "phone", results: [{ ...passed, status: "skipped" }] }],
+    });
+    expect(result.gates[code]?.pass).toBe(true);
+  });
+});

@@ -1,6 +1,6 @@
 import { criterionHash, type ProjectConfig, type Snapshot, type Stage } from "@lastro/shared";
 import { readSnapshot } from "@lastro/snapshot";
-import { verify, type RunReport } from "@lastro/runner";
+import { mergeResults, verify, type RunReport } from "@lastro/runner";
 import type { GateState } from "./verify-run";
 
 const SELECTED = ["approved", "building", "verified", "reopened", "previewed", "delivered", "accepted"];
@@ -15,8 +15,14 @@ function manualStages(config: ProjectConfig, type: string): string[] {
 async function judge(r: Snapshot["requirements"][number], report: RunReport): Promise<GateState> {
   const agentCanFix: string[] = [];
   const stages = report.stages.filter((s) => s.requirement === r.code);
-  for (const s of stages) if (s.status !== "passed") agentCanFix.push(`${s.stage}${s.condition ? ` · ${s.condition}` : ""} ${s.status}`);
-  const results = new Map(stages.flatMap((s) => s.results.map((t) => [t.ref, t.status] as const)));
+  for (const s of stages) {
+    if (s.status === "passed") continue;
+    const label = `${s.stage}${s.condition ? ` · ${s.condition}` : ""}`;
+    agentCanFix.push(`${label} ${s.status}`);
+    for (const f of s.findings.filter((x) => x.level === "error").slice(0, 20)) agentCanFix.push(`${label}: ${f.file ?? "?"}${f.line ? `:${f.line}` : ""} ${f.ruleId ?? ""} ${f.message}`.trim());
+  }
+  // A test can run under several conditions: it passes if it passed under one and was skipped under the others.
+  const results = new Map(mergeResults(stages.flatMap((s) => s.results)).map((t) => [t.ref, t.status] as const));
   for (const c of r.criteria) {
     if (c.locked && (await criterionHash(c.text, c.tests)) !== c.locked) agentCanFix.push(`locked criterion changed: ${c.code}`);
     if (c.tests.length === 0) agentCanFix.push(`${c.code} has no test`);

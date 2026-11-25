@@ -24,6 +24,9 @@ const snapshot = await readSnapshot(root);
 const config = structuredClone(snapshot.config);
 config.commands.typecheck = { run: "bun run typecheck" };
 if (config.commands.e2e) config.commands.e2e.report = { ...config.commands.e2e.report, junit_prefix: "tests/e2e/" };
+// Screens have unit tests too (diagrams, highlight, catalog): the ui flow runs them before the browsers.
+const ui = config.types.ui;
+if (ui && !ui.flow.includes("unit")) ui.flow.splice(ui.flow.indexOf("typecheck") + 1, 0, "unit");
 const project = await projectsService.create(ws.id, person, { key: "lastro", name: "Lastro", config: snapshot.config });
 await snapshotService.import(project.id, person, { ...snapshot, config });
 
