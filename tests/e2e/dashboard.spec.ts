@@ -59,3 +59,22 @@ test("a project outside the person's workspaces answers as not found (REQ-J8M1T)
   await page.waitForLoadState("networkidle");
   await expect(page.getByRole("heading", { name: "Page not found" })).toBeVisible();
 });
+
+test("the overview says where the project stands and each next step opens the place where it is done", async ({ page }) => {
+  await signIn(page);
+  await page.goto("/projects/shop-demo");
+  await expect(page.getByRole("heading", { name: "What to do now" })).toBeVisible();
+  const steps = page.getByRole("list", { name: "What to do now" }).getByRole("link");
+  await expect(steps.first()).toBeVisible();
+  await steps.first().click();
+  await expect(page).toHaveURL(/\/projects\/shop-demo\/.+/);
+});
+
+test("the guide explains the path and the words, and opens inside the project", async ({ page }) => {
+  await signIn(page);
+  await page.goto("/projects/shop-demo");
+  await page.getByRole("link", { name: "How Lastro works" }).click();
+  await expect(page).toHaveURL(/\/projects\/shop-demo\/guide$/);
+  await expect(page.getByRole("heading", { name: "How Lastro works", level: 1 })).toBeVisible();
+  for (const name of ["The path of a requirement", "The four proofs", "Who does what", "Words you will see"]) await expect(page.getByRole("heading", { name })).toBeVisible();
+});

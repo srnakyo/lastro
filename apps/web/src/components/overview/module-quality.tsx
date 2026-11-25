@@ -1,3 +1,4 @@
+import { TitleWithHelp } from "@/components/help-hint";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useI18n } from "@/lib/i18n";
@@ -7,7 +8,9 @@ export function ModuleQuality({ modules }: { modules: { name: string; requiremen
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t("overview.modules")}</CardTitle>
+        <CardTitle>
+          <TitleWithHelp title={t("overview.modules")} help={t("overview.modules.help")} />
+        </CardTitle>
       </CardHeader>
       <CardContent className="grid gap-4">
         {modules.map((m) => (

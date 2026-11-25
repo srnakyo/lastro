@@ -1,3 +1,4 @@
+import { TitleWithHelp } from "@/components/help-hint";
 import type { LinkState } from "@lastro/shared";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useI18n } from "@/lib/i18n";
@@ -10,7 +11,20 @@ export function BackingCard({ links, total }: { links: Record<(typeof LINKS)[num
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t("overview.backing")}</CardTitle>
+        <CardTitle>
+          <TitleWithHelp
+            title={t("overview.backing")}
+            help={
+              <ul className="grid gap-1.5">
+                {LINKS.map((l) => (
+                  <li key={l}>
+                    <b className="font-semibold">{t(`link.${l}`)}:</b> {t(`link.help.${l}`)}
+                  </li>
+                ))}
+              </ul>
+            }
+          />
+        </CardTitle>
       </CardHeader>
       <CardContent className="grid gap-3.5">
         {LINKS.map((l) => {

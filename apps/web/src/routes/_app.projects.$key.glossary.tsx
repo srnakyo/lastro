@@ -40,7 +40,7 @@ function Glossary() {
             </ul>
           )}
         </Card>
-        <div className="grid gap-5">
+        <div className="grid gap-5 [&>*]:min-w-0">
           <Card>
             <CardHeader><CardTitle>{t("glossary.invariants")}</CardTitle><InvariantDialog projectKey={key} /></CardHeader>
             {data.invariants.length === 0 ? none : (

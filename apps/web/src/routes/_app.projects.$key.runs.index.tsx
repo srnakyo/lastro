@@ -24,7 +24,7 @@ function Runs() {
       {runs.length === 0 ? (
         <EmptyState icon={<Activity />} title={t("runs.empty")} body={t("runs.empty.body")} />
       ) : (
-        <div className="grid gap-5">
+        <div className="grid gap-5 [&>*]:min-w-0">
           <RunsChart runs={runs} />
           <Card><RunsTable projectKey={key} runs={runs} /></Card>
         </div>

@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Menu } from "lucide-react";
+import { CircleHelp, Menu } from "lucide-react";
 import { useState } from "react";
 import { Logo } from "@/components/logo";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -24,11 +24,19 @@ export function MobileNav({ projectKey }: { projectKey: string | null }) {
               {t("nav.home")}
             </Link>
             {projectKey &&
-              PROJECT_NAV.flatMap((g) => g.items).map((item) => (
-                <Link key={item.to} to={`/projects/${projectKey}${item.to}` as never} className="flex h-11 items-center gap-3 rounded-md px-3 text-[15px] hover:bg-accent">
-                  <item.icon className="size-[18px] text-muted-foreground" /> {t(item.label)}
-                </Link>
+              PROJECT_NAV.map((group, i) => (
+                <div key={group.label ?? i} className="grid gap-1">
+                  {group.label && <p className="mt-3 px-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{t(group.label)}</p>}
+                  {group.items.map((item) => (
+                    <Link key={item.to} to={`/projects/${projectKey}${item.to}` as never} className="flex h-11 items-center gap-3 rounded-md px-3 text-[15px] hover:bg-accent">
+                      <item.icon className="size-[18px] text-muted-foreground" /> {t(item.label)}
+                    </Link>
+                  ))}
+                </div>
               ))}
+            <Link to={(projectKey ? `/projects/${projectKey}/guide` : "/guide") as never} className="mt-3 flex h-11 items-center gap-3 rounded-md border-t px-3 pt-px text-[15px] hover:bg-accent">
+              <CircleHelp className="size-[18px] text-muted-foreground" /> {t("nav.guide")}
+            </Link>
           </nav>
         </DialogContent>
       </Dialog>

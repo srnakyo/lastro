@@ -11,7 +11,7 @@
 
 *lastro: aquilo que dá valor e garantia a alguma coisa.*
 
-![Visão geral do projeto: cobertura, testes, execuções, atividade e o que trava os requisitos](docs/screenshots/overview.png)
+![Visão geral do projeto: onde ele está, o que fazer agora e quem faz, depois cobertura, testes, execuções e atividade](docs/screenshots/overview.png)
 
 Com agentes de IA, escrever código deixou de ser o gargalo. O gargalo agora é o caminho entre o que foi pedido e o que foi entregue:
 
@@ -59,7 +59,7 @@ flowchart LR
 | ![Editor visual dos fluxos de QA](docs/screenshots/flow-editor.png) | ![Sessões de agente com ações recusadas e paradas seguradas](docs/screenshots/agents.png) |
 | **Configurações:** editor visual de fluxos de QA, condições, comandos e gate; tokens de acesso; membros | **Agentes:** o que cada agente fez em cada sessão, ações recusadas e paradas seguradas pelo gate |
 
-E mais: fontes com versões e trechos ancorados, pacotes, decisões e perguntas, bugs com triagem e cobrança, glossário, invariantes e contrato de layout, auditoria só de inclusão, tema claro e escuro, inglês e português.
+E mais: uma página Como funciona e ajuda em linguagem simples em cada termo, fontes com versões e trechos ancorados, pacotes, decisões e perguntas, bugs com triagem e cobrança, glossário, invariantes e contrato de layout, auditoria só de inclusão, tema claro e escuro, inglês e português.
 
 A **documentação** é gerada dos dados em Markdown, HTML e PDF, e cada documento diz de qual commit e data veio: visão geral, requisitos por pacote, regras de negócio e invariantes, arquitetura, decisões, plano de testes, casos de teste, relatório de qualidade, histórico de entregas, diagramas e um relatório de entrega para quem pediu. `lastro report <PKG>` grava o relatório item a item de um pacote, na ordem e na numeração de quem pediu.
 

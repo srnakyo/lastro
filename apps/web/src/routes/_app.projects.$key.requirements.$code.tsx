@@ -6,6 +6,7 @@ import { TraceCard } from "@/components/quality/trace-card";
 import { CitationCard } from "@/components/spec/citation-card";
 import { FieldsCard } from "@/components/spec/fields-card";
 import { HallmarkPanel } from "@/components/spec/hallmark";
+import { LifecycleStepper } from "@/components/spec/lifecycle-stepper";
 import { RequirementActions } from "@/components/spec/requirement-actions";
 import { BlockersList, CriteriaList, HistoryList, RelatedList } from "@/components/spec/requirement-sections";
 import { StatusBadge } from "@/components/status-badge";
@@ -14,6 +15,7 @@ import { requirementQuery } from "@/hooks/spec-queries";
 import { useAction } from "@/hooks/use-action";
 import { useI18n } from "@/lib/i18n";
 import { RichText } from "@/lib/rich-text";
+import { typeLabel } from "@/lib/type-label";
 
 export const Route = createFileRoute("/_app/projects/$key/requirements/$code")({
   loader: ({ context, params }) => context.queryClient.ensureQueryData(requirementQuery(params.key, params.code)),
@@ -37,7 +39,7 @@ function RequirementDetail() {
             <div className="flex flex-wrap items-center gap-2 text-[12.5px] text-muted-foreground">
               <span className="font-mono">{r.code}</span>
               <StatusBadge status={r.status} />
-              <span className="font-mono">{r.type}</span>
+              <span>{typeLabel(t, r.type)}</span>
               {r.package && <span>· {r.package.title}</span>}
             </div>
             <h1 className="mt-1.5 max-w-[60ch] text-[22px] font-bold leading-tight tracking-tight">
@@ -47,6 +49,7 @@ function RequirementDetail() {
           <RequirementActions projectKey={key} code={r.code} status={r.status} locked={locked} approveBlockedBy={[...new Set(r.blockers.filter((b) => b.blocks !== "verified").map((b) => t(`blocker.${b.kind}`)))]} />
         </div>
       </div>
+      <LifecycleStepper projectKey={key} status={r.status} />
       <HallmarkPanel hallmark={r.hallmark} />
       <BlockersList blockers={r.blockers} />
       <section className="grid gap-3" aria-label={t("req.detail.request")}>

@@ -1,7 +1,8 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AlertTriangle, CheckCircle2, FlaskConical, XCircle } from "lucide-react";
 import { useMemo, useState } from "react";
+import { z } from "zod";
 import { KpiCard } from "@/components/kpi-card";
 import { PageHeader } from "@/components/page-header";
 import { TestsTable } from "@/components/quality/tests-table";
@@ -13,12 +14,15 @@ import { testsQuery, type TestItem } from "@/hooks/run-queries";
 import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
+const FILTER_NAMES = ["all", "failing", "flaky", "orphan"] as const;
+
 export const Route = createFileRoute("/_app/projects/$key/tests")({
+  validateSearch: (s) => z.object({ filter: z.enum(FILTER_NAMES).optional() }).parse(s),
   loader: ({ context, params }) => context.queryClient.ensureQueryData(testsQuery(params.key)),
   component: Tests,
 });
 
-type Filter = "all" | "failing" | "flaky" | "orphan";
+type Filter = (typeof FILTER_NAMES)[number];
 
 const FILTERS: Record<Filter, (t: TestItem) => boolean> = {
   all: () => true,
@@ -31,7 +35,9 @@ function Tests() {
   const { t } = useI18n();
   const { key } = Route.useParams();
   const { data } = useSuspenseQuery(testsQuery(key));
-  const [filter, setFilter] = useState<Filter>("all");
+  const filter: Filter = Route.useSearch().filter ?? "all";
+  const navigate = useNavigate({ from: Route.fullPath });
+  const setFilter = (f: Filter) => void navigate({ search: f === "all" ? {} : { filter: f }, replace: true });
   const [search, setSearch] = useState("");
   const count = (f: Filter) => data.tests.filter(FILTERS[f]).length;
   const shown = useMemo(() => {

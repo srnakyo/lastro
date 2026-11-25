@@ -5,6 +5,8 @@ import { Card } from "@/components/ui/card";
 import { useI18n } from "@/lib/i18n";
 import { RichText } from "@/lib/rich-text";
 import { HallmarkDots } from "./hallmark";
+import { TitleWithHelp } from "@/components/help-hint";
+import { typeLabel } from "@/lib/type-label";
 
 export interface RequirementRow {
   code: string;
@@ -28,7 +30,9 @@ export function RequirementsTable({ projectKey, rows }: { projectKey: string; ro
             <th className="px-5 py-2.5 font-medium">{t("req.col.requirement")}</th>
             <th className="px-3 py-2.5 font-medium">{t("req.col.type")}</th>
             <th className="px-3 py-2.5 font-medium">{t("req.col.status")}</th>
-            <th className="px-3 py-2.5 font-medium">{t("req.col.backing")}</th>
+            <th className="px-3 py-2.5 font-medium">
+              <TitleWithHelp title={t("req.col.backing")} help={t("req.col.backing.help")} />
+            </th>
             <th className="px-3 py-2.5 text-right font-medium">{t("req.col.criteria")}</th>
             <th className="px-5 py-2.5 font-medium">{t("req.col.holding")}</th>
           </tr>
@@ -45,7 +49,7 @@ export function RequirementsTable({ projectKey, rows }: { projectKey: string; ro
                   {r.package && <span className="text-[12px] text-muted-foreground">{r.package.title}</span>}
                 </Link>
               </td>
-              <td className="px-3 py-3 font-mono text-[12px] text-muted-foreground">{r.type}</td>
+              <td className="px-3 py-3 text-[12.5px] text-muted-foreground">{typeLabel(t, r.type)}</td>
               <td className="px-3 py-3">
                 <StatusBadge status={r.status} />
               </td>

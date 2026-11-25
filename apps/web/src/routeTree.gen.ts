@@ -14,6 +14,7 @@ import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as SignUpRouteImport } from './routes/sign-up'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
+import { Route as AppGuideRouteImport } from './routes/_app.guide'
 import { Route as ApiMcpRouteImport } from './routes/api/mcp'
 import { Route as AppProjectsKeyRouteImport } from './routes/_app.projects.$key'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
@@ -24,6 +25,7 @@ import { Route as AppProjectsKeyAuditRouteImport } from './routes/_app.projects.
 import { Route as AppProjectsKeyBugsRouteImport } from './routes/_app.projects.$key.bugs'
 import { Route as AppProjectsKeyDiagramsRouteImport } from './routes/_app.projects.$key.diagrams'
 import { Route as AppProjectsKeyGlossaryRouteImport } from './routes/_app.projects.$key.glossary'
+import { Route as AppProjectsKeyGuideRouteImport } from './routes/_app.projects.$key.guide'
 import { Route as AppProjectsKeyRequirementsRouteImport } from './routes/_app.projects.$key.requirements'
 import { Route as AppProjectsKeySettingsRouteImport } from './routes/_app.projects.$key.settings'
 import { Route as AppProjectsKeyTestsRouteImport } from './routes/_app.projects.$key.tests'
@@ -65,6 +67,11 @@ const SignUpRoute = SignUpRouteImport.update({
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppGuideRoute = AppGuideRouteImport.update({
+  id: '/guide',
+  path: '/guide',
   getParentRoute: () => AppRoute,
 } as any)
 const ApiMcpRoute = ApiMcpRouteImport.update({
@@ -115,6 +122,11 @@ const AppProjectsKeyDiagramsRoute = AppProjectsKeyDiagramsRouteImport.update({
 const AppProjectsKeyGlossaryRoute = AppProjectsKeyGlossaryRouteImport.update({
   id: '/glossary',
   path: '/glossary',
+  getParentRoute: () => AppProjectsKeyRoute,
+} as any)
+const AppProjectsKeyGuideRoute = AppProjectsKeyGuideRouteImport.update({
+  id: '/guide',
+  path: '/guide',
   getParentRoute: () => AppProjectsKeyRoute,
 } as any)
 const AppProjectsKeyRequirementsRoute =
@@ -222,6 +234,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof OnboardingRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/guide': typeof AppGuideRoute
   '/api/mcp': typeof ApiMcpRoute
   '/projects/$key': typeof AppProjectsKeyRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -231,6 +244,7 @@ export interface FileRoutesByFullPath {
   '/projects/$key/bugs': typeof AppProjectsKeyBugsRoute
   '/projects/$key/diagrams': typeof AppProjectsKeyDiagramsRoute
   '/projects/$key/glossary': typeof AppProjectsKeyGlossaryRoute
+  '/projects/$key/guide': typeof AppProjectsKeyGuideRoute
   '/projects/$key/requirements': typeof AppProjectsKeyRequirementsRouteWithChildren
   '/projects/$key/settings': typeof AppProjectsKeySettingsRoute
   '/projects/$key/tests': typeof AppProjectsKeyTestsRoute
@@ -255,6 +269,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/guide': typeof AppGuideRoute
   '/api/mcp': typeof ApiMcpRoute
   '/': typeof AppIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -264,6 +279,7 @@ export interface FileRoutesByTo {
   '/projects/$key/bugs': typeof AppProjectsKeyBugsRoute
   '/projects/$key/diagrams': typeof AppProjectsKeyDiagramsRoute
   '/projects/$key/glossary': typeof AppProjectsKeyGlossaryRoute
+  '/projects/$key/guide': typeof AppProjectsKeyGuideRoute
   '/projects/$key/settings': typeof AppProjectsKeySettingsRoute
   '/projects/$key/tests': typeof AppProjectsKeyTestsRoute
   '/api/projects/$key/sources': typeof ApiProjectsKeySourcesRoute
@@ -289,6 +305,7 @@ export interface FileRoutesById {
   '/onboarding': typeof OnboardingRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
+  '/_app/guide': typeof AppGuideRoute
   '/api/mcp': typeof ApiMcpRoute
   '/_app/': typeof AppIndexRoute
   '/_app/projects/$key': typeof AppProjectsKeyRouteWithChildren
@@ -299,6 +316,7 @@ export interface FileRoutesById {
   '/_app/projects/$key/bugs': typeof AppProjectsKeyBugsRoute
   '/_app/projects/$key/diagrams': typeof AppProjectsKeyDiagramsRoute
   '/_app/projects/$key/glossary': typeof AppProjectsKeyGlossaryRoute
+  '/_app/projects/$key/guide': typeof AppProjectsKeyGuideRoute
   '/_app/projects/$key/requirements': typeof AppProjectsKeyRequirementsRouteWithChildren
   '/_app/projects/$key/settings': typeof AppProjectsKeySettingsRoute
   '/_app/projects/$key/tests': typeof AppProjectsKeyTestsRoute
@@ -326,6 +344,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/sign-in'
     | '/sign-up'
+    | '/guide'
     | '/api/mcp'
     | '/projects/$key'
     | '/api/auth/$'
@@ -335,6 +354,7 @@ export interface FileRouteTypes {
     | '/projects/$key/bugs'
     | '/projects/$key/diagrams'
     | '/projects/$key/glossary'
+    | '/projects/$key/guide'
     | '/projects/$key/requirements'
     | '/projects/$key/settings'
     | '/projects/$key/tests'
@@ -359,6 +379,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/sign-in'
     | '/sign-up'
+    | '/guide'
     | '/api/mcp'
     | '/'
     | '/api/auth/$'
@@ -368,6 +389,7 @@ export interface FileRouteTypes {
     | '/projects/$key/bugs'
     | '/projects/$key/diagrams'
     | '/projects/$key/glossary'
+    | '/projects/$key/guide'
     | '/projects/$key/settings'
     | '/projects/$key/tests'
     | '/api/projects/$key/sources'
@@ -392,6 +414,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/sign-in'
     | '/sign-up'
+    | '/_app/guide'
     | '/api/mcp'
     | '/_app/'
     | '/_app/projects/$key'
@@ -402,6 +425,7 @@ export interface FileRouteTypes {
     | '/_app/projects/$key/bugs'
     | '/_app/projects/$key/diagrams'
     | '/_app/projects/$key/glossary'
+    | '/_app/projects/$key/guide'
     | '/_app/projects/$key/requirements'
     | '/_app/projects/$key/settings'
     | '/_app/projects/$key/tests'
@@ -474,6 +498,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/guide': {
+      id: '/_app/guide'
+      path: '/guide'
+      fullPath: '/guide'
+      preLoaderRoute: typeof AppGuideRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/api/mcp': {
       id: '/api/mcp'
       path: '/api/mcp'
@@ -542,6 +573,13 @@ declare module '@tanstack/react-router' {
       path: '/glossary'
       fullPath: '/projects/$key/glossary'
       preLoaderRoute: typeof AppProjectsKeyGlossaryRouteImport
+      parentRoute: typeof AppProjectsKeyRoute
+    }
+    '/_app/projects/$key/guide': {
+      id: '/_app/projects/$key/guide'
+      path: '/guide'
+      fullPath: '/projects/$key/guide'
+      preLoaderRoute: typeof AppProjectsKeyGuideRouteImport
       parentRoute: typeof AppProjectsKeyRoute
     }
     '/_app/projects/$key/requirements': {
@@ -704,6 +742,7 @@ interface AppProjectsKeyRouteChildren {
   AppProjectsKeyBugsRoute: typeof AppProjectsKeyBugsRoute
   AppProjectsKeyDiagramsRoute: typeof AppProjectsKeyDiagramsRoute
   AppProjectsKeyGlossaryRoute: typeof AppProjectsKeyGlossaryRoute
+  AppProjectsKeyGuideRoute: typeof AppProjectsKeyGuideRoute
   AppProjectsKeyRequirementsRoute: typeof AppProjectsKeyRequirementsRouteWithChildren
   AppProjectsKeySettingsRoute: typeof AppProjectsKeySettingsRoute
   AppProjectsKeyTestsRoute: typeof AppProjectsKeyTestsRoute
@@ -722,6 +761,7 @@ const AppProjectsKeyRouteChildren: AppProjectsKeyRouteChildren = {
   AppProjectsKeyBugsRoute: AppProjectsKeyBugsRoute,
   AppProjectsKeyDiagramsRoute: AppProjectsKeyDiagramsRoute,
   AppProjectsKeyGlossaryRoute: AppProjectsKeyGlossaryRoute,
+  AppProjectsKeyGuideRoute: AppProjectsKeyGuideRoute,
   AppProjectsKeyRequirementsRoute: AppProjectsKeyRequirementsRouteWithChildren,
   AppProjectsKeySettingsRoute: AppProjectsKeySettingsRoute,
   AppProjectsKeyTestsRoute: AppProjectsKeyTestsRoute,
@@ -739,11 +779,13 @@ const AppProjectsKeyRouteWithChildren = AppProjectsKeyRoute._addFileChildren(
 )
 
 interface AppRouteChildren {
+  AppGuideRoute: typeof AppGuideRoute
   AppIndexRoute: typeof AppIndexRoute
   AppProjectsKeyRoute: typeof AppProjectsKeyRouteWithChildren
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppGuideRoute: AppGuideRoute,
   AppIndexRoute: AppIndexRoute,
   AppProjectsKeyRoute: AppProjectsKeyRouteWithChildren,
 }

@@ -1,3 +1,4 @@
+import { TitleWithHelp } from "@/components/help-hint";
 import { REQUIREMENT_STATUSES, type RequirementStatus } from "@lastro/shared";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useI18n } from "@/lib/i18n";
@@ -11,7 +12,9 @@ export function StatusFunnel({ byStatus, total }: { byStatus: Partial<Record<Req
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t("overview.funnel")}</CardTitle>
+        <CardTitle>
+          <TitleWithHelp title={t("overview.funnel")} help={t("overview.funnel.help")} />
+        </CardTitle>
       </CardHeader>
       <CardContent className="grid gap-2.5">
         {FLOW.map((status) => {

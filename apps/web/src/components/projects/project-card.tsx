@@ -1,8 +1,9 @@
 import { Link } from "@tanstack/react-router";
-import { CircleCheck, CircleDashed, CircleX } from "lucide-react";
+import { ArrowRight, CircleCheck, CircleDashed, CircleX } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Tooltip } from "@/components/ui/tooltip";
 import { formatDateTime } from "@/lib/format";
 import { useI18n } from "@/lib/i18n";
 
@@ -35,35 +36,50 @@ export function ProjectCard({ project }: { project: ProjectSummary }) {
             <h2 className="truncate text-[15px] font-semibold tracking-tight">{project.name}</h2>
             <p className="font-mono text-[11.5px] text-muted-foreground">{project.key}</p>
           </div>
-          <Badge tone={gate.tone}>
-            <gate.icon className="size-3.5" /> {t(`gate.${project.gate}`)}
-          </Badge>
+          <Tooltip content={t(`gate.help.${project.gate}`)}>
+            <span className="shrink-0">
+              <Badge tone={gate.tone}>
+                <gate.icon className="size-3.5" /> {t(`gate.${project.gate}`)}
+              </Badge>
+            </span>
+          </Tooltip>
         </div>
         {project.description && <p className="mt-2 line-clamp-2 text-[13px] text-muted-foreground">{project.description}</p>}
-        <dl className="mt-4 grid grid-cols-3 gap-3 border-t pt-4">
-          <div>
-            <dt className="text-[11.5px] text-muted-foreground">{t("home.requirements")}</dt>
-            <dd className="tabular text-[18px] font-bold">{project.requirements}</dd>
+        {project.requirements === 0 ? (
+          <div className="mt-4 flex flex-1 flex-col justify-between gap-3 border-t pt-4">
+            <p className="text-[13px] text-muted-foreground">{t("home.start")}</p>
+            <span className="inline-flex items-center gap-1 text-[13px] font-medium text-primary">
+              {t("home.open")} <ArrowRight className="size-3.5" />
+            </span>
           </div>
-          <div>
-            <dt className="text-[11.5px] text-muted-foreground">{t("home.pending")}</dt>
-            <dd className="tabular text-[18px] font-bold">{project.pending}</dd>
+        ) : (
+          <>
+          <dl className="mt-4 grid grid-cols-3 gap-3 border-t pt-4">
+            <div>
+              <dt className="text-[11.5px] text-muted-foreground">{t("home.requirements")}</dt>
+              <dd className="tabular text-[18px] font-bold">{project.requirements}</dd>
+            </div>
+            <div>
+              <dt className="text-[11.5px] text-muted-foreground">{t("home.pending")}</dt>
+              <dd className="tabular text-[18px] font-bold">{project.pending}</dd>
+            </div>
+            <div>
+              <dt className="text-[11.5px] text-muted-foreground">{t("overview.kpi.failed")}</dt>
+              <dd className={`tabular text-[18px] font-bold ${project.tests.failed > 0 ? "text-destructive" : ""}`}>{project.tests.failed}</dd>
+            </div>
+          </dl>
+          <div className="mt-4">
+            <div className="mb-1.5 flex justify-between text-[12px] text-muted-foreground">
+              <span>{t("home.coverage")}</span>
+              <span className="tabular font-medium text-foreground">{project.coverage}%</span>
+            </div>
+            <Progress value={project.coverage} />
           </div>
-          <div>
-            <dt className="text-[11.5px] text-muted-foreground">{t("overview.kpi.failed")}</dt>
-            <dd className={`tabular text-[18px] font-bold ${project.tests.failed > 0 ? "text-destructive" : ""}`}>{project.tests.failed}</dd>
-          </div>
-        </dl>
-        <div className="mt-4">
-          <div className="mb-1.5 flex justify-between text-[12px] text-muted-foreground">
-            <span>{t("home.coverage")}</span>
-            <span className="tabular font-medium text-foreground">{project.coverage}%</span>
-          </div>
-          <Progress value={project.coverage} />
-        </div>
-        <p className="mt-4 text-[12px] text-muted-foreground">
-          {t("home.lastRun")}: {project.lastRun ? formatDateTime(project.lastRun.startedAt, lang) : t("home.noRuns")}
-        </p>
+          <p className="mt-4 text-[12px] text-muted-foreground">
+            {t("home.lastRun")}: {project.lastRun ? formatDateTime(project.lastRun.startedAt, lang) : t("home.noRuns")}
+          </p>
+          </>
+        )}
       </Card>
     </Link>
   );

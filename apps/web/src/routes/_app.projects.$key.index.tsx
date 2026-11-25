@@ -2,11 +2,11 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { CircleCheck, CircleX, FlaskConical, ShieldCheck } from "lucide-react";
 import { KpiCard } from "@/components/kpi-card";
-import { AttentionCard } from "@/components/overview/attention-card";
 import { BackingCard } from "@/components/overview/backing-card";
 import { BlockersCard } from "@/components/overview/blockers-card";
 import { LatestRuns } from "@/components/overview/latest-runs";
 import { ModuleQuality } from "@/components/overview/module-quality";
+import { NextSteps } from "@/components/overview/next-steps";
 import { ResultDistribution } from "@/components/overview/result-distribution";
 import { StatusFunnel } from "@/components/overview/status-funnel";
 import { ActivityCard } from "@/components/overview/activity-card";
@@ -28,7 +28,8 @@ function Overview() {
   return (
     <>
       <PageHeader title={project.name} description={project.description ?? undefined} />
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <NextSteps projectKey={key} data={o} />
+      <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard label={t("overview.kpi.coverage")} value={`${o.coverage}%`} icon={<ShieldCheck />} tone="primary" hint={t("overview.kpi.ofTotal", { n: covered, total: o.requirements })} />
         <KpiCard label={t("overview.kpi.run")} value={o.tests.tests} icon={<FlaskConical />} hint={t("overview.kpi.pendingCriteria", { n: o.tests.pending })} />
         <KpiCard label={t("overview.kpi.passed")} value={o.tests.passed} icon={<CircleCheck />} tone="success" />
@@ -42,7 +43,6 @@ function Overview() {
           <ModuleQuality modules={o.modules} />
         </div>
         <div className="grid content-start gap-4 lg:col-span-4">
-          <AttentionCard questions={o.openQuestions} decisions={o.proposedDecisions} incidents={o.openIncidents} />
           <StatusFunnel byStatus={o.byStatus} total={o.requirements} />
           <BlockersCard blockers={o.blockers} total={o.requirements} />
           <BackingCard links={o.links} total={o.requirements} />

@@ -11,7 +11,7 @@
 
 *lastro (pt-BR): the backing that gives something its value.*
 
-![Project overview: coverage, tests, runs, activity and what holds requirements back](docs/screenshots/overview.png)
+![Project overview: where the project stands, what to do now and who does it, then coverage, tests, runs and activity](docs/screenshots/overview.png)
 
 With AI agents, writing code is no longer the bottleneck. The bottleneck is the path between what was asked for and what was delivered:
 
@@ -59,7 +59,7 @@ flowchart LR
 | ![Visual editor of the QA flows](docs/screenshots/flow-editor.png) | ![Agent sessions with refused actions and held stops](docs/screenshots/agents.png) |
 | **Settings:** visual editor of QA flows, conditions, commands and gate; access tokens; members | **Agents:** what each agent did in each session, refused actions and stops held by the gate |
 
-Also: sources with versions and anchored passages, packages, decisions and questions, bugs with triage and billing, glossary, invariants and layout contract, an append-only audit log, light and dark themes, English and Portuguese.
+Also: a How it works page and plain-language help on every term, sources with versions and anchored passages, packages, decisions and questions, bugs with triage and billing, glossary, invariants and layout contract, an append-only audit log, light and dark themes, English and Portuguese.
 
 **Documentation** is generated from the data in Markdown, HTML and PDF, each document stating the commit and date it comes from: overview, requirements by package, business rules and invariants, architecture, decisions, test plan, test cases, quality report, delivery history, diagrams and a delivery report for the requester. `lastro report <PKG>` writes the item-by-item report of a package in the requester's own order and numbering.
 

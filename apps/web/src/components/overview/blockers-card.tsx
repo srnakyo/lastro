@@ -1,3 +1,4 @@
+import { TitleWithHelp } from "@/components/help-hint";
 import type { BlockerKind } from "@lastro/shared";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { useI18n } from "@/lib/i18n";
@@ -8,7 +9,9 @@ export function BlockersCard({ blockers, total }: { blockers: Partial<Record<Blo
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t("overview.blockers")}</CardTitle>
+        <CardTitle>
+          <TitleWithHelp title={t("overview.blockers")} help={t("overview.blockers.help")} />
+        </CardTitle>
       </CardHeader>
       {entries.length === 0 ? (
         <p className="px-5 py-6 text-[13px] text-success">{t("overview.blockers.none")}</p>

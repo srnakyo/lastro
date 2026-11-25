@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/states";
 import { Select } from "@/components/ui/select";
 import { packagesQuery, requirementsQuery } from "@/hooks/spec-queries";
 import { useI18n } from "@/lib/i18n";
+import { typeLabel } from "@/lib/type-label";
 
 const search = z.object({ status: z.enum(REQUIREMENT_STATUSES).optional(), type: z.string().optional(), pkg: z.string().optional() });
 
@@ -45,7 +46,7 @@ function Requirements() {
           <option value="">{t("req.filter.type")}: {t("common.all")}</option>
           {types.map((type) => (
             <option key={type} value={type}>
-              {type}
+              {typeLabel(t, type)}
             </option>
           ))}
         </Select>
