@@ -267,3 +267,15 @@
   border-radius: 3px;
   padding: 0 2px;
 }
+
+/* Horizontal tab bars scroll on narrow screens without showing a bar; the sidebar's bar stays thin and quiet. */
+.scrollbar-none {
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--border)) transparent;
+}

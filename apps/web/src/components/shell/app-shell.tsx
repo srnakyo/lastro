@@ -1,8 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, useParams, useRouterState } from "@tanstack/react-router";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, ChevronsLeft } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { projectQuery } from "@/hooks/queries";
+import { useI18n } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
 import type { Viewer } from "@/fns/session";
 import { CommandMenu } from "./command-menu";
 import { MobileNav } from "./mobile-nav";
@@ -31,6 +33,7 @@ export function AppShell({ viewer, children }: { viewer: Viewer; children: React
   const project = useQuery({ ...projectQuery(projectKey ?? ""), enabled: !!projectKey });
   const section = projectKey ? pathname.replace(`/projects/${projectKey}`, "") : "";
   const { collapsed, toggle } = useCollapsed();
+  const { t } = useI18n();
   const dark = viewer.preferences.theme !== "light";
 
   return (
@@ -38,10 +41,18 @@ export function AppShell({ viewer, children }: { viewer: Viewer; children: React
       <a href="#content" className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-md focus:bg-primary focus:px-3 focus:py-2 focus:text-primary-foreground">
         Skip to content
       </a>
-      <Sidebar projectKey={projectKey} collapsed={collapsed} onToggle={toggle} />
+      <Sidebar projectKey={projectKey} collapsed={collapsed} />
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b bg-card/90 px-4 backdrop-blur md:px-6">
           <MobileNav projectKey={projectKey} />
+          <button
+            type="button"
+            onClick={toggle}
+            className="group -ml-2 hidden size-8 shrink-0 cursor-pointer items-center justify-center rounded-md text-muted-foreground transition-transform hover:bg-accent hover:text-foreground active:scale-90 md:inline-flex"
+            aria-label={collapsed ? t("nav.expand") : t("nav.collapse")}
+          >
+            <ChevronsLeft className={cn("size-4 transition-transform duration-300 ease-out group-hover:-translate-x-0.5", collapsed && "rotate-180 group-hover:translate-x-0.5")} />
+          </button>
           <nav className="flex min-w-0 items-center gap-1 text-[13.5px]" aria-label="Breadcrumb">
             <Link to="/" className="truncate rounded-md px-1.5 py-1 text-muted-foreground hover:text-foreground">
               {viewer.workspace?.name}
@@ -59,7 +70,8 @@ export function AppShell({ viewer, children }: { viewer: Viewer; children: React
           </div>
         </header>
         <main id="content" className="flex-1 px-4 py-6 md:px-8 md:py-7">
-          <div className="mx-auto w-full max-w-[1400px]">{children}</div>
+          {/* Fluid, like the Loqivo dashboard: a wide monitor uses its width instead of a centred column. */}
+          <div className="w-full">{children}</div>
         </main>
       </div>
     </div>

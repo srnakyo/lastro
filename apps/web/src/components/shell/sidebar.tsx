@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { FolderKanban, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { FolderKanban } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { Tooltip } from "@/components/ui/tooltip";
 import { useI18n } from "@/lib/i18n";
@@ -26,7 +26,7 @@ function Item({ href, item, active, collapsed }: { href: string; item: Pick<NavI
   return collapsed ? <Tooltip content={t(item.label)} side="right">{link}</Tooltip> : link;
 }
 
-export function Sidebar({ projectKey, collapsed, onToggle }: { projectKey: string | null; collapsed: boolean; onToggle: () => void }) {
+export function Sidebar({ projectKey, collapsed }: { projectKey: string | null; collapsed: boolean }) {
   const { t } = useI18n();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const base = projectKey ? `/projects/${projectKey}` : "";
@@ -37,7 +37,7 @@ export function Sidebar({ projectKey, collapsed, onToggle }: { projectKey: strin
           <Logo collapsed={collapsed} />
         </Link>
       </div>
-      <nav className="flex-1 overflow-y-auto px-2.5 py-3" aria-label="Main">
+      <nav className="scrollbar-thin flex-1 overflow-y-auto overflow-x-hidden px-2.5 py-3" aria-label="Main">
         <Item href="/" item={{ label: "nav.home", icon: FolderKanban }} active={pathname === "/"} collapsed={collapsed} />
         {projectKey &&
           PROJECT_NAV.map((group) => (
@@ -53,15 +53,6 @@ export function Sidebar({ projectKey, collapsed, onToggle }: { projectKey: strin
             </div>
           ))}
       </nav>
-      <button
-        type="button"
-        onClick={onToggle}
-        className={cn("m-2.5 flex h-9 cursor-pointer items-center gap-2.5 rounded-md px-2.5 text-[13px] text-sidebar-foreground hover:bg-sidebar-accent/60", collapsed && "justify-center px-0")}
-        aria-label={collapsed ? t("nav.expand") : t("nav.collapse")}
-      >
-        {collapsed ? <PanelLeftOpen className="size-[18px]" /> : <PanelLeftClose className="size-[18px]" />}
-        {!collapsed && t("nav.collapse")}
-      </button>
     </aside>
   );
 }

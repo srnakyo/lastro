@@ -15,7 +15,7 @@ export function SpecTabs({ projectKey }: { projectKey: string }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const base = `/projects/${projectKey}/requirements`;
   return (
-    <nav className="mb-5 flex gap-1 overflow-x-auto border-b" aria-label={t("nav.requirements")}>
+    <nav className="scrollbar-none mb-5 flex gap-1 overflow-x-auto overflow-y-hidden border-b" aria-label={t("nav.requirements")}>
       {TABS.map((tab) => {
         const href = `${base}${tab.to}`;
         const active = tab.to === "" ? pathname === base || /\/requirements\/REQ-/.test(pathname) : pathname === href;
