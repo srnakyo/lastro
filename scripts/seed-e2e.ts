@@ -1,7 +1,8 @@
-/** Recreates the "e2e-demo" project in the dev workspace with a known source, requirements and a question. */
+/** Recreates the "e2e-demo" project and the "shop-demo" project (with runs) in the dev workspace with a known source, requirements and a question. */
 import { markdownPassages, projectsService, questionsService, requirementsService, sourcesService, workspacesService } from "@lastro/core";
 import { database } from "@lastro/database";
 import { projectConfigSchema } from "@lastro/shared";
+import { seedShop } from "./demo/seed-shop";
 
 const BRIEF = `# Invoices\n\n## Volume discount\n\nThe volume discount has to show on the invoice, including the **annual plan**.\n\nAbove 50 seats the discount is 8%.\n`;
 
@@ -29,5 +30,6 @@ const base = {
 await requirementsService.create(project.id, actor, { ...base, code: "REQ-E2E01", title: "Volume discount on the invoice" });
 await requirementsService.create(project.id, actor, { ...base, code: "REQ-E2E02", title: "Discount on the annual plan" });
 await questionsService.ask(project.id, actor, { code: "Q-E2E01", text: "Does the discount show on the billing e-mail?", blocks: true, askedTo: "client", requirements: ["REQ-E2E02"] });
-console.log(`e2e project ready: ${source.code}`);
+await seedShop(workspace.id, actor);
+console.log(`e2e projects ready: ${source.code}, shop-demo`);
 process.exit(0);

@@ -24,6 +24,7 @@
     "@eslint/js": "^10.0.1",
     "@lastro/core": "workspace:*",
     "@lastro/database": "workspace:*",
+    "@lastro/docs": "workspace:*",
     "@lastro/eslint-config": "workspace:*",
     "@lastro/intake": "workspace:*",
     "@lastro/runner": "workspace:*",

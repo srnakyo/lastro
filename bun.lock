@@ -8,6 +8,7 @@
         "@eslint/js": "^10.0.1",
         "@lastro/core": "workspace:*",
         "@lastro/database": "workspace:*",
+        "@lastro/docs": "workspace:*",
         "@lastro/eslint-config": "workspace:*",
         "@lastro/intake": "workspace:*",
         "@lastro/runner": "workspace:*",
@@ -31,6 +32,7 @@
         "@fontsource-variable/jetbrains-mono": "^5.3.0",
         "@lastro/core": "workspace:*",
         "@lastro/database": "workspace:*",
+        "@lastro/docs": "workspace:*",
         "@lastro/shared": "workspace:*",
         "@radix-ui/react-avatar": "^1.3.1",
         "@radix-ui/react-dialog": "^1.3.1",
@@ -119,6 +121,14 @@
         "@lastro/tsconfig": "workspace:*",
         "@types/pg": "^8.23.1",
         "prisma": "7.10.1",
+      },
+    },
+    "packages/docs": {
+      "name": "@lastro/docs",
+      "version": "0.1.0",
+      "devDependencies": {
+        "@lastro/shared": "workspace:*",
+        "@lastro/tsconfig": "workspace:*",
       },
     },
     "packages/intake": {
@@ -374,6 +384,8 @@
     "@lastro/core": ["@lastro/core@workspace:packages/core"],
 
     "@lastro/database": ["@lastro/database@workspace:packages/database"],
+
+    "@lastro/docs": ["@lastro/docs@workspace:packages/docs"],
 
     "@lastro/eslint-config": ["@lastro/eslint-config@workspace:tooling/eslint"],
 

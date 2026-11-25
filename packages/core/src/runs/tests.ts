@@ -35,3 +35,12 @@ export async function verifyPlan(projectId: string, code?: string) {
   });
   return { config: project.config, requirements };
 }
+
+/** Criteria of live requirements that no test points to. */
+export function uncoveredCriteria(projectId: string) {
+  return db().criterion.findMany({
+    where: { requirement: { projectId, status: { not: "dropped" } }, tests: { none: {} } },
+    select: { code: true, text: true, requirement: { select: { code: true, title: true } } },
+    orderBy: [{ requirement: { code: "asc" } }, { code: "asc" }],
+  });
+}

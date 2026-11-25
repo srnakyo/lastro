@@ -14,7 +14,14 @@ interface Fields {
   examples: unknown;
 }
 
-const asText = (v: unknown) => (v === null || v === undefined ? null : typeof v === "string" ? v : JSON.stringify(v));
+/** Plain text for a field: strings as they are, lists joined, objects as "key: values" lines. */
+function asText(v: unknown): string | null {
+  if (v === null || v === undefined) return null;
+  if (typeof v === "string") return v;
+  if (Array.isArray(v)) return v.map((x) => asText(x)).join(", ");
+  if (typeof v === "object") return Object.entries(v as Record<string, unknown>).map(([k, x]) => `${k}: ${asText(x)}`).join(" · ");
+  return String(v);
+}
 
 export function FieldsCard({ requirement, required }: { requirement: Fields; required: string[] }) {
   const { t } = useI18n();

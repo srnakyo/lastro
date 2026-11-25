@@ -6,22 +6,16 @@ import { findRequirement } from "../requirements/service";
 import { requireHuman, systemActor } from "../scope/actor";
 import { loadScope, type ProjectScope } from "../scope/project-scope";
 import { evaluateGate, type GateResult } from "./gate";
+import { latestStages } from "./latest";
+import { listRuns } from "./list";
 import { writeRun } from "./record";
-
-/** The latest result of every stage and condition recorded for a requirement. */
-async function latestStages(tx: Tx, requirementId: string) {
-  const stages = await tx.runStage.findMany({ where: { requirementId }, orderBy: { startedAt: "desc" }, select: { stage: true, condition: true, status: true, manual: true } });
-  const latest = new Map<string, (typeof stages)[number]>();
-  for (const s of stages) if (!latest.has(`${s.stage}|${s.condition ?? ""}`)) latest.set(`${s.stage}|${s.condition ?? ""}`, s);
-  return [...latest.values()];
-}
 
 /** Applies the gate to one requirement after a run: building becomes verified; a failure sends verified back to building. */
 async function settle(tx: Tx, scope: ProjectScope, requirement: { id: string; code: string; status: string }, runId: string, tree: string | undefined): Promise<GateResult> {
   const result = await evaluateGate(tx, scope.config, requirement.id, await latestStages(tx, requirement.id));
   const target = { id: requirement.id, code: requirement.code, status: requirement.status as never };
-  if (result.pass && (requirement.status === "building" || requirement.status === "reopened")) {
-    if (requirement.status === "reopened") await recordTransition(tx, scope, target, "building", systemActor, "verification run");
+  // A reopened requirement goes back to building through `start`, by a person or the agent, before it can verify again.
+  if (result.pass && requirement.status === "building") {
     await tx.evidence.create({ data: { requirementId: requirement.id, runId, treeHash: tree ?? "" } });
     await recordTransition(tx, scope, target, "verified", systemActor, `run ${runId}`);
   }
@@ -87,14 +81,7 @@ export const runsService = {
     });
   },
 
-  list(projectId: string, take = 50) {
-    return db().run.findMany({
-      where: { projectId },
-      orderBy: { startedAt: "desc" },
-      take,
-      include: { stages: { select: { id: true, stage: true, condition: true, status: true, durationMs: true, manual: true, requirement: { select: { code: true } }, _count: { select: { results: true, findings: true } } } } },
-    });
-  },
+  list: listRuns,
 
   /** One run with every stage, its output, test results and findings, compared with the previous run of the project. */
   async get(projectId: string, id: string) {

@@ -110,7 +110,7 @@ export const enBase = {
   "blocker.source_not_final": "Source not marked final",
   "blocker.unconfirmed_transcript": "Transcript quote not confirmed",
   "blocker.criterion_without_test": "Criterion without a test",
-  "blocker.no_evidence": "No run yet",
+  "blocker.no_evidence": "Not verified yet: no passing run with the current files",
   "blocker.decision_overturned": "Decision overturned",
   "link.origin": "Origin",
   "link.spec": "Spec",

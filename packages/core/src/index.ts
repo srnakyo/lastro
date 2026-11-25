@@ -33,5 +33,6 @@ export { artifactsService, type ArtifactInput } from "./artifacts/service";
 export { intakeService, type IntakeTarget } from "./sources/intake";
 export { agentEventsService } from "./agent/events";
 export { runsService } from "./runs/service";
-export { testCatalog, verifyPlan } from "./runs/tests";
+export { testCatalog, uncoveredCriteria, verifyPlan } from "./runs/tests";
 export type { GateResult } from "./runs/gate";
+export { diagramsData, requirementQa } from "./runs/qa";

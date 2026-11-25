@@ -1,6 +1,7 @@
 /**
  * Development seed: signs up a demo user through the running server, creates a workspace,
- * imports this repository's .lastro/ as the "lastro" project and adds an empty second project.
+ * imports this repository's .lastro/ as the "lastro" project, adds an empty project and
+ * recreates "shop-demo", a fictional store with runs, gates and incidents.
  * Run with the dev server up: bun scripts/seed-dev.ts
  */
 import { fileURLToPath } from "node:url";
@@ -8,6 +9,7 @@ import { projectsService, snapshotService, workspacesService } from "@lastro/cor
 import { database } from "@lastro/database";
 import { projectConfigSchema } from "@lastro/shared";
 import { readSnapshot } from "@lastro/snapshot";
+import { seedShop } from "./demo/seed-shop";
 
 const base = process.env.LASTRO_URL ?? "http://localhost:4317";
 const email = "dev@lastro.local";
@@ -52,6 +54,8 @@ if (!(await projectsService.list(workspace.id)).some((p) => p.key === "billing-d
     config: projectConfigSchema.parse({ project: "billing-demo" }),
   });
 }
+
+await seedShop(workspace.id, actor);
 
 console.log(`seeded: ${email} / lastro-dev-password, workspace ${workspace.slug}`, report);
 process.exit(0);

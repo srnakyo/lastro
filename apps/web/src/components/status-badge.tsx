@@ -26,3 +26,11 @@ export function RunBadge({ status }: { status: string }) {
   const { t } = useI18n();
   return <Badge tone={RUN_TONE[status] ?? "neutral"}>{t(`run.status.${status}` as never)}</Badge>;
 }
+
+const RESULT_TONE: Record<string, BadgeTone> = { passed: "success", failed: "danger", error: "danger", skipped: "neutral" };
+
+/** The result of one test. */
+export function ResultBadge({ status }: { status: string }) {
+  const { t } = useI18n();
+  return <Badge tone={RESULT_TONE[status] ?? "neutral"}>{t(`result.${status}` as never)}</Badge>;
+}

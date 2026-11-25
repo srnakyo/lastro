@@ -13,10 +13,13 @@ export async function writeRun(tx: Tx, projectId: string, report: RunReportData)
   const requirements = await tx.requirement.findMany({ where: { projectId, code: { in: report.stages.map((s) => s.requirement).filter((c): c is string => !!c) } }, select: { id: true, code: true } });
   const idOf = new Map(requirements.map((r) => [r.code, r.id]));
   const recorded = new Set<string>();
+  let offset = 0;
   for (const s of report.stages) {
+    const startedAt = new Date(report.startedAt.getTime() + offset);
+    offset += s.durationMs;
     const stage = await tx.runStage.create({
       data: {
-        runId: run.id, requirementId: s.requirement ? (idOf.get(s.requirement) ?? null) : null, stage: s.stage, condition: s.condition, command: s.command,
+        runId: run.id, startedAt, requirementId: s.requirement ? (idOf.get(s.requirement) ?? null) : null, stage: s.stage, condition: s.condition, command: s.command,
         exitCode: s.exitCode, status: s.status, durationMs: s.durationMs, output: s.output,
         findings: { create: s.findings.map((f) => ({ tool: f.tool, ruleId: f.ruleId, level: f.level, file: f.file, line: f.line, message: f.message })) },
       },

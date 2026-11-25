@@ -36,7 +36,7 @@ function Overview() {
       <div className="mt-4 grid items-start gap-4 lg:grid-cols-12">
         <div className="grid content-start gap-4 lg:col-span-8">
           <ResultDistribution passed={o.tests.passed} failed={o.tests.failed} pending={o.tests.pending} />
-          <LatestRuns runs={o.runs} />
+          <LatestRuns projectKey={key} runs={o.runs} />
           <ModuleQuality modules={o.modules} />
         </div>
         <div className="grid content-start gap-4 lg:col-span-4">
