@@ -1,0 +1,20 @@
+{
+  "name": "@lastro/snapshot",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@lastro/core": "workspace:*",
+    "@lastro/shared": "workspace:*",
+    "yaml": "^2.9.1"
+  },
+  "devDependencies": {
+    "@lastro/tsconfig": "workspace:*"
+  }
+}

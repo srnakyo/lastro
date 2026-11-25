@@ -40,6 +40,13 @@ export function splitMarkdown(markdown: string): MarkdownSection[] {
     }
   }
   sections.push(current);
+  // Repeated headings get "-1", "-2"... like GitHub, so every anchor stays unique.
+  const seen = new Map<string, number>();
+  for (const s of sections) {
+    const count = seen.get(s.slug) ?? 0;
+    seen.set(s.slug, count + 1);
+    if (count > 0) s.slug = `${s.slug}-${count}`;
+  }
   return sections
     .map((s) => ({ slug: s.slug, heading: s.heading, level: s.level, paragraphs: paragraphsOf(s.body) }))
     .filter((s) => s.heading !== "" || s.paragraphs.length > 0);

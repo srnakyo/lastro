@@ -1,0 +1,1 @@
+{ "extends": "@lastro/tsconfig/base.json", "include": ["src"] }

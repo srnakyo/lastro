@@ -26,6 +26,8 @@
     "@lastro/database": "workspace:*",
     "@lastro/eslint-config": "workspace:*",
     "@lastro/shared": "workspace:*",
+    "@lastro/snapshot": "workspace:*",
+    "@playwright/test": "^1.65.1",
     "@types/bun": "^1.4.5",
     "eslint": "^10.15.0",
     "turbo": "^2.11.13",

@@ -23,3 +23,5 @@ export { decisionsService } from "./decisions/service";
 export { questionsService } from "./questions/service";
 export { incidentsService } from "./incidents/service";
 export { glossaryService } from "./glossary/service";
+export { snapshotService, type ImportReport } from "./snapshot/service";
+export { overviewService } from "./overview/service";

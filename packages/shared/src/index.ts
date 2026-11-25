@@ -7,3 +7,4 @@ export * from "./spec/requirement";
 export * from "./spec/decision";
 export * from "./spec/incident";
 export * from "./spec/project";
+export * from "./snapshot/schema";

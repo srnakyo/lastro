@@ -18,6 +18,11 @@ describe("splitMarkdown", () => {
 });
 
 describe("markdownPassages", () => {
+  it("disambiguates repeated headings like GitHub", () => {
+    const passages = markdownPassages([{ name: "d.md", content: "## Example\n\na\n\n## Example\n\nb" }]);
+    expect(passages.map((p) => p.anchor)).toEqual(["@d.md#example/p0", "@d.md#example-1/p0"]);
+  });
+
   it("anchors every paragraph under its file and section", () => {
     const passages = markdownPassages([{ name: "doc.md", content: "# Title\n\nOne.\n\nTwo." }]);
     expect(passages.map((p) => p.anchor)).toEqual(["@doc.md#title/p0", "@doc.md#title/p1"]);
