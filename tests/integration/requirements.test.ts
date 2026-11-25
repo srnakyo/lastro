@@ -12,7 +12,7 @@ describe("requirements", () => {
     const view = await requirementsService.create(project.id, actor, discountRequirement(source.code));
     expect(view.status).toBe("specified");
     expect(view.citations[0]?.found).toBe(true);
-    expect(view.citations[0]?.passageAnchor).toBe("@brief.md#volume-discount/p0");
+    expect(view.citations[0]?.passageAnchor).toBe("@brief.md#volume-discount/p1");
     expect(view.code).toMatch(/^REQ-[0-9A-HJKMNP-TV-Z]{5}$/);
   });
 

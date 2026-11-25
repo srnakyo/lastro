@@ -41,6 +41,7 @@ export function toBlockerInput(graph: RequirementGraph): BlockerInput {
       source: c.source.code,
       anchor: c.anchor,
       found: c.found,
+      closest: c.found ? null : c.passageAnchor,
       final: c.source.versions[0]?.final ?? false,
       machineTranscript: c.source.machineTranscript,
       confirmed: c.confirmed,

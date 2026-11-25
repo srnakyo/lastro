@@ -10,8 +10,8 @@ describe("intake of Markdown and plain text", () => {
     expect(source.title).toBe("brief.md");
     expect(source.machineTranscript).toBe(false);
     expect(source.passages).toEqual([
-      { anchor: "@brief.md#invoices/p0", heading: "Invoices", text: "First." },
-      { anchor: "@brief.md#invoices/p1", heading: "Invoices", text: "Second." },
+      { anchor: "@brief.md#invoices/p1", heading: "Invoices", text: "First." },
+      { anchor: "@brief.md#invoices/p2", heading: "Invoices", text: "Second." },
     ]);
     expect(source.assets).toEqual([]);
   });
@@ -19,7 +19,7 @@ describe("intake of Markdown and plain text", () => {
   it("treats a .txt that is not a chat export as text, without a heading", async () => {
     const source = await extract({ name: "notes.txt", bytes: text("\uFEFFJust a note.\n\nAnother one.") });
     expect(source.kind).toBe("text");
-    expect(source.passages.map((p) => p.anchor)).toEqual(["@notes.txt#/p0", "@notes.txt#/p1"]);
+    expect(source.passages.map((p) => p.anchor)).toEqual(["@notes.txt#/p1", "@notes.txt#/p2"]);
     expect(source.passages[0]).not.toHaveProperty("heading");
     expect(source.passages[0]?.text).toBe("Just a note.");
   });

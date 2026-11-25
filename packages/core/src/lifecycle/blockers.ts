@@ -3,7 +3,7 @@ import type { Blocker, ProjectConfig } from "@lastro/shared";
 export interface BlockerInput {
   type: string;
   fields: Record<string, unknown>;
-  citations: { source: string; anchor: string; found: boolean; final: boolean; machineTranscript: boolean; confirmed: boolean }[];
+  citations: { source: string; anchor: string; found: boolean; closest?: string | null; final: boolean; machineTranscript: boolean; confirmed: boolean }[];
   criteria: { code: string; tests: number }[];
   questions: { code: string; open: boolean; blocks: boolean }[];
   decisions: { code: string; status: "proposed" | "confirmed" | "overturned" }[];
@@ -30,7 +30,7 @@ function originBlockers(input: BlockerInput, config: ProjectConfig): Blocker[] {
   return input.citations.flatMap((c): Blocker[] => {
     const where = `${c.source} ${c.anchor}`;
     const out: Blocker[] = [];
-    if (!c.found) out.push({ kind: "invalid_quote", detail: where, blocks: "specified" });
+    if (!c.found) out.push({ kind: "invalid_quote", detail: c.closest ? `${where} (closest passage: ${c.closest})` : where, blocks: "specified" });
     if (c.machineTranscript && !c.confirmed) out.push({ kind: "unconfirmed_transcript", detail: where, blocks: "specified" });
     if (config.approval.require_final_source && !c.final) out.push({ kind: "source_not_final", detail: c.source, blocks: "approved" });
     return out;
