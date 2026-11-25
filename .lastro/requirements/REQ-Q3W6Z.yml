@@ -1,26 +1,26 @@
 id: REQ-Q3W6Z
-title: "Test catalog with history, flaky and orphan tests"
+title: Test catalog with history, flaky and orphan tests
 type: ui
 status: specified
 package: PKG-M7V0P
 sources:
   - ref: SRC-P4RD7
     anchor: "@03-dashboard.md#página-de-testes"
-    quote: "passam e falham sem mudança no código que eles cobrem"
-statement: >
+    quote: passam e falham sem mudança no código que eles cobrem
+statement: |
   The Tests page lists every test seen in JUnit reports as 'file::test name', with covered criteria, result history per commit and condition, duration, and flags: flaky (passed and failed with no change in the files it covers), orphan (no criterion points to it). A separate list shows criteria without tests.
-where: "Dashboard › Tests"
+where: Dashboard › Tests
 examples:
-  - given: "a test that failed on commit A and passed on commit B with no change in its touched files"
-    expect: "flagged flaky"
-  - given: "a test that no acceptance criterion references"
-    expect: "flagged orphan"
+  - given: a test that failed on commit A and passed on commit B with no change in its touched files
+    expect: flagged flaky
+  - given: a test that no acceptance criterion references
+    expect: flagged orphan
 acceptance:
   - id: AC-1
-    text: "Given a test with a fail and a pass on two commits with no change in the files it covers, then the Tests page flags it as flaky."
+    text: Given a test with a fail and a pass on two commits with no change in the files it covers, then the Tests page flags it as flaky.
     tests: []
   - id: AC-2
-    text: "Given a test referenced by no criterion, then the Tests page flags it as orphan."
+    text: Given a test referenced by no criterion, then the Tests page flags it as orphan.
     tests: []
 decisions: []
 questions: []

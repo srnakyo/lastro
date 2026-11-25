@@ -1,25 +1,25 @@
 id: REQ-9Z4NG
-title: "Read JUnit XML and SARIF results"
+title: Read JUnit XML and SARIF results
 type: format
 status: specified
 package: PKG-M7V0P
 sources:
   - ref: SRC-P4RD7
     anchor: "@08-integrations.md#executores-de-teste-e-análise"
-    quote: "ele roda o comando do projeto e lê formatos padrão"
-statement: >
+    quote: ele roda o comando do projeto e lê formatos padrão
+statement: |
   The runner parses JUnit XML (bun test, Vitest, Jest, Playwright, pytest, PHPUnit, gotestsum) and SARIF 2.1.0 reports declared under commands.<name>.report, and links test cases to acceptance criteria by 'file::test name'.
 examples:
-  - given: "JUnit file from Vitest with 3 passed and 1 failed case"
-    expect: "results passed 3, failed 1; the failed case is linked to its criterion"
-  - given: "SARIF with 2 errors and 5 warnings"
-    expect: "stage fails on errors; warnings counted"
+  - given: JUnit file from Vitest with 3 passed and 1 failed case
+    expect: results passed 3, failed 1; the failed case is linked to its criterion
+  - given: SARIF with 2 errors and 5 warnings
+    expect: stage fails on errors; warnings counted
 acceptance:
   - id: AC-1
-    text: "Given JUnit reports produced by Vitest, Jest, Playwright, pytest and PHPUnit, when parsed, then each test case is identified as 'file::test name' with its status."
+    text: Given JUnit reports produced by Vitest, Jest, Playwright, pytest and PHPUnit, when parsed, then each test case is identified as 'file::test name' with its status.
     tests: []
   - id: AC-2
-    text: "Given a SARIF 2.1.0 report with errors, when the stage is evaluated, then it fails and lists file, line and rule for each error."
+    text: Given a SARIF 2.1.0 report with errors, when the stage is evaluated, then it fails and lists file, line and rule for each error.
     tests: []
 decisions: []
 questions: []

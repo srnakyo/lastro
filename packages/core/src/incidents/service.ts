@@ -17,7 +17,9 @@ export const incidentsService = {
     return transaction(async (tx) => {
       const scope = await loadScope(tx, projectId);
       const requirement = input.requirement ? await findRequirement(tx, projectId, input.requirement) : null;
-      const code = await newCode("INC", async (c) => !!(await tx.incident.findUnique({ where: { projectId_code: { projectId, code: c } } })));
+      const exists = async (c: string) => !!(await tx.incident.findUnique({ where: { projectId_code: { projectId, code: c } } }));
+      if (input.code && (await exists(input.code))) throw new LastroError("CONFLICT", `${input.code} already exists`);
+      const code = input.code ?? (await newCode("INC", exists));
       const incident = await tx.incident.create({
         data: { projectId, code, reported: input.reported, sourceRef: input.sourceRef ?? null, requirementId: requirement?.id ?? null },
       });

@@ -1,25 +1,25 @@
 id: REQ-1F7QA
-title: "Every .lastro/ file validates against a published JSON Schema"
+title: Every .lastro/ file validates against a published JSON Schema
 type: format
 status: specified
 package: PKG-M7V0P
 sources:
   - ref: SRC-P4RD7
     anchor: "@04-domain-model.md#onde-tudo-fica"
-    quote: "é validado por um JSON Schema publicado, para os editores avisarem erro de digitação"
-statement: >
+    quote: é validado por um JSON Schema publicado, para os editores avisarem erro de digitação
+statement: |
   Each entity of the .lastro/ export has a zod contract in packages/shared, the same one the API, the CLI and the MCP use, exported as a published JSON Schema. `lastro export` only writes files that validate, and `lastro doctor` and `lastro import` validate every file and report file, path and message for each error.
 examples:
   - given: "requirement file with `status: aproved` (typo)"
     expect: "doctor reports requirements/REQ-xxxxx.yml: status: must be one of captured, specified, ...; exit code 1"
-  - given: "all files valid"
-    expect: "doctor reports 0 errors; exit code 0"
+  - given: all files valid
+    expect: doctor reports 0 errors; exit code 0
 acceptance:
   - id: AC-1
-    text: "Given a requirement file with an invalid status value, when `lastro doctor` runs, then it reports the file, the field path and the allowed values, and exits with code 1."
+    text: Given a requirement file with an invalid status value, when `lastro doctor` runs, then it reports the file, the field path and the allowed values, and exits with code 1.
     tests: []
   - id: AC-2
-    text: "Given packages/shared, when it is built, then there is one JSON Schema per exported entity and each example file in the PRD validates against it."
+    text: Given packages/shared, when it is built, then there is one JSON Schema per exported entity and each example file in the PRD validates against it.
     tests: []
 decisions: []
 questions: []

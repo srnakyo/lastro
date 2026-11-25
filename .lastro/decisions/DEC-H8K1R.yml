@@ -1,9 +1,11 @@
 id: DEC-H8K1R
 about: []
 kind: decision
-text: "IDs are short random Crockford base32 strings with a type prefix."
-reason: "Sequential IDs collide when two branches create items at the same time; the requester's numbering lives in the anchor label."
+text: IDs are short random Crockford base32 strings with a type prefix.
+reason: Sequential IDs collide when two branches create items at the same time; the requester's numbering lives in the anchor label.
 decided_by: agent
 status: proposed
 show_to_client: true
-source: { ref: SRC-P4RD7, anchor: "@04-domain-model.md#ids" }
+source:
+  ref: SRC-P4RD7
+  anchor: "@04-domain-model.md#ids"

@@ -1,34 +1,34 @@
 id: REQ-G2J5R
-title: "Database URL and tokens come only from environment variables, and tokens are stored hashed"
+title: Database URL and tokens come only from environment variables, and tokens are stored hashed
 type: storage
 status: specified
 package: PKG-D4S8H
 sources:
   - ref: SRC-P4RD7
     anchor: "@09-architecture-roadmap.md#segurança-e-privacidade"
-    quote: "a URL do banco e o token ficam em variáveis de ambiente, nunca no `lastro.yml`"
+    quote: a URL do banco e o token ficam em variáveis de ambiente, nunca no `lastro.yml`
   - ref: SRC-P4RD7
     anchor: "@09-architecture-roadmap.md#segurança-e-privacidade"
-    quote: "ficam guardados como hash SHA-256, com um prefixo visível para reconhecer"
-statement: >
+    quote: ficam guardados como hash SHA-256, com um prefixo visível para reconhecer
+statement: |
   The server reads LASTRO_DATABASE_URL from its own environment; in lastro.yml, server.url_env and server.token_env only name environment variables. `lastro doctor` fails when lastro.yml contains a literal URL with credentials or a token, and no command or page ever prints the database password or a token after its creation. API and MCP tokens are stored only as SHA-256 hashes next to a visible prefix.
-where: "lastro.yml, lastro doctor, Dashboard › Settings › Tokens"
+where: lastro.yml, lastro doctor, Dashboard › Settings › Tokens
 examples:
   - given: "lastro.yml with server.token: lst_abc..."
     expect: "doctor fails: 'the token must come from server.token_env'"
-  - given: "LASTRO_DATABASE_URL set on the server and a connection error"
-    expect: "the error shows host and database, never the password"
-  - given: "a token created in the dashboard"
-    expect: "the value is shown once; the ApiToken row has the prefix and a SHA-256 hash, never the value"
+  - given: LASTRO_DATABASE_URL set on the server and a connection error
+    expect: the error shows host and database, never the password
+  - given: a token created in the dashboard
+    expect: the value is shown once; the ApiToken row has the prefix and a SHA-256 hash, never the value
 acceptance:
   - id: AC-1
-    text: "Given a lastro.yml with a literal token or a database URL with credentials, when `lastro doctor` runs, then it exits with code 1 and tells to use the *_env setting."
+    text: Given a lastro.yml with a literal token or a database URL with credentials, when `lastro doctor` runs, then it exits with code 1 and tells to use the *_env setting.
     tests: []
   - id: AC-2
-    text: "Given a connection error, when any command or the server reports it, then the message contains no password."
+    text: Given a connection error, when any command or the server reports it, then the message contains no password.
     tests: []
   - id: AC-3
-    text: "Given a newly created API token, then the database stores only its visible prefix and its SHA-256 hash, and a request with that token authenticates while a request with any other value does not."
+    text: Given a newly created API token, then the database stores only its visible prefix and its SHA-256 hash, and a request with that token authenticates while a request with any other value does not.
     tests: []
 decisions: []
 questions: []

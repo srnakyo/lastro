@@ -10,7 +10,8 @@ const LOCKED = [{ file: "tests/discount.test.ts", criteria: ["REQ-K7Q2M AC-1"] }
 describe("pre-tool-use guard", () => {
   it("refuses human commands in Bash and lets the rest through", () => {
     expect(guardToolCall(call("Bash", { command: "lastro approve REQ-K7Q2M --yes" }), ROOT, [])).toMatchObject({ allow: false });
-    expect(guardToolCall(call("Bash", { command: "cd x && lastro import" }), ROOT, [])).toMatchObject({ allow: false });
+    expect(guardToolCall(call("Bash", { command: "cd x && lastro decision confirm DEC-AB123" }), ROOT, [])).toMatchObject({ allow: false });
+    expect(guardToolCall(call("Bash", { command: "lastro import --dry-run" }), ROOT, [])).toEqual({ allow: true });
     expect(guardToolCall(call("Bash", { command: "lastro verify REQ-K7Q2M" }), ROOT, [])).toEqual({ allow: true });
   });
 

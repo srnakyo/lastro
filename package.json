@@ -10,8 +10,8 @@
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
-    "lint": "turbo run lint",
-    "typecheck": "turbo run typecheck",
+    "lint": "eslint . --max-warnings 0",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p apps/web/tsconfig.json && tsc --noEmit -p packages/cli/tsconfig.json",
     "test": "bun test --preload ./tests/setup/preload.ts tests/unit tests/integration",
     "test:unit": "bun test --preload ./tests/setup/preload.ts tests/unit",
     "test:integration": "bun test --preload ./tests/setup/preload.ts tests/integration",
@@ -31,6 +31,7 @@
     "@lastro/shared": "workspace:*",
     "@lastro/snapshot": "workspace:*",
     "@lastro/storage": "workspace:*",
+    "@microsoft/eslint-formatter-sarif": "^3.1.0",
     "@playwright/test": "^1.65.1",
     "@types/bun": "^1.4.5",
     "docx": "^9.16.0",

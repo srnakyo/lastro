@@ -3,7 +3,7 @@ about: []
 text: "Client acceptance in the MVP: only as a reference recorded by the developer, or also through a temporarily exposed dashboard link?"
 blocks: false
 asked_to: dev
-asked_via: "PRD, open questions"
-asked_at: 2026-11-25T11:30:00-03:00
+asked_via: PRD, open questions
+asked_at: 2026-11-25T14:30:00.000Z
 answer: null
 answer_source: null

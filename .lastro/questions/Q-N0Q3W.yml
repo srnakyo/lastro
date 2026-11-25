@@ -3,7 +3,8 @@ about: []
 text: "License: Apache-2.0 (explicit patent grant) or MIT?"
 blocks: false
 asked_to: dev
-asked_via: "PRD, open questions"
-asked_at: 2026-11-25T11:30:00-03:00
-answer: "MIT"
+asked_via: PRD, open questions
+asked_at: 2026-11-25T14:30:00.000Z
+answer: MIT
 answer_source: null
+decision: DEC-M1T0K

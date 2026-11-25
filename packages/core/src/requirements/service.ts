@@ -7,6 +7,7 @@ import { recordTransition } from "../lifecycle/record";
 import { systemActor } from "../scope/actor";
 import { loadScope, type ProjectScope } from "../scope/project-scope";
 import { resolveCitations } from "./citations";
+import { changedFields } from "./diff";
 import { reevaluate } from "./evaluate";
 import { graphInclude, loadGraph } from "./graph";
 import { toView } from "./view";
@@ -58,6 +59,9 @@ export const requirementsService = {
     return transaction(async (tx) => {
       const scope = await loadScope(tx, projectId);
       const target = await findId(tx, projectId, code);
+      const changed = changedFields(await loadGraph(tx, target.id), input);
+      // Re-sending the same spec (an import of an unchanged export, a retry) changes nothing and keeps the approval.
+      if (changed.length === 0) return toView(await loadGraph(tx, target.id), scope.config);
       if (FROZEN.includes(target.status)) {
         throw new LastroError("INVALID_TRANSITION", `${code} is ${target.status}; report an incident to change what was delivered`);
       }
@@ -72,7 +76,7 @@ export const requirementsService = {
       if (input.criteria) await replaceCriteria(tx, target.id, input.criteria);
       if (input.dependsOn) await replaceDependencies(tx, projectId, target.id, input.dependsOn);
       await invalidateApproval(tx, scope, target);
-      await auditService.record(tx, { workspaceId: scope.workspaceId, projectId, actor, action: "requirement.update", entity: "requirement", entityId: code, data: { fields: Object.keys(input) } });
+      await auditService.record(tx, { workspaceId: scope.workspaceId, projectId, actor, action: "requirement.update", entity: "requirement", entityId: code, data: { fields: changed } });
       await reevaluate(tx, scope, target.id);
       return toView(await loadGraph(tx, target.id), scope.config);
     });

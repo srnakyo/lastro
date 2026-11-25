@@ -3,6 +3,7 @@ import { codeSchema } from "../codes";
 import { BILLINGS, INCIDENT_CAUSES, TRIAGES } from "../enums";
 
 export const incidentInputSchema = z.object({
+  code: codeSchema("INC").optional(),
   reported: z.string().min(1),
   sourceRef: z.string().optional(),
   requirement: codeSchema("REQ").optional(),

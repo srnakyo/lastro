@@ -2,8 +2,10 @@ id: DEC-W3X6Y
 about: []
 kind: decision
 text: "TypeScript 6 for the whole repository: typescript-eslint does not support TypeScript 7 yet."
-reason: "Lint runs in the global flow of every requirement; a compiler version the linter cannot parse would leave the gate without its lint stage. Revisit when typescript-eslint supports TypeScript 7."
+reason: Lint runs in the global flow of every requirement; a compiler version the linter cannot parse would leave the gate without its lint stage. Revisit when typescript-eslint supports TypeScript 7.
 decided_by: agent
 status: proposed
 show_to_client: true
-source: { ref: SRC-P4RD7, anchor: "@09-architecture-roadmap.md#decisões-de-arquitetura" }
+source:
+  ref: SRC-P4RD7
+  anchor: "@09-architecture-roadmap.md#decisões-de-arquitetura"

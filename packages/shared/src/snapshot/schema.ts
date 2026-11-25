@@ -1,8 +1,9 @@
 import { z } from "zod";
 import { codeSchema } from "../codes";
 import { projectConfigSchema } from "../config";
-import { DECISION_KINDS, DECISION_STATUSES, REQUIREMENT_STATUSES, ROLES, SOURCE_KINDS } from "../enums";
-import { requirementInputSchema } from "../spec/requirement";
+import { BILLINGS, DECISION_KINDS, DECISION_STATUSES, INCIDENT_CAUSES, REQUIREMENT_STATUSES, ROLES, SOURCE_KINDS, TRIAGES } from "../enums";
+import { designContractInputSchema } from "../spec/project";
+import { criterionInputSchema, requirementInputSchema } from "../spec/requirement";
 
 /** One source as it travels in a snapshot: metadata plus the anchored passages of its latest version. */
 export const snapshotSourceSchema = z.object({
@@ -26,7 +27,32 @@ export const snapshotSchema = z.object({
   }),
   sources: z.array(snapshotSourceSchema),
   packages: z.array(z.object({ code: codeSchema("PKG"), title: z.string(), sources: z.array(codeSchema("SRC")).default([]), report: z.boolean().default(true) })),
-  requirements: z.array(requirementInputSchema.extend({ code: codeSchema("REQ"), status: z.enum(REQUIREMENT_STATUSES) })),
+  requirements: z.array(
+    requirementInputSchema.extend({
+      code: codeSchema("REQ"),
+      status: z.enum(REQUIREMENT_STATUSES),
+      touches: z.array(z.string()).default([]),
+      /** Decisions and questions about this requirement: written for the reader, rebuilt from the decision and question files. */
+      decisions: z.array(codeSchema("DEC")).default([]),
+      questions: z.array(codeSchema("Q")).default([]),
+      criteria: z.array(criterionInputSchema.extend({ locked: z.string().nullable().default(null) })).min(1),
+    }),
+  ),
+  design: designContractInputSchema.default({ components: {}, forbidden: [], palette: {}, referenceScreens: [] }),
+  incidents: z
+    .array(
+      z.object({
+        code: codeSchema("INC"),
+        reported: z.string(),
+        sourceRef: z.string().optional(),
+        requirement: codeSchema("REQ").optional(),
+        triage: z.enum(TRIAGES).optional(),
+        cause: z.enum(INCIDENT_CAUSES).optional(),
+        billing: z.enum(BILLINGS).optional(),
+        regressionTest: z.string().optional(),
+      }),
+    )
+    .default([]),
   decisions: z.array(
     z.object({
       code: codeSchema("DEC"),
@@ -48,8 +74,10 @@ export const snapshotSchema = z.object({
       blocks: z.boolean(),
       askedTo: z.enum(ROLES),
       askedVia: z.string().optional(),
+      askedAt: z.coerce.date().optional(),
       answer: z.string().nullable().optional(),
       answerSource: z.string().nullable().optional(),
+      decision: codeSchema("DEC").optional(),
       requirements: z.array(codeSchema("REQ")).default([]),
     }),
   ),

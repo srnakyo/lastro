@@ -1,26 +1,26 @@
 id: REQ-8X1MF
-title: "Stages run once per required condition"
+title: Stages run once per required condition
 type: behavior
 status: specified
 package: PKG-M7V0P
 sources:
   - ref: SRC-P4RD7
     anchor: "@05-lifecycle-and-gates.md#tipos-de-etapa"
-    quote: "Roda o comando uma vez por condição, com o `env` e o `setup` dela."
-statement: >
+    quote: Roda o comando uma vez por condição, com o `env` e o `setup` dela.
+statement: |
   A stage with conditions runs its command once per condition, after that condition's setup, with that condition's env merged into the project environment. Each run is stored as separate evidence tagged with the condition.
-where: "lastro verify"
+where: lastro verify
 examples:
-  - given: "stage e2e with conditions [dark-theme, zoom-125]"
-    expect: "2 runs, 2 evidence records tagged dark-theme and zoom-125"
-  - given: "setup of one condition fails"
-    expect: "that condition is recorded as failed with the setup output; the other still runs"
+  - given: stage e2e with conditions [dark-theme, zoom-125]
+    expect: 2 runs, 2 evidence records tagged dark-theme and zoom-125
+  - given: setup of one condition fails
+    expect: that condition is recorded as failed with the setup output; the other still runs
 acceptance:
   - id: AC-1
-    text: "Given a stage with two conditions, when `lastro verify` runs, then there are two evidence records, each with its condition, env and result."
+    text: Given a stage with two conditions, when `lastro verify` runs, then there are two evidence records, each with its condition, env and result.
     tests: []
   - id: AC-2
-    text: "Given a condition whose setup exits with a non-zero code, then its evidence is failed with the setup output and the other condition still runs."
+    text: Given a condition whose setup exits with a non-zero code, then its evidence is failed with the setup output and the other condition still runs.
     tests: []
 decisions: []
 questions: []

@@ -28,6 +28,8 @@ export type QuestionData = z.output<typeof questionInputSchema>;
 
 export const answerInputSchema = z.object({
   answer: z.string().min(1),
+  /** An existing client_answer decision to link (an import), instead of recording a new one. */
+  decision: codeSchema("DEC").optional(),
   answerSource: z.string().optional(),
   decidedBy: z.enum(ROLES).default("client"),
 });

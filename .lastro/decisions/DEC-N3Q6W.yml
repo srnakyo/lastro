@@ -1,9 +1,8 @@
 id: DEC-N3Q6W
 about: []
 kind: decision
-text: "Lastro is licensed under MIT."
-reason: "The developer asked for a license and left the choice open; MIT is the most common license in the npm ecosystem and the simplest for adoption and contribution."
+text: Lastro is licensed under MIT.
+reason: The developer asked for a license and left the choice open; MIT is the most common license in the npm ecosystem and the simplest for adoption and contribution.
 decided_by: agent
 status: proposed
 show_to_client: true
-source: null

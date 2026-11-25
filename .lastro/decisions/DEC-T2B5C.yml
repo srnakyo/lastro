@@ -1,9 +1,12 @@
 id: DEC-T2B5C
-about: [REQ-J8M1T]
+about:
+  - REQ-J8M1T
 kind: decision
-text: "The dashboard is a self-hosted web app with sign-in, workspaces and a project switcher; there is no local SQLite mode."
-reason: "One code path to build and test. A single server on a VPS serves a team and many projects, and someone working alone runs the same server with Docker on their own machine."
+text: The dashboard is a self-hosted web app with sign-in, workspaces and a project switcher; there is no local SQLite mode.
+reason: One code path to build and test. A single server on a VPS serves a team and many projects, and someone working alone runs the same server with Docker on their own machine.
 decided_by: agent
 status: proposed
 show_to_client: true
-source: { ref: SRC-P4RD7, anchor: "@09-architecture-roadmap.md#decisões-de-arquitetura" }
+source:
+  ref: SRC-P4RD7
+  anchor: "@09-architecture-roadmap.md#decisões-de-arquitetura"

@@ -19,8 +19,11 @@ function requirementFile(r: Snapshot["requirements"][number]) {
     sources: r.citations.map((c) => clean({ ref: c.source, anchor: c.anchor, label: c.label, quote: c.quote })),
     statement: r.statement, where: r.where, who: r.who, data_source: r.dataSource, period: r.period, reach: r.reach,
     when_missing: r.whenMissing, visual_ref: r.visualRefs.length ? r.visualRefs : undefined, examples: r.examples,
-    acceptance: r.criteria.map((c) => ({ id: c.code, text: c.text, tests: c.tests })),
+    acceptance: r.criteria.map((c) => clean({ id: c.code, text: c.text, tests: c.tests, locked: c.locked })),
+    decisions: r.decisions,
+    questions: r.questions,
     depends_on: r.dependsOn,
+    touches: r.touches,
   }));
 }
 
@@ -32,6 +35,9 @@ export function writeSnapshot(root: string, snapshot: Snapshot) {
   writeFileSync(join(dir, "glossary.yml"), yaml({
     terms: snapshot.glossary.terms,
     invariants: snapshot.glossary.invariants.map((i) => clean({ id: i.code, text: i.text, tests: i.testRefs.length ? i.testRefs : undefined })),
+  }));
+  writeFileSync(join(dir, "design.yml"), yaml({
+    components: snapshot.design.components, forbidden: snapshot.design.forbidden, palette: snapshot.design.palette, reference_screens: snapshot.design.referenceScreens,
   }));
   const sources: Record<string, string> = {};
   for (const s of snapshot.sources) {
@@ -48,8 +54,12 @@ export function writeSnapshot(root: string, snapshot: Snapshot) {
     id: d.code, about: d.requirements, kind: d.kind, text: d.text, reason: d.reason, decided_by: d.decidedByAgent ? "agent" : d.decidedBy,
     status: d.status, show_to_client: d.showToClient, source: d.sourceRef ? { ref: d.sourceRef.split(" ")[0], anchor: d.sourceRef.split(" ").slice(1).join(" ") } : null,
   }))])));
+  writeFolder(join(dir, "incidents"), Object.fromEntries(snapshot.incidents.map((i) => [`${i.code}.yml`, yaml(clean({
+    id: i.code, about: i.requirement, reported: i.reported, source: i.sourceRef, triage: i.triage, cause: i.cause, billing: i.billing, regression_test: i.regressionTest,
+  }))])));
   writeFolder(join(dir, "questions"), Object.fromEntries(snapshot.questions.map((q) => [`${q.code}.yml`, yaml({
     id: q.code, about: q.requirements, text: q.text, blocks: q.blocks, asked_to: q.askedTo, ...(q.askedVia ? { asked_via: q.askedVia } : {}),
-    answer: q.answer ?? null, answer_source: q.answerSource ?? null,
+    ...(q.askedAt ? { asked_at: q.askedAt.toISOString() } : {}),
+    answer: q.answer ?? null, answer_source: q.answerSource ?? null, ...(q.decision ? { decision: q.decision } : {}),
   })])));
 }

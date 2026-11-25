@@ -1,36 +1,36 @@
 terms:
-  - term: "lastro"
-    means: "the backing of an item: cited origin, acceptance criteria from the requester, and evidence on the current commit"
-  - term: "source"
-    means: "anything that arrives from the requester: document, chat, audio, video, image, meeting"
-  - term: "anchor"
-    means: "the stable position of a quote inside a source (paragraph, page, message id, timestamp)"
-  - term: "atomic requirement"
-    means: "one verifiable behavior, with its own acceptance criteria"
-  - term: "gate"
-    means: "the evaluation that moves a requirement from building to verified"
-  - term: "evidence"
+  - term: anchor
+    means: the stable position of a quote inside a source (paragraph, page, message id, timestamp)
+  - term: atomic requirement
+    means: one verifiable behavior, with its own acceptance criteria
+  - term: condition
+    means: a reusable real-usage setting a stage must run under (profile, data volume, theme, zoom)
+  - term: evidence
     means: "the record of a run executed by Lastro itself: commit, command, exit code, results, artifacts"
-  - term: "condition"
-    means: "a reusable real-usage setting a stage must run under (profile, data volume, theme, zoom)"
-  - term: "package"
-    means: "one delivery round, usually one document or batch of messages from the requester"
-  - term: "human command"
+  - term: export
+    means: the deterministic .lastro/ snapshot that `lastro export` writes into the repository and `lastro import` loads back into the server
+  - term: gate
+    means: the evaluation that moves a requirement from building to verified
+  - term: human command
     means: "an action only a person may take: approve, accept, unlock, drop, confirm or overturn a decision, record an answer, triage an incident, mark a source final, sign a manual stage"
-  - term: "workspace"
-    means: "a group of people and projects on one Lastro server; members see only the projects of their workspaces"
-  - term: "export"
-    means: "the deterministic .lastro/ snapshot that `lastro export` writes into the repository and `lastro import` loads back into the server"
+  - term: lastro
+    means: "the backing of an item: cited origin, acceptance criteria from the requester, and evidence on the current commit"
+  - term: package
+    means: one delivery round, usually one document or batch of messages from the requester
+  - term: source
+    means: "anything that arrives from the requester: document, chat, audio, video, image, meeting"
+  - term: workspace
+    means: a group of people and projects on one Lastro server; members see only the projects of their workspaces
 invariants:
   - id: INV-1
-    text: "The gate only accepts evidence from runs executed by Lastro itself."
+    text: The gate only accepts evidence from runs executed by Lastro itself.
   - id: INV-2
-    text: "No MCP tool approves, accepts, unlocks or signs a manual stage."
+    text: No MCP tool approves, accepts, unlocks or signs a manual stage.
   - id: INV-3
-    text: "The CLI talks only to the configured Lastro server, never to the database; the server talks only to its Postgres, its artifact storage and the integrations the workspace configured."
+    text: The CLI talks only to the configured Lastro server, never to the database; the server talks only to its Postgres, its artifact storage and the integrations the workspace configured.
   - id: INV-4
-    text: "Every file under .lastro/ that Lastro writes validates against the published JSON Schema."
+    text: Every file under .lastro/ that Lastro writes validates against the published JSON Schema.
   - id: INV-5
-    text: "Human-only operations are refused by the core services when the actor is an agent, whatever the entry point (dashboard, API, CLI or MCP)."
+    text: Human-only operations are refused by the core services when the actor is an agent, whatever the entry point (dashboard, API, CLI or MCP).
   - id: INV-6
     text: "AuditEvent is append-only: a Postgres trigger refuses updates and deletes."

@@ -1,36 +1,38 @@
 id: REQ-J8M1T
-title: "The dashboard is the web app, with sign-in, workspaces and a project switcher"
+title: The dashboard is the web app, with sign-in, workspaces and a project switcher
 type: ui
 status: specified
 package: PKG-D4S8H
 sources:
   - ref: SRC-P4RD7
     anchor: "@03-dashboard.md#onde-roda"
-    quote: "Seletor de projeto com busca, e o projeto na URL"
+    quote: Seletor de projeto com busca, e o projeto na URL
   - ref: SRC-P4RD7
     anchor: "@03-dashboard.md#onde-roda"
-    quote: "E-mail e senha, ou GitHub. Cada pessoa vê os workspaces de que é membro."
-statement: >
+    quote: E-mail e senha, ou GitHub. Cada pessoa vê os workspaces de que é membro.
+statement: |
   apps/web serves the dashboard. Every page requires sign-in (email and password, or GitHub). A signed-in person sees only the projects of the workspaces they are a member of, picks one in a searchable project switcher, and every project page lives under /projects/<key>/. A project of another workspace answers as not found.
-where: "Dashboard › sign-in, Home, project switcher"
+where: Dashboard › sign-in, Home, project switcher
 examples:
-  - given: "a visitor without a session opening /projects/lastro/requirements"
-    expect: "redirected to sign-in, then back to the same URL"
-  - given: "a member typing 'las' in the project switcher"
-    expect: "the lastro project is listed; choosing it opens /projects/lastro/"
-  - given: "a member of workspace A opening a project key of workspace B"
-    expect: "not found page; nothing about the project is shown"
+  - given: a visitor without a session opening /projects/lastro/requirements
+    expect: redirected to sign-in, then back to the same URL
+  - given: a member typing 'las' in the project switcher
+    expect: the lastro project is listed; choosing it opens /projects/lastro/
+  - given: a member of workspace A opening a project key of workspace B
+    expect: not found page; nothing about the project is shown
 acceptance:
   - id: AC-1
-    text: "Given no session, when any project URL opens, then the dashboard shows the sign-in page and returns to that URL after signing in."
+    text: Given no session, when any project URL opens, then the dashboard shows the sign-in page and returns to that URL after signing in.
     tests: []
   - id: AC-2
-    text: "Given a signed-in member, when they search the project switcher and pick a project, then the URL becomes /projects/<key>/ and the page shows that project."
+    text: Given a signed-in member, when they search the project switcher and pick a project, then the URL becomes /projects/<key>/ and the page shows that project.
     tests: []
   - id: AC-3
-    text: "Given a signed-in member of another workspace, when they open /projects/<key>/ of a project they do not belong to, then the response is not found."
+    text: Given a signed-in member of another workspace, when they open /projects/<key>/ of a project they do not belong to, then the response is not found.
     tests: []
-decisions: [DEC-T2B5C]
-questions: [Q-V8C1D]
+decisions:
+  - DEC-T2B5C
+questions:
+  - Q-V8C1D
 depends_on: []
 touches: []

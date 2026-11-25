@@ -1,9 +1,10 @@
 id: Q-V8C1D
-about: [REQ-J8M1T]
+about:
+  - REQ-J8M1T
 text: "Dashboard sign-in: email and password only, or GitHub sign-in from the start?"
 blocks: false
 asked_to: dev
-asked_via: "PRD, open questions"
-asked_at: 2026-11-25T13:00:00-03:00
+asked_via: PRD, open questions
+asked_at: 2026-11-25T16:00:00.000Z
 answer: null
 answer_source: null

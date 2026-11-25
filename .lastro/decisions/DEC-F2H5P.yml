@@ -1,9 +1,13 @@
 id: DEC-F2H5P
-about: [REQ-H5K8S, REQ-F7H2Q]
+about:
+  - REQ-F7H2Q
+  - REQ-H5K8S
 kind: decision
-text: "Postgres is the source of truth; git receives a deterministic .lastro/ export."
-reason: "One server holds every project of a workspace, with the spec and the run history together and fast queries in the dashboard. `lastro export` keeps the spec reviewed in the same pull request as the code and allows an offline gate in CI; `lastro import` loads a snapshot back."
+text: Postgres is the source of truth; git receives a deterministic .lastro/ export.
+reason: One server holds every project of a workspace, with the spec and the run history together and fast queries in the dashboard. `lastro export` keeps the spec reviewed in the same pull request as the code and allows an offline gate in CI; `lastro import` loads a snapshot back.
 decided_by: agent
 status: proposed
 show_to_client: true
-source: { ref: SRC-P4RD7, anchor: "@09-architecture-roadmap.md#decisões-de-arquitetura" }
+source:
+  ref: SRC-P4RD7
+  anchor: "@09-architecture-roadmap.md#decisões-de-arquitetura"

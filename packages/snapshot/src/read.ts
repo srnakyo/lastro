@@ -36,8 +36,11 @@ function readRequirement(raw: Raw) {
     package: raw.package, where: raw.where, who: raw.who, dataSource: raw.data_source, period: raw.period,
     reach: raw.reach, whenMissing: raw.when_missing, examples: raw.examples ?? [], visualRefs: raw.visual_ref ?? [],
     dependsOn: raw.depends_on ?? [],
+    touches: raw.touches ?? [],
+    decisions: raw.decisions ?? [],
+    questions: raw.questions ?? [],
     citations: asList(raw.sources).map((c: Raw) => ({ source: c.ref, anchor: c.anchor, label: c.label, quote: c.quote })),
-    criteria: asList(raw.acceptance).map((a: Raw) => ({ code: a.id, text: a.text, tests: a.tests ?? [] })),
+    criteria: asList(raw.acceptance).map((a: Raw) => ({ code: a.id, text: a.text, tests: a.tests ?? [], locked: a.locked ?? null })),
   };
 }
 
@@ -45,12 +48,18 @@ function readRequirement(raw: Raw) {
 export async function readSnapshot(root: string): Promise<Snapshot> {
   const dir = join(root, ".lastro");
   const glossary = (readYaml(join(dir, "glossary.yml")) ?? {}) as Raw;
+  const design = (existsSync(join(dir, "design.yml")) ? (readYaml(join(dir, "design.yml")) ?? {}) : {}) as Raw;
   const raw = {
     config: readYaml(join(dir, "lastro.yml")),
     glossary: {
       terms: asList(glossary.terms),
       invariants: asList(glossary.invariants).map((i: Raw) => ({ code: i.id, text: i.text, testRefs: i.tests ?? [] })),
     },
+    design: { components: design.components ?? {}, forbidden: design.forbidden ?? [], palette: design.palette ?? {}, referenceScreens: design.reference_screens ?? [] },
+    incidents: yamlFiles(join(dir, "incidents")).map((f) => {
+      const i = readYaml(f) as Raw;
+      return { code: i.id, reported: i.reported, sourceRef: i.source, requirement: i.about, triage: i.triage, cause: i.cause, billing: i.billing, regressionTest: i.regression_test };
+    }),
     sources: await Promise.all(yamlFiles(join(dir, "sources")).map((f) => readSource(root, readYaml(f) as Raw))),
     packages: yamlFiles(join(dir, "packages")).map((f) => {
       const p = readYaml(f) as Raw;
@@ -69,8 +78,8 @@ export async function readSnapshot(root: string): Promise<Snapshot> {
     questions: yamlFiles(join(dir, "questions")).map((f) => {
       const q = readYaml(f) as Raw;
       return {
-        code: q.id, text: q.text, blocks: q.blocks ?? false, askedTo: q.asked_to, askedVia: q.asked_via,
-        answer: q.answer ?? null, answerSource: q.answer_source ?? null, requirements: asList(q.about).filter((a) => String(a).startsWith("REQ-")),
+        code: q.id, text: q.text, blocks: q.blocks ?? false, askedTo: q.asked_to, askedVia: q.asked_via, askedAt: q.asked_at,
+        answer: q.answer ?? null, answerSource: q.answer_source ?? null, decision: q.decision ?? undefined, requirements: asList(q.about).filter((a) => String(a).startsWith("REQ-")),
       };
     }),
   };

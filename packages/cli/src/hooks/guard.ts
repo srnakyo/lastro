@@ -9,7 +9,7 @@ export interface ToolCall {
 export type Verdict = { allow: true } | { allow: false; reason: string };
 
 /** Commands only a person may run. */
-const HUMAN_COMMANDS = /\blastro\s+(approve|sign|accept|unlock|import|login)\b/;
+const HUMAN_COMMANDS = /\blastro\s+(approve|sign|check|accept|unlock|lock|answer|drop|login)\b|\blastro\s+(decision\s+(confirm|overturn)|incident\s+triage|source\s+final)\b/;
 const EDIT_TOOLS = new Set(["Edit", "Write", "MultiEdit", "NotebookEdit"]);
 
 function editedFile(call: ToolCall, root: string): string | null {
@@ -26,7 +26,7 @@ export function guardToolCall(call: ToolCall, root: string, locked: { file: stri
   if (call.tool_name === "Bash") {
     const command = String(call.tool_input.command ?? "");
     const human = HUMAN_COMMANDS.exec(command);
-    if (human) return { allow: false, reason: `\`lastro ${human[1]}\` is for a person. Ask the developer to run it; you cannot approve, sign, accept, unlock or import.` };
+    if (human) return { allow: false, reason: `\`lastro ${human[1] ?? human[2]}\` is for a person. Ask the developer to run it; you cannot approve, sign, accept, unlock, answer or drop.` };
     return { allow: true };
   }
   if (!EDIT_TOOLS.has(call.tool_name)) return { allow: true };

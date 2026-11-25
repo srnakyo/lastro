@@ -1,10 +1,9 @@
 id: SRC-P4RD7
 kind: text
-title: "Lastro PRD (pt-BR original)"
+title: Lastro PRD (pt-BR original)
 from: dev
-received_at: 2026-11-25T11:30:00-03:00
-path: docs/pt-BR/prd/          # in-repo source: anchors point to file and heading
-version: 3
-supersedes: null
-final: false                   # under discussion; mark final before approving requirements
+received_at: 2026-11-25T14:30:00.000Z
+hash: sha256:52c7adbffcae75a83d0584c0cc5f717b0372f265a07fa1ed8a7df8a046cf44e0
+final: false
 machine_transcript: false
+path: docs/pt-BR/prd/

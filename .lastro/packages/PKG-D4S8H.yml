@@ -1,6 +1,5 @@
 id: PKG-D4S8H
 title: "Foundation and dashboard base: database, export and import, first screens and documentation"
-sources: [SRC-P4RD7]
-opened_at: 2026-11-25
-closed_at: null
+sources:
+  - SRC-P4RD7
 report: true

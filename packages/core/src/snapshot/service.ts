@@ -1,63 +1,39 @@
 import { snapshotSchema, type Actor, type SnapshotInput } from "@lastro/shared";
 import { auditService } from "../audit/service";
-import { db } from "../db";
+import { transaction } from "../db";
 import { reevaluate } from "../requirements/evaluate";
-import { requirementsService } from "../requirements/service";
-import { requireHuman } from "../scope/actor";
 import { loadScope } from "../scope/project-scope";
-import { recheckCitations } from "../sources/recheck";
-import { importDecisions, importGlossary, importPackages, importQuestions } from "./import-entities";
-import { importSources } from "./import-sources";
+import { applyHumanActions } from "./apply-human";
+import { applyRecords, applyRequirements, applySources } from "./apply-spec";
+import { planImport, type HumanAction, type ImportPlan } from "./plan";
 
 export interface ImportReport {
-  sources: number;
-  requirementsCreated: number;
-  requirementsUpdated: number;
-  decisions: number;
-  questions: number;
+  plan: ImportPlan;
+  applied: HumanAction[];
+  refused: (HumanAction & { reason: string })[];
+  dryRun: boolean;
 }
 
 export const snapshotService = {
   /**
-   * Loads a .lastro/ snapshot into a project. Spec content is written; statuses are recomputed by the
-   * lifecycle rules, never copied, so an import cannot approve or accept anything on its own.
+   * Loads a .lastro/ snapshot into a project through the same services as the API. The spec (sources,
+   * requirements, decisions, questions) is applied for anyone; what only a person may do (approve, final
+   * source, answers, decision status, QA configuration, invariants, layout contract, triage) is applied only
+   * for a person and otherwise returned as refused. With dryRun nothing changes: the plan says what would.
    */
-  async import(projectId: string, actor: Actor, raw: SnapshotInput): Promise<ImportReport> {
-    // An import replaces the QA flows and the gate settings: an agent must not be able to loosen its own gate.
-    requireHuman(actor, "importing a snapshot");
+  async import(projectId: string, actor: Actor, raw: SnapshotInput, options: { dryRun?: boolean } = {}): Promise<ImportReport> {
     const snapshot = snapshotSchema.parse(raw);
-    const report: ImportReport = { sources: 0, requirementsCreated: 0, requirementsUpdated: 0, decisions: 0, questions: 0 };
-    await db().$transaction(async (tx) => {
+    const plan = await planImport(projectId, snapshot);
+    if (options.dryRun) return { plan, applied: [], refused: actor.type === "user" ? [] : plan.human.map((a) => ({ ...a, reason: "needs a person's token" })), dryRun: true };
+    await applySources(projectId, snapshot);
+    await applyRequirements(projectId, actor, snapshot, plan);
+    await applyRecords(projectId, actor, snapshot, plan);
+    const human = await applyHumanActions(projectId, actor, snapshot, plan.human);
+    await transaction(async (tx) => {
       const scope = await loadScope(tx, projectId);
-      await tx.project.update({ where: { id: projectId }, data: { config: snapshot.config, language: snapshot.config.language } });
-      scope.config = snapshot.config;
-      await importGlossary(tx, scope, snapshot);
-      const changed = await importSources(tx, scope, snapshot);
-      report.sources = changed.length;
-      await importPackages(tx, scope, snapshot);
-      for (const sourceId of changed) await recheckCitations(tx, scope, sourceId);
-      await auditService.record(tx, { workspaceId: scope.workspaceId, projectId, actor, action: "snapshot.import", entity: "project", entityId: projectId });
+      for (const { id } of await tx.requirement.findMany({ where: { projectId, status: { in: ["captured", "specified"] } }, select: { id: true } })) await reevaluate(tx, scope, id);
+      await auditService.record(tx, { workspaceId: scope.workspaceId, projectId, actor, action: "snapshot.import", entity: "project", entityId: projectId, data: { requirements: plan.requirements.length, applied: human.applied.length, refused: human.refused.length } });
     }, { timeout: 60_000 });
-    for (const r of snapshot.requirements) {
-      const exists = await db().requirement.findUnique({ where: { projectId_code: { projectId, code: r.code } }, select: { id: true } });
-      const { status: _status, code, ...fields } = r;
-      if (exists) {
-        await requirementsService.update(projectId, actor, code, fields);
-        report.requirementsUpdated += 1;
-      } else {
-        await requirementsService.create(projectId, actor, { ...fields, code });
-        report.requirementsCreated += 1;
-      }
-    }
-    await db().$transaction(async (tx) => {
-      const scope = await loadScope(tx, projectId);
-      await importDecisions(tx, scope, snapshot);
-      await importQuestions(tx, scope, snapshot);
-      const ids = await tx.requirement.findMany({ where: { projectId }, select: { id: true } });
-      for (const { id } of ids) await reevaluate(tx, scope, id);
-    }, { timeout: 60_000 });
-    report.decisions = snapshot.decisions.length;
-    report.questions = snapshot.questions.length;
-    return report;
+    return { plan, ...human, dryRun: false };
   },
 };

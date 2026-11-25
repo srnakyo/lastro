@@ -1,6 +1,5 @@
 id: PKG-M7V0P
-title: "Spec core, CLI and verification"
-sources: [SRC-P4RD7]
-opened_at: 2026-11-25
-closed_at: null
+title: Spec core, CLI and verification
+sources:
+  - SRC-P4RD7
 report: true

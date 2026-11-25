@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it } from "bun:test";
 import { fileURLToPath } from "node:url";
-import { overviewService, requirementsService, snapshotService } from "@lastro/core";
+import { exportSnapshot, lifecycleService, overviewService, projectsService, requirementsService, snapshotService, sourcesService } from "@lastro/core";
 import { database } from "@lastro/database";
 import { readSnapshot } from "@lastro/snapshot";
 import { resetDatabase } from "../helpers/db";
-import { createProject } from "../helpers/fixtures";
+import { agent, createBriefSource, createProject, discountRequirement } from "../helpers/fixtures";
 
 const root = fileURLToPath(new URL("../..", import.meta.url));
 
@@ -15,21 +15,21 @@ describe("importing this repository's .lastro/", () => {
     const snapshot = await readSnapshot(root);
     const { project, actor } = await createProject();
     const report = await snapshotService.import(project.id, actor, snapshot);
-    expect(report.requirementsCreated).toBe(snapshot.requirements.length);
+    expect(report.plan.requirements.filter((r) => r.change === "new")).toHaveLength(snapshot.requirements.length);
     const views = await requirementsService.list(project.id);
     expect(views.every((v) => v.citations.every((c) => c.found))).toBe(true);
-    expect(views.every((v) => v.status === "specified")).toBe(true);
-    expect(views.every((v) => v.hallmark.origin === "partial")).toBe(true);
+    expect(views.every((v) => ["specified", "captured"].includes(v.status))).toBe(true);
     expect(await database().decision.count({ where: { projectId: project.id } })).toBe(snapshot.decisions.length);
   });
 
-  it("is idempotent: a second import updates in place and adds no source version", async () => {
+  it("is idempotent: a second import plans nothing and adds no source version", async () => {
     const snapshot = await readSnapshot(root);
     const { project, actor } = await createProject();
     await snapshotService.import(project.id, actor, snapshot);
     const again = await snapshotService.import(project.id, actor, snapshot);
-    expect(again.requirementsCreated).toBe(0);
-    expect(again.sources).toBe(0);
+    expect(again.plan.requirements).toEqual([]);
+    expect(again.plan.sources).toEqual([]);
+    expect(again.plan.human).toEqual([]);
     expect(await database().sourceVersion.count()).toBe(1);
   });
 
@@ -39,8 +39,58 @@ describe("importing this repository's .lastro/", () => {
     const o = await overviewService.project(project.id);
     expect(o.requirements).toBeGreaterThan(20);
     expect(o.pending).toBe(o.requirements);
-    expect(o.coverage).toBe(0);
-    expect(o.tests.pending).toBeGreaterThan(0);
     expect(o.modules.length).toBeGreaterThan(1);
+  });
+});
+
+describe("import and human actions", () => {
+  async function approvedProject() {
+    const ctx = await createProject({ requireFinal: true });
+    const source = await createBriefSource(ctx.project.id, ctx.actor);
+    const req = await requirementsService.create(ctx.project.id, ctx.actor, discountRequirement(source.code));
+    await sourcesService.markFinal(ctx.project.id, ctx.actor, source.code);
+    return { ...ctx, source, code: req.code };
+  }
+
+  it("re-importing an unchanged export keeps approvals and locks", async () => {
+    const { project, actor, code } = await approvedProject();
+    await lifecycleService.approve(project.id, actor, code);
+    await lifecycleService.start(project.id, agent, code, null);
+    const report = await snapshotService.import(project.id, agent, await exportSnapshot(project.id));
+    expect(report.plan.requirements).toEqual([]);
+    const view = await requirementsService.get(project.id, code);
+    expect(view.status).toBe("building");
+    expect(view.criteria.every((c) => c.lockedHash)).toBe(true);
+  });
+
+  it("refuses a hand-made approval in an agent's import and names it; a person's import applies it", async () => {
+    const { project, actor, code } = await approvedProject();
+    const snapshot = await exportSnapshot(project.id);
+    const edited = { ...snapshot, requirements: snapshot.requirements.map((r) => (r.code === code ? { ...r, status: "approved" as const } : r)) };
+    const byAgent = await snapshotService.import(project.id, agent, edited);
+    expect(byAgent.refused).toEqual([expect.objectContaining({ kind: "approve", target: code })]);
+    expect((await requirementsService.get(project.id, code)).status).toBe("specified");
+    const byPerson = await snapshotService.import(project.id, actor, edited);
+    expect(byPerson.applied).toEqual([expect.objectContaining({ kind: "approve", target: code })]);
+    expect((await requirementsService.get(project.id, code)).status).toBe("approved");
+  });
+
+  it("keeps the QA configuration when an agent's snapshot changes it", async () => {
+    const { project } = await approvedProject();
+    const snapshot = await exportSnapshot(project.id);
+    const loosened = { ...snapshot, config: { ...snapshot.config, global_flow: [], types: {} } };
+    const report = await snapshotService.import(project.id, agent, loosened);
+    expect(report.refused.map((a) => a.kind)).toContain("config");
+    const after = await projectsService.getByKey((await database().project.findUniqueOrThrow({ where: { id: project.id } })).workspaceId, "billing");
+    expect(Object.keys((after.config as { types: object }).types)).toContain("calculation");
+  });
+
+  it("previews without changing anything", async () => {
+    const { project, actor, code } = await approvedProject();
+    const snapshot = await exportSnapshot(project.id);
+    const edited = { ...snapshot, requirements: snapshot.requirements.map((r) => (r.code === code ? { ...r, title: "Renamed" } : r)) };
+    const preview = await snapshotService.import(project.id, actor, edited, { dryRun: true });
+    expect(preview.plan.requirements).toEqual([{ code, change: "updated", fields: ["title"] }]);
+    expect((await requirementsService.get(project.id, code)).title).not.toBe("Renamed");
   });
 });

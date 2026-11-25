@@ -9,6 +9,7 @@ export const graphInclude = {
   decisions: { include: { decision: { select: { code: true, status: true, text: true, kind: true, decidedBy: true } } } },
   evidence: { orderBy: { verifiedAt: "desc" }, take: 1, select: { runId: true, treeHash: true, verifiedAt: true } },
   package: { select: { code: true, title: true } },
+  dependsOn: { select: { dependsOn: { select: { code: true } } } },
 } as const;
 
 export async function loadGraph(tx: Tx, requirementId: string) {

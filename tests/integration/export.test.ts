@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "bun:test";
-import { cpSync, existsSync, mkdtempSync } from "node:fs";
+import { cpSync, existsSync, mkdtempSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -13,7 +13,30 @@ const root = fileURLToPath(new URL("../..", import.meta.url));
 
 beforeEach(resetDatabase);
 
+/** Every file under a folder, as relative path → content. */
+function files(dir: string, base = dir): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const name of readdirSync(dir)) {
+    const path = join(dir, name);
+    if (name === ".out" || name === "README.md") continue;
+    if (statSync(path).isDirectory()) Object.assign(out, files(path, base));
+    else out[path.slice(base.length + 1)] = readFileSync(path, "utf8");
+  }
+  return out;
+}
+
 describe("lastro export", () => {
+  it("writes byte-identical files when nothing changed, and this repository's .lastro/ survives import and export unchanged", async () => {
+    const { project, actor } = await createProject();
+    await snapshotService.import(project.id, actor, await readSnapshot(root));
+    const first = mkdtempSync(join(tmpdir(), "lastro-export-"));
+    const second = mkdtempSync(join(tmpdir(), "lastro-export-"));
+    writeSnapshot(first, await exportSnapshot(project.id));
+    writeSnapshot(second, await exportSnapshot(project.id));
+    expect(files(join(second, ".lastro"))).toEqual(files(join(first, ".lastro")));
+    expect(files(join(first, ".lastro"))).toEqual(files(join(root, ".lastro")));
+  });
+
   it("round-trips this repository: import, export, write, read back gives the same spec", async () => {
     const original = await readSnapshot(root);
     const { project, actor } = await createProject();

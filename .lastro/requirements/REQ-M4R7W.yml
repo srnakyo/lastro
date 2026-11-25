@@ -1,21 +1,21 @@
 id: REQ-M4R7W
-title: "Live traceability diagram with gaps highlighted"
+title: Live traceability diagram with gaps highlighted
 type: ui
 status: specified
 package: PKG-D4S8H
 sources:
   - ref: SRC-P4RD7
     anchor: "@03-dashboard.md#rastreabilidade"
-    quote: "Da fonte até a evidência, com os buracos destacados"
-statement: >
+    quote: Da fonte até a evidência, com os buracos destacados
+statement: |
   The dashboard renders, from data, a Mermaid traceability diagram source → requirement → criterion → test → run, marking as gaps: criterion without test, test without run on the current commit, quote that does not match its source, requirement without a final source. Clicking a node opens the item.
-where: "Dashboard › Diagrams, Dashboard › Requirements › detail"
+where: Dashboard › Diagrams, Dashboard › Requirements › detail
 examples:
-  - given: "requirement with AC-1 linked to 2 tests and AC-2 with no test"
-    expect: "AC-2 drawn as a gap with the label 'no test'"
+  - given: requirement with AC-1 linked to 2 tests and AC-2 with no test
+    expect: AC-2 drawn as a gap with the label 'no test'
 acceptance:
   - id: AC-1
-    text: "Given a requirement whose AC-2 has no linked test, when its traceability diagram renders, then AC-2 is drawn with the gap style and the label 'no test'."
+    text: Given a requirement whose AC-2 has no linked test, when its traceability diagram renders, then AC-2 is drawn with the gap style and the label 'no test'.
     tests: []
 decisions: []
 questions: []

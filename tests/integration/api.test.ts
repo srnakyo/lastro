@@ -49,7 +49,7 @@ describe("REST API", () => {
     await call(person, "POST", "/projects/billing/requirements", discountRequirement(source.code));
     const snapshot = await (await call(person, "GET", "/projects/billing/export")).json();
     const imported = await call(person, "POST", "/projects/billing/import", snapshot);
-    expect(((await imported.json()) as { requirementsUpdated: number }).requirementsUpdated).toBe(1);
+    expect(((await imported.json()) as { plan: { requirements: unknown[] } }).plan.requirements).toEqual([]);
   });
 });
 
@@ -85,10 +85,12 @@ describe("MCP", () => {
 });
 
 describe("agent limits and hooks endpoints", () => {
-  it("refuses an agent's import, which could loosen the QA flow", async () => {
+  it("applies an agent's import but refuses the QA configuration change, which could loosen the gate", async () => {
     const { agent, person } = await setup();
-    const snapshot = await (await call(person, "GET", "/projects/billing/export")).json();
-    expect((await call(agent, "POST", "/projects/billing/import", snapshot)).status).toBe(403);
+    const snapshot = (await (await call(person, "GET", "/projects/billing/export")).json()) as { config: Record<string, unknown> };
+    const res = await call(agent, "POST", "/projects/billing/import", { ...snapshot, config: { ...snapshot.config, types: {} } });
+    expect(res.status).toBe(200);
+    expect(((await res.json()) as { refused: { kind: string }[] }).refused.map((r) => r.kind)).toEqual(["config"]);
   });
 
   it("records touched files on requirements in building and lists the locked test files", async () => {

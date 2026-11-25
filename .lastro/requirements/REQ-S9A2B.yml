@@ -1,21 +1,21 @@
 id: REQ-S9A2B
-title: "Runs page compares each run with the previous one"
+title: Runs page compares each run with the previous one
 type: ui
 status: specified
 package: PKG-M7V0P
 sources:
   - ref: SRC-P4RD7
     anchor: "@03-dashboard.md#página-de-execuções"
-    quote: "o que passou a falhar e o que voltou a passar"
-statement: >
+    quote: o que passou a falhar e o que voltou a passar
+statement: |
   The Runs page shows trigger, commit, branch, stages by condition, command, output, duration, exit code and artifacts of each run, and compares it with the previous run of the same requirement: newly failing and newly passing tests.
-where: "Dashboard › Runs"
+where: Dashboard › Runs
 examples:
-  - given: "run 2 where test X now fails and test Y now passes compared with run 1"
-    expect: "run 2 lists X under 'started failing' and Y under 'passing again'"
+  - given: run 2 where test X now fails and test Y now passes compared with run 1
+    expect: run 2 lists X under 'started failing' and Y under 'passing again'
 acceptance:
   - id: AC-1
-    text: "Given two consecutive runs of a requirement, when the second is opened, then tests that changed from pass to fail and from fail to pass are listed separately."
+    text: Given two consecutive runs of a requirement, when the second is opened, then tests that changed from pass to fail and from fail to pass are listed separately.
     tests: []
 decisions: []
 questions: []

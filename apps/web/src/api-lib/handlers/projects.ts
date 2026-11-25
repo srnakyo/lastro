@@ -17,7 +17,8 @@ export function projectRoutes(router: ApiRouter) {
       return { key: p.key, name: p.name, config: p.config };
     })
     .on("GET", "/projects/:key/context", async ({ token, params }) => agentContext((await tokenProject(token, params.key ?? "")).id))
-    .on("POST", "/projects/:key/import", async ({ token, params, request }) => snapshotService.import((await tokenProject(token, params.key ?? "")).id, token.actor, (await body(request)) as never))
+    .on("POST", "/projects/:key/import", async ({ token, params, request, query }) =>
+      snapshotService.import((await tokenProject(token, params.key ?? "")).id, token.actor, (await body(request)) as never, { dryRun: query.get("dryRun") === "1" }))
     .on("GET", "/projects/:key/export", async ({ token, params }) => exportSnapshot((await tokenProject(token, params.key ?? "")).id))
     .on("GET", "/projects/:key/pending", async ({ token, params }) => {
       const views = await requirementsService.list((await tokenProject(token, params.key ?? "")).id);

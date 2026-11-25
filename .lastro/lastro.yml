@@ -1,57 +1,90 @@
-# Lastro's own configuration: the project uses itself.
 version: 1
-project: "lastro"
+project: lastro
 language: en
-
-server:
-  url_env: LASTRO_SERVER_URL
-  token_env: LASTRO_TOKEN
-
 approval:
-  spec: [dev]
-  require_final_source: true      # the PRD must be marked final before anything is approved
-
+  spec:
+    - dev
+  require_final_source: true
 commands:
-  typecheck: { run: "bunx tsc --noEmit" }
-  lint:      { run: "bunx eslint . --max-warnings 0 -f @microsoft/eslint-formatter-sarif -o .lastro/.out/eslint.sarif", report: { sarif: ".lastro/.out/eslint.sarif" } }
-  unit:      { run: "bun test --preload ./tests/setup/preload.ts tests/unit tests/integration --reporter=junit --reporter-outfile=.lastro/.out/unit.xml", report: { junit: ".lastro/.out/unit.xml" } }
-  e2e:       { run: "bunx playwright test --reporter=junit", env: { PLAYWRIGHT_JUNIT_OUTPUT_NAME: ".lastro/.out/e2e.xml" }, report: { junit: ".lastro/.out/e2e.xml" } }
-
+  e2e:
+    run: bunx playwright test --reporter=junit
+    env:
+      PLAYWRIGHT_JUNIT_OUTPUT_NAME: .lastro/.out/e2e.xml
+    report:
+      junit: .lastro/.out/e2e.xml
+  lint:
+    run: bunx eslint . --max-warnings 0 -f @microsoft/eslint-formatter-sarif -o .lastro/.out/eslint.sarif
+    report:
+      sarif: .lastro/.out/eslint.sarif
+  unit:
+    run: bun test --preload ./tests/setup/preload.ts tests/unit tests/integration --reporter=junit --reporter-outfile=.lastro/.out/unit.xml
+    report:
+      junit: .lastro/.out/unit.xml
+  typecheck:
+    run: bunx tsc --noEmit
 conditions:
-  windows-paths:  { env: { LASTRO_TEST_PATH_STYLE: "win32" }, note: "paths with backslashes and drive letters" }
-  postgres:       { note: "throwaway lastro_test database on Postgres 16 (LASTRO_TEST_DATABASE_URL); the test preload applies the migrations and refuses any other database" }
-  light-theme:    { env: { E2E_THEME: "light" } }
-  dark-theme:     { env: { E2E_THEME: "dark" } }
-  mobile-width:   { env: { E2E_VIEWPORT: "390x844" } }
-
+  postgres:
+    note: throwaway lastro_test database on Postgres 16 (LASTRO_TEST_DATABASE_URL); the test preload applies the migrations and refuses any other database
+  dark-theme:
+    env:
+      E2E_THEME: dark
+  light-theme:
+    env:
+      E2E_THEME: light
+  mobile-width:
+    env:
+      E2E_VIEWPORT: 390x844
+  windows-paths:
+    env:
+      LASTRO_TEST_PATH_STYLE: win32
+    note: paths with backslashes and drive letters
 types:
-  behavior:
-    required: [where, examples]
-    flow:
-      - typecheck
-      - unit
-  format:
-    required: [examples]
-    flow:
-      - typecheck
-      - unit
-      - { check: examples }
-
-  storage:
-    required: [where, examples]
-    flow:
-      - typecheck
-      - { run: unit, conditions: [postgres] }
   ui:
-    required: [where, examples]
+    required:
+      - where
+      - examples
     flow:
       - typecheck
-      - { run: e2e, conditions: [light-theme, dark-theme, mobile-width] }
-      - { check: preview, manual: true, by: dev }
-
-global_flow: [typecheck, lint]
-
+      - run: e2e
+        conditions:
+          - light-theme
+          - dark-theme
+          - mobile-width
+      - check: preview
+        manual: true
+        by: dev
+  format:
+    required:
+      - examples
+    flow:
+      - typecheck
+      - unit
+      - check: examples
+  storage:
+    required:
+      - where
+      - examples
+    flow:
+      - typecheck
+      - run: unit
+        conditions:
+          - postgres
+  behavior:
+    required:
+      - where
+      - examples
+    flow:
+      - typecheck
+      - unit
+global_flow:
+  - typecheck
+  - lint
 gate:
   block_agent_stop: true
   stale_on_change: true
+  max_stop_blocks: 3
   ci: required
+  human_identities: []
+server:
+  url_env: LASTRO_SERVER_URL
+  token_env: LASTRO_TOKEN

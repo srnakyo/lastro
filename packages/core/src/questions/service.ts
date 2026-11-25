@@ -40,10 +40,11 @@ export const questionsService = {
       const question = await tx.question.findUnique({ relationLoadStrategy: "join", where: { projectId_code: { projectId, code } }, include: { requirements: { include: { requirement: { select: { id: true, code: true } } } } } });
       if (!question) throw notFound(`question ${code}`);
       if (question.answer) throw new LastroError("CONFLICT", `${code} is already answered`);
-      const decision = await createDecision(tx, scope, actor, {
+      const linked = input.decision ? await tx.decision.findUnique({ where: { projectId_code: { projectId, code: input.decision } } }) : null;
+      const decision = linked ?? (await createDecision(tx, scope, actor, {
         kind: "client_answer", text: input.answer, reason: `answer to ${code}: ${question.text}`, decidedBy: input.decidedBy,
         showToClient: true, sourceRef: input.answerSource, requirements: question.requirements.map((r) => r.requirement.code),
-      });
+      }));
       await tx.question.update({ where: { id: question.id }, data: { answer: input.answer, answerSource: input.answerSource ?? null, answeredAt: new Date(), decisionId: decision.id } });
       await auditService.record(tx, { workspaceId: scope.workspaceId, projectId, actor, action: "question.answer", entity: "question", entityId: code });
       for (const r of question.requirements) await reevaluate(tx, scope, r.requirement.id);

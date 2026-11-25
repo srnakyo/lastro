@@ -1,0 +1,102 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+env:
+  LASTRO_DATABASE_URL: postgresql://lastro:lastro@localhost:5432/lastro
+  LASTRO_TEST_DATABASE_URL: postgresql://lastro:lastro@localhost:5432/lastro_test
+  BETTER_AUTH_SECRET: ci-only-secret-not-used-anywhere-else
+  LASTRO_URL: http://localhost:4317
+  LASTRO_STORAGE_DIR: ${{ github.workspace }}/.lastro-storage
+
+jobs:
+  checks:
+    name: Lint, types and audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with: { bun-version: 1.3.2 }
+      - run: bun install --frozen-lockfile
+      - run: cd packages/database && bunx prisma generate
+      - run: bun run lint
+      - run: bun run typecheck
+      - run: bun audit
+
+  tests:
+    name: Unit and integration tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env: { POSTGRES_USER: lastro, POSTGRES_PASSWORD: lastro, POSTGRES_DB: lastro_test }
+        ports: ["5432:5432"]
+        options: --health-cmd "pg_isready -U lastro" --health-interval 5s --health-timeout 5s --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with: { bun-version: 1.3.2 }
+      - run: bun install --frozen-lockfile
+      - run: cd packages/database && bunx prisma generate
+      - run: bunx playwright install --with-deps chromium   # documents are printed to PDF in the integration tests
+      - run: mkdir -p .lastro/.out && bun test --preload ./tests/setup/preload.ts tests/unit tests/integration --reporter=junit --reporter-outfile=.lastro/.out/unit.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: unit-junit, path: .lastro/.out/unit.xml }
+
+  e2e:
+    name: Screens (Playwright)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env: { POSTGRES_USER: lastro, POSTGRES_PASSWORD: lastro, POSTGRES_DB: lastro }
+        ports: ["5432:5432"]
+        options: --health-cmd "pg_isready -U lastro" --health-interval 5s --health-timeout 5s --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with: { bun-version: 1.3.2 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: bun install --frozen-lockfile
+      - run: cd packages/database && bunx prisma generate && bunx prisma migrate deploy
+      - run: bunx playwright install --with-deps chromium
+      - run: cd apps/web && bun run build
+      - name: Start the server
+        run: |
+          (cd apps/web && PORT=4317 node .output/server/index.mjs > ../../server.log 2>&1 &)
+          for i in $(seq 1 60); do curl -sf http://localhost:4317/sign-in > /dev/null && break; sleep 1; done
+      - run: bun scripts/seed-dev.ts
+      - run: bunx playwright test
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-report
+          path: |
+            .lastro/.out/e2e.xml
+            test-results
+            server.log
+
+  gate:
+    name: Lastro gate
+    # Runs once the repository has a Lastro server: set the LASTRO_URL variable and the LASTRO_TOKEN secret.
+    if: vars.LASTRO_URL != ''
+    needs: [checks, tests, e2e]
+    runs-on: ubuntu-latest
+    env:
+      LASTRO_URL: ${{ vars.LASTRO_URL }}
+      LASTRO_TOKEN: ${{ secrets.LASTRO_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with: { bun-version: 1.3.2 }
+      - run: bun install --frozen-lockfile && cd packages/cli && bun run build
+      - run: node packages/cli/dist/lastro.js gate --markdown >> "$GITHUB_STEP_SUMMARY"
+      - run: node packages/cli/dist/lastro.js gate

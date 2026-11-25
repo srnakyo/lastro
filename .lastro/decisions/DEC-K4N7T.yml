@@ -1,9 +1,11 @@
 id: DEC-K4N7T
 about: []
 kind: decision
-text: "Strict TypeScript on bun, with bun workspaces and Turborepo; zod contracts in packages/shared exported as JSON Schema; Prisma 7 on Postgres 16."
-reason: "Same ecosystem as MCP and the coding agents, fast installs and tests, tasks cached per package, and runtime validation plus editor autocompletion from one source shared by the API, the CLI, the MCP and the export."
+text: Strict TypeScript on bun, with bun workspaces and Turborepo; zod contracts in packages/shared exported as JSON Schema; Prisma 7 on Postgres 16.
+reason: Same ecosystem as MCP and the coding agents, fast installs and tests, tasks cached per package, and runtime validation plus editor autocompletion from one source shared by the API, the CLI, the MCP and the export.
 decided_by: agent
 status: proposed
 show_to_client: true
-source: { ref: SRC-P4RD7, anchor: "@09-architecture-roadmap.md#stack" }
+source:
+  ref: SRC-P4RD7
+  anchor: "@09-architecture-roadmap.md#stack"

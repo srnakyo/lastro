@@ -1,21 +1,21 @@
 id: REQ-K1P4V
-title: "Requirement detail shows the quote next to the source passage"
+title: Requirement detail shows the quote next to the source passage
 type: ui
 status: specified
 package: PKG-D4S8H
 sources:
   - ref: SRC-P4RD7
     anchor: "@03-dashboard.md#páginas"
-    quote: "a citação lado a lado com o trecho da fonte"
-statement: >
+    quote: a citação lado a lado com o trecho da fonte
+statement: |
   The requirement detail page shows each quote side by side with the source passage around its anchor, then fields, acceptance criteria, linked tests, decisions, questions and state history.
-where: "Dashboard › Requirements › detail"
+where: Dashboard › Requirements › detail
 examples:
-  - given: "REQ-7V6KE opened in the dashboard"
+  - given: REQ-7V6KE opened in the dashboard
     expect: "left: the quote; right: the paragraph of 05-lifecycle-and-gates.md around the anchor, with the quote highlighted"
 acceptance:
   - id: AC-1
-    text: "Given a requirement with a quote anchored in an in-repo source, when its page opens, then the quote and the surrounding source passage appear side by side with the quote highlighted."
+    text: Given a requirement with a quote anchored in an in-repo source, when its page opens, then the quote and the surrounding source passage appear side by side with the quote highlighted.
     tests: []
 decisions: []
 questions: []

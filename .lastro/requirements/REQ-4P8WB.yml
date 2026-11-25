@@ -1,32 +1,32 @@
 id: REQ-4P8WB
-title: "Quotes must exist literally in the source"
+title: Quotes must exist literally in the source
 type: behavior
 status: specified
 package: PKG-M7V0P
 sources:
   - ref: SRC-P4RD7
     anchor: "@05-lifecycle-and-gates.md#captured--specified"
-    quote: "Citação inventada é recusada."
+    quote: Citação inventada é recusada.
   - ref: SRC-P4RD7
     anchor: "@04-domain-model.md#fonte-sourcessrc-xxxxxyml"
-    quote: "Nesse caso, ela é conferida contra todos os parágrafos dentro da seção."
-statement: >
+    quote: Nesse caso, ela é conferida contra todos os parágrafos dentro da seção.
+statement: |
   Every sources[].quote of a requirement must appear literally (ignoring Markdown emphasis markers and repeated whitespace) in a Passage of the referenced source version at the given anchor. A paragraph anchor (@file#slug/p2) matches that passage; a section anchor (@file#slug) matches any paragraph under the section. The Citation records whether the quote was found and in which passage. A quote that does not match blocks the move to specified and is reported with the closest passage found.
-where: "lastro req edit, lastro pending"
+where: lastro req edit, lastro pending
 examples:
-  - given: "quote copied from the source with a line break in a different place"
-    expect: "accepted"
-  - given: "quote with one word changed"
-    expect: "rejected; report shows the closest passage at the anchor"
+  - given: quote copied from the source with a line break in a different place
+    expect: accepted
+  - given: quote with one word changed
+    expect: rejected; report shows the closest passage at the anchor
 acceptance:
   - id: AC-1
-    text: "Given a quote that differs from the source by one word, when the requirement is evaluated, then it stays captured and the report shows the closest passage at that anchor."
+    text: Given a quote that differs from the source by one word, when the requirement is evaluated, then it stays captured and the report shows the closest passage at that anchor.
     tests: []
   - id: AC-2
-    text: "Given a quote that differs only by line breaks or ** markers, when the requirement is evaluated, then the quote is accepted."
+    text: Given a quote that differs only by line breaks or ** markers, when the requirement is evaluated, then the quote is accepted.
     tests: []
   - id: AC-3
-    text: "Given a quote anchored to a section (@file#slug) that appears in its third paragraph, when the requirement is evaluated, then the quote is accepted and the Citation points to the passage @file#slug/p3."
+    text: Given a quote anchored to a section (@file#slug) that appears in its third paragraph, when the requirement is evaluated, then the quote is accepted and the Citation points to the passage @file#slug/p3.
     tests: []
 decisions: []
 questions: []

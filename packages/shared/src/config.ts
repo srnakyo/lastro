@@ -49,8 +49,20 @@ export const projectConfigSchema = z.object({
       block_agent_stop: z.boolean().default(true),
       stale_on_change: z.boolean().default(true),
       max_stop_blocks: z.number().int().min(1).default(3),
+      /** Whether CI must run the gate: required (a failing gate fails the job), optional, or off. */
+      ci: z.enum(["required", "optional", "off"]).default("required"),
+      /** Who may skip the terminal confirmation of a human command with --yes: e-mails of people. */
+      human_identities: z.array(z.string()).default([]),
     })
-    .default({ block_agent_stop: true, stale_on_change: true, max_stop_blocks: 3 }),
+    .default({ block_agent_stop: true, stale_on_change: true, max_stop_blocks: 3, ci: "required", human_identities: [] }),
+  /** Where the CLI finds the server: names of environment variables, never the values, and the linked project. */
+  server: z
+    .object({
+      project: z.string().optional(),
+      url_env: z.string().regex(/^[A-Z][A-Z0-9_]*$/, "the name of an environment variable, like LASTRO_URL").optional(),
+      token_env: z.string().regex(/^[A-Z][A-Z0-9_]*$/, "the name of an environment variable, like LASTRO_TOKEN").optional(),
+    })
+    .optional(),
 });
 export type ProjectConfig = z.output<typeof projectConfigSchema>;
 export type ProjectConfigInput = z.input<typeof projectConfigSchema>;

@@ -6,21 +6,21 @@ package: PKG-M7V0P
 sources:
   - ref: SRC-P4RD7
     anchor: "@07-interfaces.md#projeto"
-    quote: "Cria o projeto no servidor, liga o repositório a ele e grava o primeiro `.lastro/` com `lastro.yml`, glossário e contrato de layout vazios"
-statement: >
+    quote: Cria o projeto no servidor, liga o repositório a ele e grava o primeiro `.lastro/` com `lastro.yml`, glossário e contrato de layout vazios
+statement: |
   `lastro init` creates the project on the Lastro server through the API, links the repository to it (the project key goes into lastro.yml), writes the first .lastro/ export with lastro.yml, glossary.yml, design.yml and the folder of each entity, and adds .lastro/.out/ to .gitignore. Running it again never overwrites existing files and never creates a second project.
-where: "lastro init"
+where: lastro init
 examples:
-  - given: "empty git repository, signed in with `lastro login`"
-    expect: "project created on the server; lastro.yml, glossary.yml, design.yml, the entity folders and 1 .gitignore line written; exit code 0"
-  - given: "repository that already has .lastro/lastro.yml linked to a project"
-    expect: "changes no existing file, creates no project and reports 'already initialized'; exit code 0"
+  - given: empty git repository, signed in with `lastro login`
+    expect: project created on the server; lastro.yml, glossary.yml, design.yml, the entity folders and 1 .gitignore line written; exit code 0
+  - given: repository that already has .lastro/lastro.yml linked to a project
+    expect: changes no existing file, creates no project and reports 'already initialized'; exit code 0
 acceptance:
   - id: AC-1
-    text: "Given an empty git repository and a signed-in CLI, when `lastro init` runs, then the server has a new project whose key is in .lastro/lastro.yml, .lastro/ contains lastro.yml, glossary.yml, design.yml and the folders sources/, requirements/, decisions/, questions/, incidents/, packages/, and .gitignore ignores .lastro/.out/."
+    text: Given an empty git repository and a signed-in CLI, when `lastro init` runs, then the server has a new project whose key is in .lastro/lastro.yml, .lastro/ contains lastro.yml, glossary.yml, design.yml and the folders sources/, requirements/, decisions/, questions/, incidents/, packages/, and .gitignore ignores .lastro/.out/.
     tests: []
   - id: AC-2
-    text: "Given a repository with an existing .lastro/lastro.yml linked to a project, when `lastro init` runs, then no existing file changes and the server has no new project."
+    text: Given a repository with an existing .lastro/lastro.yml linked to a project, when `lastro init` runs, then no existing file changes and the server has no new project.
     tests: []
 decisions: []
 questions: []
