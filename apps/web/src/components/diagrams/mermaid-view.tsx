@@ -30,6 +30,13 @@ async function render(id: string, source: string): Promise<string> {
   return naturalSize((await mermaid.render(id, source)).svg);
 }
 
+/** Mermaid gives each flowchart node an element id like "…flowchart-<node id>-<n>": the node id is what the page maps to a link. */
+function clickNode(target: EventTarget, onNodeClick: (nodeId: string) => boolean) {
+  const node = (target as Element).closest?.("g.node");
+  const match = node?.id ? /flowchart-(.+)-\d+$/.exec(node.id) : null;
+  if (match?.[1]) onNodeClick(match[1]);
+}
+
 function enqueue(id: string, source: string): Promise<string> {
   const next = queue.then(() => render(id, source));
   queue = next.catch(() => undefined);
@@ -37,7 +44,7 @@ function enqueue(id: string, source: string): Promise<string> {
 }
 
 /** Renders Mermaid source in the browser (Mermaid is loaded on demand), following the light or dark theme. `fit` shrinks a wide diagram to the container instead of scrolling. */
-export function MermaidView({ source, className, minHeight = 160, fit = false }: { source: string; className?: string; minHeight?: number; fit?: boolean }) {
+export function MermaidView({ source, className, minHeight = 160, fit = false, onNodeClick }: { source: string; className?: string; minHeight?: number; fit?: boolean; onNodeClick?: (nodeId: string) => boolean }) {
   const { t } = useI18n();
   const id = useId().replace(/[^a-zA-Z0-9]/g, "");
   const [svg, setSvg] = useState<string | null>(null);
@@ -60,7 +67,11 @@ export function MermaidView({ source, className, minHeight = 160, fit = false }:
       {error ? (
         <pre className="overflow-auto rounded-md bg-muted p-3 font-mono text-[11.5px] text-destructive">{error}</pre>
       ) : svg ? (
-        <div className={cn("overflow-x-auto [&_svg]:mx-auto [&_svg]:block [&_svg]:h-auto", fit && "[&_svg]:max-w-full")} dangerouslySetInnerHTML={{ __html: svg }} />
+        <div
+          className={cn("overflow-x-auto [&_svg]:mx-auto [&_svg]:block [&_svg]:h-auto", fit && "[&_svg]:max-w-full", onNodeClick && "[&_g.node]:cursor-pointer")}
+          onClick={onNodeClick ? (e) => clickNode(e.target, onNodeClick) : undefined}
+          dangerouslySetInnerHTML={{ __html: svg }}
+        />
       ) : (
         <div style={{ height: minHeight }}><Skeleton className="size-full" /></div>
       )}

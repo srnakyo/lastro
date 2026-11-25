@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { signIn } from "./helpers";
+import { DEV_USER, signIn } from "./helpers";
 
 test("signing in lands on the projects of the workspace", async ({ page }) => {
   await signIn(page);
@@ -41,4 +41,21 @@ test("the project switcher moves between projects and keeps the page", async ({ 
 test("protected pages send signed-out people to sign-in", async ({ page }) => {
   await page.goto("/projects/lastro");
   await expect(page).toHaveURL(/sign-in/);
+});
+
+test("signing in from a project URL returns to that URL (REQ-J8M1T)", async ({ page }) => {
+  await page.goto("/projects/shop-demo/tests");
+  await page.waitForLoadState("networkidle");
+  await expect(page).toHaveURL(/\/sign-in\?redirect=/);
+  await page.fill("#email", DEV_USER.email);
+  await page.fill("#password", DEV_USER.password);
+  await page.click("button[type=submit]");
+  await expect(page).toHaveURL(/\/projects\/shop-demo\/tests$/);
+});
+
+test("a project outside the person's workspaces answers as not found (REQ-J8M1T)", async ({ page }) => {
+  await signIn(page);
+  await page.goto("/projects/someone-elses-project");
+  await page.waitForLoadState("networkidle");
+  await expect(page.getByRole("heading", { name: "Page not found" })).toBeVisible();
 });

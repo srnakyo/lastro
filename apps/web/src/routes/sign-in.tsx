@@ -8,7 +8,11 @@ import { signIn } from "@/lib/auth-client";
 import { useRefreshViewer } from "@/hooks/use-refresh-viewer";
 import { useI18n } from "@/lib/i18n";
 
+/** Only a path of this site: never another host (//evil.example) or a scheme. */
+const safePath = (value: unknown) => (typeof value === "string" && value.startsWith("/") && !value.startsWith("//") && !value.includes("\\") ? value : undefined);
+
 export const Route = createFileRoute("/sign-in")({
+  validateSearch: (search: Record<string, unknown>): { redirect?: string } => ({ redirect: safePath(search.redirect) }),
   beforeLoad: ({ context }) => {
     if (context.viewer.user) throw redirect({ to: "/" });
   },
@@ -18,6 +22,7 @@ export const Route = createFileRoute("/sign-in")({
 function SignIn() {
   const { t } = useI18n();
   const router = useRouter();
+  const search = Route.useSearch();
   const refresh = useRefreshViewer();
   const { viewer } = Route.useRouteContext();
   const [error, setError] = useState<string | null>(null);
@@ -31,7 +36,7 @@ function SignIn() {
     setBusy(false);
     if (result.error) return setError(t("auth.failed"));
     await refresh();
-    await router.navigate({ to: "/" });
+    await router.navigate({ href: search.redirect ?? "/" });
   }
 
   return (

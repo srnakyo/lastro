@@ -1,4 +1,4 @@
-import { projectsService, workspacesService } from "@lastro/core";
+import { LastroError, projectsService, workspacesService } from "@lastro/core";
 import type { Actor } from "@lastro/shared";
 import { getCookie, getRequest } from "@tanstack/react-start/server";
 import { auth } from "@/lib/auth.server";
@@ -26,12 +26,20 @@ export async function activeWorkspace(userId: string) {
   return { workspaces, workspace: workspaces.find((w) => w.slug === slug) ?? workspaces[0] ?? null };
 }
 
-/** A project of the active workspace, by key, checked against the membership. */
+/**
+ * A project by key, in the active workspace or, when it is not there, in another workspace the person
+ * belongs to. Projects of workspaces they do not belong to are not found.
+ */
 export async function requireProject(key: string) {
   const { user, actor } = await requireUser();
-  const { workspace } = await activeWorkspace(user.id);
+  const { workspace, workspaces } = await activeWorkspace(user.id);
   if (!workspace) throw new Error("NO_WORKSPACE");
-  await workspacesService.requireMember(workspace.id, user.id);
-  const project = await projectsService.getByKey(workspace.id, key);
-  return { user, actor, workspace, project };
+  for (const candidate of [workspace, ...workspaces.filter((w) => w.id !== workspace.id)]) {
+    const project = await projectsService.getByKey(candidate.id, key).catch(() => null);
+    if (project) {
+      await workspacesService.requireMember(candidate.id, user.id);
+      return { user, actor, workspace: candidate, project };
+    }
+  }
+  throw new LastroError("NOT_FOUND", `project ${key} not found`);
 }

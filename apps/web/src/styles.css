@@ -259,3 +259,11 @@
   color: hsl(var(--muted-foreground));
   font-weight: 600;
 }
+
+/* The quote inside its source passage. */
+.prose-lastro mark {
+  background: hsl(var(--warning) / 0.35);
+  color: inherit;
+  border-radius: 3px;
+  padding: 0 2px;
+}

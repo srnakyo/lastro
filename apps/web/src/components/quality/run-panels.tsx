@@ -1,31 +1,44 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowRight } from "lucide-react";
-import { ResultBadge } from "@/components/status-badge";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import type { RunDetail } from "@/hooks/run-queries";
 import { useI18n } from "@/lib/i18n";
 import { RunStageRow } from "./run-stage";
 
+function TestList({ title, refs, tone }: { title: string; refs: string[]; tone: "danger" | "success" }) {
+  if (refs.length === 0) return null;
+  return (
+    <div>
+      <p className={tone === "danger" ? "text-[12px] font-medium text-destructive" : "text-[12px] font-medium text-success"}>{title} ({refs.length})</p>
+      <ul className="mt-1 grid gap-0.5">{refs.map((ref) => <li key={ref} className="truncate font-mono text-[12px]">{ref}</li>)}</ul>
+    </div>
+  );
+}
+
+/** Per requirement: the previous run of that requirement, the tests that started failing and those passing again. */
 export function RunChanges({ projectKey, run }: { projectKey: string; run: RunDetail }) {
   const { t } = useI18n();
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="min-w-0">{t("run.changes")}</CardTitle>
-        {run.previousId && (
-          <Link to="/projects/$key/runs/$id" params={{ key: projectKey, id: run.previousId }} className="shrink-0 whitespace-nowrap text-[12.5px] text-primary hover:underline">{t("run.previous")}</Link>
-        )}
-      </CardHeader>
-      {!run.previousId || run.changed.length === 0 ? (
-        <p className="px-5 py-4 text-[13px] text-muted-foreground">{run.previousId ? t("run.changes.none") : t("run.changes.first")}</p>
+      <CardHeader><CardTitle className="min-w-0">{t("run.changes")}</CardTitle></CardHeader>
+      {run.comparisons.length === 0 ? (
+        <p className="px-5 py-4 text-[13px] text-muted-foreground">{t("run.changes.first")}</p>
       ) : (
         <ul className="divide-y">
-          {run.changed.map((c) => (
-            <li key={c.ref} className="flex flex-wrap items-center gap-2 px-5 py-2.5">
-              <span className="min-w-0 flex-1 truncate font-mono text-[12px]">{c.ref}</span>
-              {c.from && <ResultBadge status={c.from} />}
-              <ArrowRight className="size-3.5 text-muted-foreground" />
-              <ResultBadge status={c.to} />
+          {run.comparisons.map((c) => (
+            <li key={c.requirement} className="grid gap-2 px-5 py-3">
+              <div className="flex flex-wrap items-center gap-2 text-[12.5px]">
+                <span className="font-mono font-medium">{c.requirement}</span>
+                {c.previousId ? (
+                  <Link to="/projects/$key/runs/$id" params={{ key: projectKey, id: c.previousId }} className="shrink-0 whitespace-nowrap text-primary hover:underline">
+                    {t("run.previousOf", { commit: c.previousCommit ?? c.previousId.slice(0, 8) })}
+                  </Link>
+                ) : (
+                  <span className="text-muted-foreground">{t("run.changes.first")}</span>
+                )}
+              </div>
+              {c.previousId && c.newlyFailing.length === 0 && c.newlyPassing.length === 0 && <p className="text-[12.5px] text-muted-foreground">{t("run.changes.none")}</p>}
+              <TestList title={t("run.newlyFailing")} refs={c.newlyFailing} tone="danger" />
+              <TestList title={t("run.newlyPassing")} refs={c.newlyPassing} tone="success" />
             </li>
           ))}
         </ul>
@@ -80,7 +93,7 @@ export function RunStages({ projectKey, run }: { projectKey: string; run: RunDet
             )}
           </CardHeader>
           <div className="divide-y text-[13px]">
-            {group.stages.map((s) => <RunStageRow key={s.id} stage={s} />)}
+            {group.stages.map((s) => <RunStageRow key={s.id} projectKey={projectKey} stage={s} />)}
           </div>
         </Card>
       ))}

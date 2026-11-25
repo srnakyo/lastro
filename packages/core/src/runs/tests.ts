@@ -1,25 +1,27 @@
 import { db } from "../db";
 
 /**
- * The test catalog: every test seen in a run, with its history, whether it is flaky (passed and
- * failed on the same commit) and whether any criterion points to it.
+ * The test catalog: every test seen in a run, with its history, whether it is flaky (it passed and failed
+ * while the files its requirement is bound to did not change) and whether any criterion points to it.
  */
 export async function testCatalog(projectId: string) {
   const [tests, links] = await Promise.all([
     db().test.findMany({
       where: { projectId },
       orderBy: { ref: "asc" },
-      include: { results: { orderBy: { runStage: { startedAt: "desc" } }, take: 20, select: { status: true, durationMs: true, runStage: { select: { condition: true, startedAt: true, run: { select: { id: true, commit: true } } } } } } },
+      include: { results: { orderBy: { runStage: { startedAt: "desc" } }, take: 20, select: { status: true, durationMs: true, runStage: { select: { condition: true, startedAt: true, treeHash: true, run: { select: { id: true, commit: true } } } } } } },
     }),
     db().criterionTest.findMany({ where: { criterion: { requirement: { projectId } } }, select: { testRef: true, criterion: { select: { code: true, requirement: { select: { code: true } } } } } }),
   ]);
   return tests.map((t) => {
-    const byCommit = new Map<string, Set<string>>();
+    // Same fingerprint of the covered files (or, for a test no requirement covers, the same commit) and both
+    // outcomes: nothing changed, yet the result did.
+    const byTree = new Map<string, Set<string>>();
     for (const r of t.results) {
-      const commit = r.runStage.run.commit ?? "";
-      byCommit.set(commit, (byCommit.get(commit) ?? new Set()).add(r.status));
+      const key = r.runStage.treeHash ?? `commit:${r.runStage.run.commit ?? ""}`;
+      byTree.set(key, (byTree.get(key) ?? new Set()).add(r.status));
     }
-    const flaky = [...byCommit.values()].some((s) => s.has("passed") && (s.has("failed") || s.has("error")));
+    const flaky = [...byTree.values()].some((s) => s.has("passed") && (s.has("failed") || s.has("error")));
     const covers = links.filter((l) => l.testRef === t.ref).map((l) => `${l.criterion.requirement.code} ${l.criterion.code}`);
     return { id: t.id, ref: t.ref, file: t.file, name: t.name, last: t.results[0]?.status ?? null, history: t.results, flaky, orphan: covers.length === 0, covers };
   });

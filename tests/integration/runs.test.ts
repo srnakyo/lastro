@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "bun:test";
-import { criteriaService, glossaryService, lifecycleService, requirementsService, runsService, sourcesService, testCatalog } from "@lastro/core";
+import { criteriaService, glossaryService, incidentsService, lifecycleService, requirementsService, runsService, sourcesService, testCatalog } from "@lastro/core";
 import { database } from "@lastro/database";
 import { projectConfigSchema, type RunReportInput } from "@lastro/shared";
 import { resetDatabase } from "../helpers/db";
@@ -83,11 +83,11 @@ describe("runs and the gate", () => {
     extra.stages[0]?.results.push({ ref: "tests/other.test.ts::x", file: "tests/other.test.ts", name: "x", status: "passed", durationMs: 1, message: null });
     const second = await runsService.record(project.id, agent, extra);
     const catalog = await testCatalog(project.id);
+    // Failed then passed with the same fingerprint of the bound files: nothing changed, so it is flaky.
     expect(catalog.find((t) => t.ref === TEST_REF)).toMatchObject({ flaky: true, orphan: false, last: "passed" });
     expect(catalog.find((t) => t.ref === "tests/other.test.ts::x")?.orphan).toBe(true);
     const detail = await runsService.get(project.id, second.runId);
-    expect(detail.previousId).toBe(first.runId);
-    expect(detail.changed).toEqual([{ ref: TEST_REF, from: "failed", to: "passed" }]);
+    expect(detail.comparisons).toEqual([{ requirement: code, previousId: first.runId, previousCommit: "abc1234", newlyFailing: [], newlyPassing: [TEST_REF] }]);
   });
 });
 
@@ -111,11 +111,25 @@ describe("gate rules beyond stages and tests", () => {
     expect(view.history.at(-1)?.reason).toBe("stale evidence");
   });
 
-  it("requires the regression tests of the requirement's incidents and the invariant tests", async () => {
+  it("requires the invariant tests that run in the requirement's stages to pass", async () => {
     const { project, actor, code } = await building();
-    await glossaryService.upsertInvariant(project.id, actor, { code: "INV-1", text: "Totals are never negative", testRefs: ["tests/totals.test.ts::never negative"] });
+    await glossaryService.upsertInvariant(project.id, actor, { code: "INV-1", text: "Totals are never negative", testRefs: ["tests/totals.test.ts::never negative", "tests/other.test.ts::not in this suite"] });
+    const base = report(code, "passed");
+    const stage = base.stages[0];
+    if (!stage) throw new Error("no stage");
+    const failing = { ...base, stages: [{ ...stage, results: [...stage.results, { ref: "tests/totals.test.ts::never negative", file: "tests/totals.test.ts", name: "never negative", status: "failed" as const, durationMs: 1, message: "-1" }] }] };
+    const result = await runsService.record(project.id, agent, failing);
+    expect(result.gates[code]?.agentCanFix).toEqual(["invariant INV-1: tests/totals.test.ts::never negative failed"]);
+  });
+
+  it("requires the regression test of an incident on the requirement", async () => {
+    const { project, actor, code } = await building();
+    await runsService.record(project.id, agent, report(code, "passed"));
+    const incident = await incidentsService.report(project.id, actor, { reported: "8% missing on the annual plan", requirement: code });
+    await incidentsService.triage(project.id, actor, incident.code, { triage: "bug", cause: "implementation", billing: "fix", regressionTest: "tests/discount.test.ts::annual plan" });
+    await lifecycleService.start(project.id, agent, code, null);
     const result = await runsService.record(project.id, agent, report(code, "passed"));
-    expect(result.gates[code]?.agentCanFix).toEqual(["invariant INV-1: tests/totals.test.ts::never negative not run"]);
+    expect(result.gates[code]?.agentCanFix).toEqual([`regression test of ${incident.code}: tests/discount.test.ts::annual plan not run`]);
   });
 
   it("counts only results of the commit under evaluation for what is still building", async () => {
@@ -135,5 +149,19 @@ describe("evidence per condition (REQ-8X1MF)", () => {
     await runsService.record(project.id, agent, { ...base, stages: [{ ...stage, condition: "dark", env: { THEME: "dark" } }, { ...stage, condition: "light", env: { THEME: "light" }, status: "failed" }] });
     const stages = await database().runStage.findMany({ where: { requirement: { code } }, orderBy: { condition: "asc" }, select: { condition: true, env: true, status: true } });
     expect(stages).toEqual([{ condition: "dark", env: { THEME: "dark" }, status: "passed" }, { condition: "light", env: { THEME: "light" }, status: "failed" }]);
+  });
+});
+
+describe("flaky tests (REQ-Q3W6Z)", () => {
+  it("flags a test that failed and passed on two commits when its files did not change, and not when they did", async () => {
+    const { project, code } = await building();
+    await runsService.record(project.id, agent, { ...report(code, "failed", "sha256:same"), commit: "1111111" });
+    await runsService.record(project.id, agent, { ...report(code, "passed", "sha256:same"), commit: "2222222" });
+    expect((await testCatalog(project.id)).find((t) => t.ref === TEST_REF)?.flaky).toBe(true);
+    await resetDatabase();
+    const again = await building();
+    await runsService.record(again.project.id, agent, { ...report(again.code, "failed", "sha256:before"), commit: "1111111" });
+    await runsService.record(again.project.id, agent, { ...report(again.code, "passed", "sha256:after"), commit: "2222222" });
+    expect((await testCatalog(again.project.id)).find((t) => t.ref === TEST_REF)?.flaky).toBe(false);
   });
 });

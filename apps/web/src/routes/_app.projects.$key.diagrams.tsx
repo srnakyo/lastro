@@ -1,8 +1,9 @@
-import { lifecycleDiagram, moduleMapDiagram, qaFlowDiagram, traceabilityDiagram } from "@lastro/docs";
+import { lifecycleDiagram, moduleMapDiagram, qaFlowDiagram } from "@lastro/docs";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { MermaidView } from "@/components/diagrams/mermaid-view";
+import { TraceDiagram } from "@/components/diagrams/trace-diagram";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select } from "@/components/ui/select";
@@ -14,7 +15,7 @@ export const Route = createFileRoute("/_app/projects/$key/diagrams")({
   component: Diagrams,
 });
 
-function DiagramCard({ title, lead, action, source, minHeight }: { title: string; lead?: string; action?: React.ReactNode; source: string; minHeight?: number }) {
+function DiagramCard({ title, lead, action, source, minHeight, children }: { title: string; lead?: string; action?: React.ReactNode; source?: string; minHeight?: number; children?: React.ReactNode }) {
   return (
     <Card className="min-w-0">
       <CardHeader>
@@ -24,7 +25,7 @@ function DiagramCard({ title, lead, action, source, minHeight }: { title: string
         </div>
         {action}
       </CardHeader>
-      <div className="px-5 py-4"><MermaidView source={source} minHeight={minHeight} /></div>
+      <div className="px-5 py-4">{children ?? (source ? <MermaidView source={source} minHeight={minHeight} /> : null)}</div>
     </Card>
   );
 }
@@ -35,7 +36,15 @@ function Diagrams() {
   const { data } = useSuspenseQuery(diagramsQuery(key));
   const [type, setType] = useState(data.types[0] ?? "");
   const [requirement, setRequirement] = useState("");
+  const [pkg, setPkg] = useState("");
   const traced = requirement ? data.requirements.filter((r) => r.code === requirement) : data.requirements;
+  const inPackage = pkg ? data.requirements.filter((r) => r.package === pkg) : data.requirements;
+  const counts: Record<string, number> = {};
+  for (const r of inPackage) counts[r.status] = (counts[r.status] ?? 0) + 1;
+  const blocked = {
+    "captured>specified": [...new Set(inPackage.flatMap((r) => r.holds.toSpecified))],
+    "specified>approved": [...new Set(inPackage.flatMap((r) => r.holds.toApproved))],
+  };
   return (
     <>
       <PageHeader title={t("nav.diagrams")} description={t("diagrams.lead")} />
@@ -57,11 +66,24 @@ function Diagrams() {
               {data.requirements.map((r) => <option key={r.code} value={r.code}>{r.code} · {r.title}</option>)}
             </Select>
           }
-          source={traceabilityDiagram(traced, data.tests)}
-          minHeight={320}
-        />
+        >
+          <TraceDiagram projectKey={key} requirements={traced} tests={data.tests} minHeight={320} />
+        </DiagramCard>
         <DiagramCard title={t("diagrams.modules")} lead={t("diagrams.modules.lead")} source={moduleMapDiagram(data.requirements)} minHeight={220} />
-        <DiagramCard title={t("diagrams.lifecycle")} lead={t("diagrams.lifecycle.lead")} source={lifecycleDiagram(data.edges, data.counts)} minHeight={260} />
+        <DiagramCard
+          title={t("diagrams.lifecycle")}
+          lead={t("diagrams.lifecycle.lead")}
+          action={
+            data.packages.length > 0 ? (
+              <Select value={pkg} onChange={(e) => setPkg(e.target.value)} className="h-8 w-auto max-w-[260px]" aria-label={t("spec.tabs.packages")}>
+                <option value="">{t("common.all")}</option>
+                {data.packages.map((p) => <option key={p.code} value={p.code}>{p.code} · {p.title}</option>)}
+              </Select>
+            ) : undefined
+          }
+          source={lifecycleDiagram(data.edges, counts, blocked)}
+          minHeight={260}
+        />
       </div>
     </>
   );

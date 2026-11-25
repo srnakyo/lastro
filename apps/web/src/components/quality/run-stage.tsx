@@ -45,8 +45,28 @@ function Findings({ stage }: { stage: Stage }) {
   );
 }
 
-/** One stage of a run: its result, and on open the tests, findings and output tail. */
-export function RunStageRow({ stage }: { stage: Stage }) {
+function Artifacts({ projectKey, stage }: { projectKey: string; stage: Stage }) {
+  const { t } = useI18n();
+  return (
+    <div>
+      <p className="mb-1.5 text-[12px] font-medium text-muted-foreground">{t("run.artifacts")}</p>
+      <div className="flex flex-wrap gap-2">
+        {stage.artifacts.map((a) =>
+          a.contentType.startsWith("image/") ? (
+            <a key={a.code} href={`/api/projects/${projectKey}/artifacts/${a.code}`} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-md border">
+              <img src={`/api/projects/${projectKey}/artifacts/${a.code}`} alt={`${a.kind} ${a.code}`} className="h-24 w-auto" loading="lazy" />
+            </a>
+          ) : (
+            <a key={a.code} href={`/api/projects/${projectKey}/artifacts/${a.code}`} target="_blank" rel="noreferrer" className="rounded-md border px-2 py-1 font-mono text-[11.5px] hover:bg-accent">{a.kind} · {a.code}</a>
+          ),
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** One stage of a run: its result, and on open the tests, findings, artifacts and output tail. */
+export function RunStageRow({ projectKey, stage }: { projectKey: string; stage: Stage }) {
   const { t } = useI18n();
   const failed = stage.results.filter((r) => r.status === "failed" || r.status === "error").length;
   return (
@@ -65,6 +85,7 @@ export function RunStageRow({ stage }: { stage: Stage }) {
         {stage.reference && <p className="text-[12.5px]">{t("run.reference")}: <span className="font-mono">{stage.reference}</span></p>}
         {stage.results.length > 0 && <Results stage={stage} />}
         {stage.findings.length > 0 && <Findings stage={stage} />}
+        {stage.artifacts.length > 0 && <Artifacts projectKey={projectKey} stage={stage} />}
         {stage.output && (
           <div>
             <p className="mb-1.5 text-[12px] font-medium text-muted-foreground">{t("run.output")}</p>

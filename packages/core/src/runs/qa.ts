@@ -1,8 +1,7 @@
 import { db } from "../db";
-import { findRequirement } from "../requirements/service";
+import { findRequirement, requirementsService } from "../requirements/service";
 import { loadScope } from "../scope/project-scope";
 import { LIFECYCLE_EDGES, allowedActors } from "../lifecycle/transitions";
-import { latestTestResults } from "../overview/tests";
 import { evaluateGate } from "./gate";
 import { latestCommit, latestStages } from "./latest";
 
@@ -30,32 +29,45 @@ export async function requirementQa(projectId: string, code: string) {
   };
 }
 
+const label = (b: { kind: string; detail: string }) => b.kind.replace(/_/g, " ");
+
+/** Latest result of each test with the run it came from. */
+async function latestTests(projectId: string) {
+  const results = await db().testResult.findMany({
+    where: { test: { projectId } },
+    orderBy: { runStage: { startedAt: "desc" } },
+    select: { status: true, test: { select: { ref: true } }, runStage: { select: { run: { select: { id: true, commit: true } } } } },
+  });
+  const latest: Record<string, { status: string; runId: string; commit: string | null }> = {};
+  for (const r of results) latest[r.test.ref] ??= { status: r.status, runId: r.runStage.run.id, commit: r.runStage.run.commit };
+  return latest;
+}
+
 /** Everything the Diagrams screen draws, straight from the project data. */
 export async function diagramsData(projectId: string) {
-  const tx = db();
-  const scope = await loadScope(tx, projectId);
-  const requirements = await tx.requirement.findMany({
-    where: { projectId, status: { not: "dropped" } },
-    orderBy: { code: "asc" },
-    select: {
-      code: true, title: true, status: true, type: true, reach: true,
-      citations: { select: { anchor: true, found: true, source: { select: { code: true } } } },
-      criteria: { orderBy: { code: "asc" }, select: { code: true, tests: { select: { testRef: true } } } },
-    },
-  });
-  const latest = await latestTestResults(projectId);
-  const counts: Record<string, number> = {};
-  for (const r of requirements) counts[r.status] = (counts[r.status] ?? 0) + 1;
+  const scope = await loadScope(db(), projectId);
+  const [views, packages, tests] = await Promise.all([
+    requirementsService.list(projectId),
+    db().package.findMany({ where: { projectId }, orderBy: { code: "asc" }, select: { code: true, title: true } }),
+    latestTests(projectId),
+  ]);
+  const live = views.filter((v) => v.status !== "dropped");
   return {
     config: scope.config,
     types: Object.keys(scope.config.types),
-    requirements: requirements.map((r) => ({
-      code: r.code, title: r.title, status: r.status, module: moduleOf(r.reach, r.type),
+    packages,
+    requirements: live.map((r) => ({
+      code: r.code, title: r.title, status: r.status, module: moduleOf(r.reach, r.type), package: r.package?.code ?? null,
+      finalSource: r.citations.every((c) => c.source.versions[0]?.final ?? false),
       citations: r.citations.map((c) => ({ source: c.source.code, anchor: c.anchor, found: c.found })),
       criteria: r.criteria.map((c) => ({ code: c.code, tests: c.tests.map((t) => t.testRef) })),
+      // What holds it on its next step, for the blocked edges of the lifecycle diagram.
+      holds: {
+        toSpecified: r.status === "captured" ? [...new Set(r.blockers.filter((b) => b.blocks === "specified").map(label))] : [],
+        toApproved: r.status === "specified" ? [...new Set(r.blockers.filter((b) => b.blocks === "approved").map(label))] : [],
+      },
     })),
-    tests: Object.fromEntries([...latest.values()].map((v) => [v.ref, v.status])),
-    counts,
+    tests,
     edges: LIFECYCLE_EDGES.map(([from, to]) => ({ from, to, actors: allowedActors(from, to) })),
   };
 }

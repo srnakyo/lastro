@@ -2,6 +2,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { QaCard } from "@/components/quality/qa-card";
+import { TraceCard } from "@/components/quality/trace-card";
 import { CitationCard } from "@/components/spec/citation-card";
 import { FieldsCard } from "@/components/spec/fields-card";
 import { HallmarkPanel } from "@/components/spec/hallmark";
@@ -62,6 +63,7 @@ function RequirementDetail() {
       <FieldsCard requirement={r} required={r.required} />
       <CriteriaList criteria={r.criteria} />
       <QaCard projectKey={key} code={r.code} status={r.status} />
+      <TraceCard projectKey={key} code={r.code} />
       <div className="grid gap-5 lg:grid-cols-2">
         <RelatedList projectKey={key} decisions={r.decisions} questions={r.questions} />
         <HistoryList history={r.history} />

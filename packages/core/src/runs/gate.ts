@@ -60,15 +60,17 @@ async function lockedTests(tx: Tx, graph: Awaited<ReturnType<typeof loadGraph>>,
   }
 }
 
-/** Rules 5 and 6: regression tests of the requirement's incidents and the project's invariant tests. */
+/** Rules 5 and 6: regression tests of the requirement's incidents (always) and invariant tests (where they run). */
 async function extraTests(tx: Tx, projectId: string, requirementId: string) {
   const [incidents, invariants] = await Promise.all([
     tx.incident.findMany({ where: { requirementId, regressionTest: { not: null } }, select: { code: true, regressionTest: true } }),
     tx.invariant.findMany({ where: { projectId }, select: { code: true, testRefs: true } }),
   ]);
   return [
-    ...incidents.map((i) => ({ ref: i.regressionTest ?? "", why: `regression test of ${i.code}` })),
-    ...invariants.flatMap((i) => i.testRefs.map((ref) => ({ ref, why: `invariant ${i.code}` }))),
+    ...incidents.map((i) => ({ ref: i.regressionTest ?? "", why: `regression test of ${i.code}`, always: true })),
+    // An invariant counts where its tests run in this requirement's stages: Lastro cannot know which files
+    // an invariant's test covers, so the tests that the requirement's own suites run stand for "the same files".
+    ...invariants.flatMap((i) => i.testRefs.map((ref) => ({ ref, why: `invariant ${i.code}`, always: false }))),
   ];
 }
 
@@ -97,7 +99,10 @@ export async function evaluateGate(tx: Tx, config: ProjectConfig, requirementId:
     if (c.tests.length === 0) agentCanFix.push(`${c.code} has no test`);
     for (const t of c.tests) if (latest.get(t.testRef) !== "passed") agentCanFix.push(`${c.code} ${t.testRef} ${latest.get(t.testRef) ?? "not run"}`);
   }
-  for (const e of extra) if (latest.get(e.ref) !== "passed") agentCanFix.push(`${e.why}: ${e.ref} ${latest.get(e.ref) ?? "not run"}`);
+  for (const e of extra) {
+    const status = latest.get(e.ref);
+    if ((e.always || status) && status !== "passed") agentCanFix.push(`${e.why}: ${e.ref} ${status ?? "not run"}`);
+  }
   await lockedTests(tx, graph, ctx.testFiles ?? {}, agentCanFix);
   const holding = blocksStep(computeBlockers({ ...toBlockerInput(graph), hasEvidence: true }, config), "verified").filter((b) => b.kind !== "criterion_without_test");
   for (const b of holding) needsPerson.push(`${b.kind}${b.detail ? ` ${b.detail}` : ""}`);

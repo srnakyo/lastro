@@ -7,6 +7,7 @@ import { requireHuman, systemActor } from "../scope/actor";
 import { loadScope, type ProjectScope } from "../scope/project-scope";
 import { evaluateGate, type GateContext, type GateResult } from "./gate";
 import { latestCommit, latestStages } from "./latest";
+import { compareWithPrevious } from "./compare";
 import { listRuns } from "./list";
 import { writeRun } from "./record";
 
@@ -87,16 +88,15 @@ export const runsService = {
 
   list: listRuns,
 
-  /** One run with every stage, its output, test results and findings, compared with the previous run of the project. */
+  /** One run with every stage, its output, results, findings and artifacts, compared per requirement with that requirement's previous run. */
   async get(projectId: string, id: string) {
     const run = await db().run.findFirstOrThrow({
       where: { projectId, id },
-      include: { stages: { orderBy: { startedAt: "asc" }, include: { requirement: { select: { code: true, title: true } }, results: { include: { test: { select: { ref: true } } } }, findings: true } }, evidence: { include: { requirement: { select: { code: true } } } } },
+      include: {
+        stages: { orderBy: { startedAt: "asc" }, include: { requirement: { select: { code: true, title: true } }, results: { include: { test: { select: { ref: true } } } }, findings: true, artifacts: { select: { code: true, kind: true, contentType: true } } } },
+        evidence: { include: { requirement: { select: { code: true } } } },
+      },
     });
-    const previous = await db().run.findFirst({ where: { projectId, startedAt: { lt: run.startedAt } }, orderBy: { startedAt: "desc" }, include: { stages: { include: { results: { include: { test: { select: { ref: true } } } } } } } });
-    const before = new Map(previous?.stages.flatMap((s) => s.results.map((r) => [r.test.ref, r.status])) ?? []);
-    const now = new Map(run.stages.flatMap((s) => s.results.map((r) => [r.test.ref, r.status])));
-    const changed = [...now.entries()].filter(([ref, status]) => before.has(ref) && before.get(ref) !== status).map(([ref, status]) => ({ ref, from: before.get(ref) ?? null, to: status }));
-    return { ...run, previousId: previous?.id ?? null, changed };
+    return { ...run, comparisons: await compareWithPrevious(projectId, run) };
   },
 };

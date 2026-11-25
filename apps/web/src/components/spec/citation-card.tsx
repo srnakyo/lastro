@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useI18n } from "@/lib/i18n";
+import { markQuote } from "@/lib/highlight";
 import { cn } from "@/lib/utils";
 
 export interface CitationData {
@@ -67,7 +68,7 @@ export function CitationCard({ projectKey, citation, onConfirm }: { projectKey: 
         <div className="mt-2 grid gap-2">
           {citation.passages.map((p) => (
             <div key={p.anchor} data-match={p.anchor === citation.passageAnchor ? "" : undefined} className={cn("rounded-md px-3 py-2", p.anchor === citation.passageAnchor ? "bg-warning/15 ring-1 ring-warning/40" : "text-muted-foreground")}>
-              <Markdown text={p.text} projectKey={projectKey} />
+              <Markdown text={p.anchor === citation.passageAnchor && citation.found ? markQuote(p.text, citation.quote) : p.text} projectKey={projectKey} />
             </div>
           ))}
         </div>
