@@ -11,13 +11,15 @@ const root = join(import.meta.dir, "..");
 const brandDir = join(root, "docs", "brand");
 
 /**
- * The master SVGs drawn in currentColor, by the name they get in code. Code draws the masters at any size:
- * browsers anti-alias them cleanly, and pixel-snapped variants distort the curves on HiDPI screens.
+ * The SVGs drawn in currentColor, by the name they get in code. `mark28` and `lockupSidebar` are fitted to the
+ * pixel grid (straight edges on whole pixels, curves true) and must be drawn 1:1, or they blur on 1x screens.
  */
 const SHAPES = {
   mark: "mark.svg",
+  mark28: "mark-28.svg",
   wordmark: "wordmark.svg",
   lockup: "lockup.svg",
+  lockupSidebar: "lockup-sidebar.svg",
 } as const;
 
 interface Shape {

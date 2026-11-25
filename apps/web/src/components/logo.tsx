@@ -1,10 +1,10 @@
 import { BRAND, type BrandShape } from "@lastro/shared/brand";
 import { cn } from "@/lib/utils";
 
-/** Draws one brand shape in the current text colour; the class sets its size. */
+/** Draws one brand shape in the current text colour, at its drawn pixel size unless a class resizes it. */
 function Shape({ shape, className }: { shape: BrandShape; className?: string }) {
   return (
-    <svg viewBox={`0 0 ${shape.width} ${shape.height}`} className={cn("block shrink-0", className)} fill="currentColor" aria-hidden="true">
+    <svg viewBox={`0 0 ${shape.width} ${shape.height}`} width={shape.width} height={shape.height} className={cn("block shrink-0", className)} fill="currentColor" aria-hidden="true">
       {shape.paths.map((d) => (
         <path key={d.slice(0, 24)} d={d} />
       ))}
@@ -12,17 +12,17 @@ function Shape({ shape, className }: { shape: BrandShape; className?: string }) 
   );
 }
 
-/** The symbol alone, 28 px by default: the collapsed sidebar and other small slots. */
+/** The symbol alone, fitted to the pixel grid at 28 px: the collapsed sidebar. Keep it 1:1 on a whole pixel. */
 export function LogoMark({ className }: { className?: string }) {
-  return <Shape shape={BRAND.mark} className={cn("size-7", className)} />;
+  return <Shape shape={BRAND.mark28} className={className} />;
 }
 
-/** The signature, symbol and word. `sidebar` fits the 56 px dashboard header; `large` is for roomier places like sign-in. */
+/** The signature. `sidebar` is the 88 x 19 pixel-fitted version, drawn 1:1 on whole pixels; `large` is the master for sign-in. */
 export function Logo({ className, collapsed = false, size = "sidebar" }: { className?: string; collapsed?: boolean; size?: "sidebar" | "large" }) {
   return (
     <span className={cn("inline-flex text-foreground", className)}>
       <span className="sr-only">Lastro</span>
-      {collapsed ? <LogoMark /> : <Shape shape={BRAND.lockup} className={cn("w-auto", size === "large" ? "h-9" : "h-[23px]")} />}
+      {collapsed ? <LogoMark /> : size === "large" ? <Shape shape={BRAND.lockup} className="h-9 w-auto" /> : <Shape shape={BRAND.lockupSidebar} />}
     </span>
   );
 }
