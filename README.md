@@ -56,7 +56,7 @@ flowchart LR
 
 Also: sources with versions and anchored passages, packages, decisions and questions, bugs with triage and billing, glossary, invariants and layout contract, an append-only audit log, light and dark themes, English and Portuguese.
 
-**Documentation** is generated from the data in Markdown, HTML and PDF: PROJECT, REQUIREMENTS, ARCHITECTURE, TEST-PLAN, TEST-CASES, QUALITY-REPORT, CHANGELOG, DECISIONS, DIAGRAMS and an item-by-item delivery report for the requester.
+**Documentation** is generated from the data in Markdown, HTML and PDF, each document stating the commit and date it comes from: overview, requirements by package, business rules and invariants, architecture, decisions, test plan, test cases, quality report, delivery history, diagrams and a delivery report for the requester. `lastro report <PKG>` writes the item-by-item report of a package in the requester's own order and numbering.
 
 ![The test plan document with its QA flow diagrams](docs/screenshots/docs.png)
 
@@ -90,7 +90,7 @@ lastro intake "brief v4.docx"
 lastro pending
 lastro verify REQ-K7Q2M
 lastro gate
-lastro docs --format md,pdf
+lastro docs build --format md,pdf
 lastro install-hooks          # git pre-push runs lastro gate
 ```
 

@@ -22,11 +22,19 @@ function requirement(r: DocRequirement, input: DocsInput, t: DocT): string {
   );
 }
 
+/** Every requirement, grouped by package (REQ-P0V3Y); those in no package come last. */
 export function requirementsDoc(input: DocsInput, t: DocT): string {
   if (input.requirements.length === 0) return join(header(input, t, t("req.title")), t("req.none"));
+  const groups = [
+    ...input.packages.map((p) => ({ title: `${p.code} · ${p.title}`, items: input.requirements.filter((r) => r.package === p.code) })),
+    { title: t("pkg.none"), items: input.requirements.filter((r) => !r.package || !input.packages.some((p) => p.code === r.package)) },
+  ].filter((g) => g.items.length);
   return join(
     header(input, t, t("req.title")),
-    table([t("col.code"), t("col.title"), t("col.type"), t("col.status"), t("col.module")], input.requirements.map((r) => [r.code, r.title, r.type, r.status, r.module])),
-    ...input.requirements.map((r) => requirement(r, input, t)),
+    ...groups.flatMap((g) => [
+      `# ${g.title}`,
+      table([t("col.code"), t("col.title"), t("col.type"), t("col.status"), t("col.module")], g.items.map((r) => [r.code, r.title, r.type, r.status, r.module])),
+      ...g.items.map((r) => requirement(r, input, t)),
+    ]),
   );
 }

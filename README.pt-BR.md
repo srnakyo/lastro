@@ -56,7 +56,7 @@ flowchart LR
 
 E mais: fontes com versões e trechos ancorados, pacotes, decisões e perguntas, bugs com triagem e cobrança, glossário, invariantes e contrato de layout, auditoria só de inclusão, tema claro e escuro, inglês e português.
 
-A **documentação** é gerada dos dados em Markdown, HTML e PDF: PROJECT, REQUIREMENTS, ARCHITECTURE, TEST-PLAN, TEST-CASES, QUALITY-REPORT, CHANGELOG, DECISIONS, DIAGRAMS e um relatório de entrega item a item para quem pediu.
+A **documentação** é gerada dos dados em Markdown, HTML e PDF, e cada documento diz de qual commit e data veio: visão geral, requisitos por pacote, regras de negócio e invariantes, arquitetura, decisões, plano de testes, casos de teste, relatório de qualidade, histórico de entregas, diagramas e um relatório de entrega para quem pediu. `lastro report <PKG>` grava o relatório item a item de um pacote, na ordem e na numeração de quem pediu.
 
 ![O documento de plano de testes com os diagramas dos fluxos de QA](docs/screenshots/docs.png)
 
@@ -90,7 +90,7 @@ lastro intake "pedido v4.docx"
 lastro pending
 lastro verify REQ-K7Q2M
 lastro gate
-lastro docs --format md,pdf --lang pt-BR
+lastro docs build --format md,pdf --lang pt-BR
 lastro install-hooks          # o pre-push do git roda lastro gate
 ```
 

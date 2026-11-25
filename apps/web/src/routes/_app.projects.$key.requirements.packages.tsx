@@ -1,6 +1,6 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { Package as PackageIcon, Plus } from "lucide-react";
+import { Download, Package as PackageIcon, Plus } from "lucide-react";
 import { useState } from "react";
 import { ConfirmDialog } from "@/components/common/confirm-dialog";
 import { FormDialog } from "@/components/common/form-dialog";
@@ -44,7 +44,7 @@ function NewPackage({ projectKey }: { projectKey: string }) {
 }
 
 function Packages() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const { key } = Route.useParams();
   const { data: packages } = useSuspenseQuery(packagesQuery(key));
   const { run } = useAction(key);
@@ -72,8 +72,11 @@ function Packages() {
                 <p className="mt-3 text-[12.5px] text-muted-foreground">{t("pkg.progress", { done, total: p.requirements.length })}</p>
                 <Progress value={pct} className="mt-1.5" />
                 {p.sources.length > 0 && <p className="mt-3 text-[12px] text-muted-foreground">{p.sources.map((s) => `${s.code} · ${s.title}`).join(", ")}</p>}
-                {!p.closedAt && (
-                  <div className="mt-4">
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <a href={`/api/projects/${key}/report/${p.code}?lang=${lang}`} className="inline-flex h-8 items-center gap-1.5 rounded-md border px-3 text-[12.5px] font-medium hover:bg-accent">
+                    <Download className="size-3.5" /> {t("pkg.report")}
+                  </a>
+                  {!p.closedAt && (
                     <ConfirmDialog
                       trigger={<Button variant="outline" size="sm">{t("pkg.close")}</Button>}
                       title={t("pkg.close.title")}
@@ -81,8 +84,8 @@ function Packages() {
                       confirmLabel={t("pkg.close")}
                       onConfirm={() => run(() => closePackage({ data: { key, code: p.code } }), t("action.done"))}
                     />
-                  </div>
-                )}
+                  )}
+                </div>
               </Card>
             );
           })}

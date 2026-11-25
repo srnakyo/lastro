@@ -18,7 +18,7 @@ lastro init my-project            # or: lastro link my-project
 | `lastro ask`, `lastro decide` | Open a question, record a decision or assumption |
 | `lastro verify [code]` | Run the QA flow of a requirement on this machine and record the evidence |
 | `lastro gate` | Fail while anything in building is not verified or its evidence went stale (CI, `pre-push`) |
-| `lastro docs` | Generate the project documents and write them into the repository |
+| `lastro docs build`, `lastro report <PKG>` | Generate the project documents into the repository; the item-by-item report of a package |
 | `lastro export`, `lastro import` | Write the project to `.lastro/`, or load `.lastro/` into the server (a person) |
 | `lastro approve`, `lastro check` | Human actions: they ask for confirmation in a terminal |
 | `lastro mcp` | MCP server over stdio for Claude Code and other agents |

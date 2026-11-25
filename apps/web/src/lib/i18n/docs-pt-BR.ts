@@ -1,6 +1,7 @@
 import type { docsEn } from "./docs-en";
 
 export const docsPtBR: Record<keyof typeof docsEn, string> = {
+  "pkg.report": "Relatório (Markdown)",
   "docs.lead": "Todos os documentos gerados a partir dos dados do projeto, em Markdown, HTML e PDF. Gere de novo sempre que o projeto mudar.",
   "docs.generate": "Gerar documentos",
   "docs.generate.title": "Gerar os documentos",
@@ -13,13 +14,14 @@ export const docsPtBR: Record<keyof typeof docsEn, string> = {
   "docs.back": "Todos os documentos",
   "docs.empty": "Nenhum documento ainda",
   "docs.empty.body": "Gere uma vez: cada documento é refeito a partir dos requisitos, das execuções e das decisões sempre que você pedir.",
-  "doc.project": "Resumo, números, pacotes, fontes, glossário e invariantes.",
+  "doc.overview": "Resumo, números, pacotes, fontes, glossário e invariantes.",
   "doc.requirements": "Cada requisito com a citação de quem pediu, os campos, os exemplos, os critérios e a evidência.",
+  "doc.rules": "Termos do domínio, invariantes e o contrato de layout.",
   "doc.architecture": "Módulos, tipos de requisito e seus fluxos, condições e comandos.",
   "doc.test-plan": "As etapas de QA de cada tipo, as condições e como o gate decide.",
   "doc.test-cases": "Cada critério, os testes que o cobrem e o último resultado.",
   "doc.quality-report": "Indicadores, qualidade por módulo, últimas execuções, testes instáveis e incidentes.",
-  "doc.changelog": "Toda mudança de estado, da mais nova para a mais antiga.",
+  "doc.delivery-history": "Toda mudança de estado, da mais nova para a mais antiga.",
   "doc.decisions": "Decisões, suposições e perguntas, abertas e respondidas.",
   "doc.diagrams": "Fluxos de QA, rastreabilidade e ciclo de vida em diagramas.",
   "doc.client-report": "Para quem pediu: item a item, as palavras dele, o que foi feito e como foi verificado.",

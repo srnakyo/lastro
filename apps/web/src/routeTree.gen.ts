@@ -41,6 +41,7 @@ import { Route as AppProjectsKeySourcesIndexRouteImport } from './routes/_app.pr
 import { Route as AppProjectsKeySourcesCodeRouteImport } from './routes/_app.projects.$key.sources.$code'
 import { Route as ApiProjectsKeyArtifactsCodeRouteImport } from './routes/api/projects.$key.artifacts.$code'
 import { Route as ApiProjectsKeyDocsFileRouteImport } from './routes/api/projects.$key.docs.$file'
+import { Route as ApiProjectsKeyReportPkgRouteImport } from './routes/api/projects.$key.report.$pkg'
 
 const AppRoute = AppRouteImport.update({
   id: '/_app',
@@ -210,6 +211,11 @@ const ApiProjectsKeyDocsFileRoute = ApiProjectsKeyDocsFileRouteImport.update({
   path: '/api/projects/$key/docs/$file',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiProjectsKeyReportPkgRoute = ApiProjectsKeyReportPkgRouteImport.update({
+  id: '/api/projects/$key/report/$pkg',
+  path: '/api/projects/$key/report/$pkg',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
@@ -239,6 +245,7 @@ export interface FileRoutesByFullPath {
   '/projects/$key/sources/$code': typeof AppProjectsKeySourcesCodeRoute
   '/api/projects/$key/artifacts/$code': typeof ApiProjectsKeyArtifactsCodeRoute
   '/api/projects/$key/docs/$file': typeof ApiProjectsKeyDocsFileRoute
+  '/api/projects/$key/report/$pkg': typeof ApiProjectsKeyReportPkgRoute
   '/projects/$key/docs/': typeof AppProjectsKeyDocsIndexRoute
   '/projects/$key/requirements/': typeof AppProjectsKeyRequirementsIndexRoute
   '/projects/$key/runs/': typeof AppProjectsKeyRunsIndexRoute
@@ -270,6 +277,7 @@ export interface FileRoutesByTo {
   '/projects/$key/sources/$code': typeof AppProjectsKeySourcesCodeRoute
   '/api/projects/$key/artifacts/$code': typeof ApiProjectsKeyArtifactsCodeRoute
   '/api/projects/$key/docs/$file': typeof ApiProjectsKeyDocsFileRoute
+  '/api/projects/$key/report/$pkg': typeof ApiProjectsKeyReportPkgRoute
   '/projects/$key/docs': typeof AppProjectsKeyDocsIndexRoute
   '/projects/$key/requirements': typeof AppProjectsKeyRequirementsIndexRoute
   '/projects/$key/runs': typeof AppProjectsKeyRunsIndexRoute
@@ -305,6 +313,7 @@ export interface FileRoutesById {
   '/_app/projects/$key/sources/$code': typeof AppProjectsKeySourcesCodeRoute
   '/api/projects/$key/artifacts/$code': typeof ApiProjectsKeyArtifactsCodeRoute
   '/api/projects/$key/docs/$file': typeof ApiProjectsKeyDocsFileRoute
+  '/api/projects/$key/report/$pkg': typeof ApiProjectsKeyReportPkgRoute
   '/_app/projects/$key/docs/': typeof AppProjectsKeyDocsIndexRoute
   '/_app/projects/$key/requirements/': typeof AppProjectsKeyRequirementsIndexRoute
   '/_app/projects/$key/runs/': typeof AppProjectsKeyRunsIndexRoute
@@ -340,6 +349,7 @@ export interface FileRouteTypes {
     | '/projects/$key/sources/$code'
     | '/api/projects/$key/artifacts/$code'
     | '/api/projects/$key/docs/$file'
+    | '/api/projects/$key/report/$pkg'
     | '/projects/$key/docs/'
     | '/projects/$key/requirements/'
     | '/projects/$key/runs/'
@@ -371,6 +381,7 @@ export interface FileRouteTypes {
     | '/projects/$key/sources/$code'
     | '/api/projects/$key/artifacts/$code'
     | '/api/projects/$key/docs/$file'
+    | '/api/projects/$key/report/$pkg'
     | '/projects/$key/docs'
     | '/projects/$key/requirements'
     | '/projects/$key/runs'
@@ -405,6 +416,7 @@ export interface FileRouteTypes {
     | '/_app/projects/$key/sources/$code'
     | '/api/projects/$key/artifacts/$code'
     | '/api/projects/$key/docs/$file'
+    | '/api/projects/$key/report/$pkg'
     | '/_app/projects/$key/docs/'
     | '/_app/projects/$key/requirements/'
     | '/_app/projects/$key/runs/'
@@ -422,6 +434,7 @@ export interface RootRouteChildren {
   ApiProjectsKeySourcesRoute: typeof ApiProjectsKeySourcesRoute
   ApiProjectsKeyArtifactsCodeRoute: typeof ApiProjectsKeyArtifactsCodeRoute
   ApiProjectsKeyDocsFileRoute: typeof ApiProjectsKeyDocsFileRoute
+  ApiProjectsKeyReportPkgRoute: typeof ApiProjectsKeyReportPkgRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -650,6 +663,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiProjectsKeyDocsFileRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/projects/$key/report/$pkg': {
+      id: '/api/projects/$key/report/$pkg'
+      path: '/api/projects/$key/report/$pkg'
+      fullPath: '/api/projects/$key/report/$pkg'
+      preLoaderRoute: typeof ApiProjectsKeyReportPkgRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -741,6 +761,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiProjectsKeySourcesRoute: ApiProjectsKeySourcesRoute,
   ApiProjectsKeyArtifactsCodeRoute: ApiProjectsKeyArtifactsCodeRoute,
   ApiProjectsKeyDocsFileRoute: ApiProjectsKeyDocsFileRoute,
+  ApiProjectsKeyReportPkgRoute: ApiProjectsKeyReportPkgRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

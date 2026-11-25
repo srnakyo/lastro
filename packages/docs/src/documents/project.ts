@@ -16,9 +16,5 @@ export function projectDoc(input: DocsInput, t: DocT): string {
     table([t("col.code"), t("col.title"), t("col.requirements")], input.packages.map((p) => [p.code, p.title, p.requirements.join(", ")])) || t("none"),
     `## ${t("project.sources")}`,
     table([t("col.code"), t("col.title"), t("col.by"), "v", "final"], input.sources.map((s) => [s.code, s.title, s.from, s.version, s.final ? t("yes") : t("no")])) || t("none"),
-    `## ${t("project.glossary")}`,
-    table(["", ""], input.glossary.terms.map((g) => [`**${g.term}**`, g.means])) || t("none"),
-    `## ${t("project.invariants")}`,
-    table([t("col.code"), t("col.what"), t("col.tests")], input.glossary.invariants.map((i) => [i.code, i.text, i.testRefs.join(", ")])) || t("none"),
   );
 }
