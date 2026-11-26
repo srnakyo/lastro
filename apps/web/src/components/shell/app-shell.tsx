@@ -11,6 +11,7 @@ import { MobileNav } from "./mobile-nav";
 import { ProjectSwitcher } from "./project-switcher";
 import { Sidebar } from "./sidebar";
 import { UserMenu } from "./user-menu";
+import { LanguageSwitch } from "./language-switch";
 
 const COLLAPSE_KEY = "lastro.sidebar.collapsed";
 
@@ -66,6 +67,7 @@ export function AppShell({ viewer, children }: { viewer: Viewer; children: React
           </nav>
           <div className="ml-auto flex items-center gap-2">
             <CommandMenu projectKey={projectKey} />
+            <LanguageSwitch />
             {viewer.user && <UserMenu user={viewer.user} dark={dark} />}
           </div>
         </header>

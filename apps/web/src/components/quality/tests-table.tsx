@@ -10,7 +10,7 @@ const average = (values: number[]) => (values.length ? Math.round(values.reduce(
 
 function Covers({ projectKey, covers }: { projectKey: string; covers: string[] }) {
   const { t } = useI18n();
-  if (covers.length === 0) return <Badge tone="warning">{t("tests.orphan")}</Badge>;
+  if (covers.length === 0) return <Badge tone="warning">{t("tests.orphan.one")}</Badge>;
   return (
     <span className="flex flex-wrap gap-1">
       {covers.map((c) => {
@@ -45,7 +45,7 @@ export function TestsTable({ projectKey, tests }: { projectKey: string; tests: T
               <td className="max-w-[420px] px-5 py-3">
                 <p className="font-medium">{test.name}</p>
                 <p className="truncate font-mono text-[11.5px] text-muted-foreground">{test.file}</p>
-                {test.flaky && <Badge tone="warning" className="mt-1.5">{t("tests.flaky")}</Badge>}
+                {test.flaky && <Badge tone="warning" className="mt-1.5">{t("tests.flaky.one")}</Badge>}
               </td>
               <td className="px-3 py-3"><Covers projectKey={projectKey} covers={test.covers} /></td>
               <td className="px-3 py-3">

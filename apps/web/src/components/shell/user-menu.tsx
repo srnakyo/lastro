@@ -2,7 +2,7 @@ import { useRouter } from "@tanstack/react-router";
 import { useRefreshViewer } from "@/hooks/use-refresh-viewer";
 import { Check, Languages, LogOut, Moon, Sun } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { setPreference } from "@/fns/workspaces";
+import { usePreference } from "@/hooks/use-preference";
 import { signOut } from "@/lib/auth-client";
 import { useI18n } from "@/lib/i18n";
 
@@ -20,10 +20,7 @@ export function UserMenu({ user, dark }: { user: { name: string; email: string }
   const { t, lang } = useI18n();
   const router = useRouter();
   const refresh = useRefreshViewer();
-  const set = async (name: "lastro_lang" | "lastro_theme", value: string) => {
-    await setPreference({ data: { name, value } });
-    await refresh();
-  };
+  const set = usePreference();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger

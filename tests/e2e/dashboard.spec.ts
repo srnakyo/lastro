@@ -78,3 +78,25 @@ test("the guide explains the path and the words, and opens inside the project", 
   await expect(page.getByRole("heading", { name: "How Lastro works", level: 1 })).toBeVisible();
   for (const name of ["The path of a requirement", "The four proofs", "Who does what", "Words you will see"]) await expect(page.getByRole("heading", { name })).toBeVisible();
 });
+
+test("the language switch in the top bar changes every page, and back", async ({ page, isMobile }) => {
+  await signIn(page);
+  await page.goto("/projects/shop-demo");
+  await page.waitForLoadState("networkidle");
+  await page.getByRole("radio", { name: "Português (Brasil)" }).click();
+  await expect(page.getByRole("heading", { name: "O que fazer agora" })).toBeVisible();
+  if (!isMobile) {
+    await page.locator("aside").getByRole("link", { name: "Requisitos" }).click();
+    await expect(page.getByRole("heading", { name: "Requisitos", level: 1 })).toBeVisible();
+  }
+  await page.getByRole("radio", { name: "English" }).click();
+  await expect(page.getByRole("heading", { name: isMobile ? "What to do now" : "Requirements", level: isMobile ? 2 : 1 })).toBeVisible();
+});
+
+test("with no language picked, the screens follow the browser's language", async ({ browser }) => {
+  const context = await browser.newContext({ locale: "pt-BR" });
+  const page = await context.newPage();
+  await page.goto("/sign-in");
+  await expect(page.getByRole("heading", { name: "Entrar no Lastro" })).toBeVisible();
+  await context.close();
+});
