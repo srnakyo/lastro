@@ -8,6 +8,7 @@ import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { FIELDS, type Action, type Draft } from "./draft";
 import { FlowList } from "./flow-list";
+import { TypeTests } from "./type-tests";
 
 export function TypeCard({ draft, index, preview, dispatch }: { draft: Draft; index: number; preview: ProjectConfig; dispatch: (a: Action) => void }) {
   const { t, lang } = useI18n();
@@ -34,6 +35,7 @@ export function TypeCard({ draft, index, preview, dispatch }: { draft: Draft; in
               })}
             </div>
           </div>
+          <TypeTests draft={draft} index={index} dispatch={dispatch} />
           <div>
             <p className="mb-1.5 text-[12px] font-medium text-muted-foreground">{t("flow.stages")}</p>
             <FlowList flow={index} stages={type.flow} commands={draft.commands.map((c) => c.name).filter(Boolean)} conditions={draft.conditions.map((c) => c.name).filter(Boolean)} dispatch={dispatch} />

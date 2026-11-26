@@ -105,6 +105,7 @@ export const ptBRBase: Record<keyof typeof enBase, string> = {
   "blocker.source_not_final": "Fonte não marcada como final",
   "blocker.unconfirmed_transcript": "Citação de transcrição sem confirmar",
   "blocker.criterion_without_test": "Critério sem teste",
+  "blocker.missing_test_level": "Falta teste num nível que o tipo exige",
   "blocker.no_evidence": "Ainda não verificado: nenhuma execução aprovada com os arquivos atuais",
   "blocker.decision_overturned": "Decisão derrubada",
   "link.origin": "Origem",

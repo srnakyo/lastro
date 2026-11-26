@@ -4,7 +4,7 @@ import type { ActorType, RequirementStatus } from "@lastro/shared";
 const EDGES: Record<string, ActorType[]> = {
   "captured>specified": ["system"],
   "specified>captured": ["system"],
-  "specified>approved": ["user"],
+  "specified>approved": ["user", "system"],
   "approved>specified": ["system"],
   "approved>building": ["user", "agent"],
   "building>specified": ["system"],

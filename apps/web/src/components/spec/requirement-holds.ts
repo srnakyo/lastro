@@ -36,6 +36,8 @@ export interface UnblockSummary {
   questions: { codes: string[]; requirements: number };
   missingFields: number;
   invalidQuotes: number;
+  /** Requirements waiting for the agent's tests (a criterion without one, or a level the type asks for). */
+  needsTests: number;
   ready: string[];
   noEvidence: number;
 }
@@ -48,6 +50,7 @@ export function unblockSummary(rows: HeldRow[]): UnblockSummary {
   let missingFields = 0;
   let invalidQuotes = 0;
   let noEvidence = 0;
+  let needsTests = 0;
   for (const row of rows) {
     const holds = holdsForNextStep(row);
     const kinds = new Set(holds.map((h) => h.kind));
@@ -59,12 +62,14 @@ export function unblockSummary(rows: HeldRow[]): UnblockSummary {
     if (kinds.has("missing_field")) missingFields += 1;
     if (kinds.has("invalid_quote")) invalidQuotes += 1;
     if (kinds.has("no_evidence")) noEvidence += 1;
+    if (kinds.has("criterion_without_test") || kinds.has("missing_test_level")) needsTests += 1;
   }
   return {
     sources: [...sources.entries()].map(([source, count]) => ({ source, count })).sort((a, b) => b.count - a.count),
     questions: { codes: [...questions].sort(), requirements: questionReqs },
     missingFields,
     invalidQuotes,
+    needsTests,
     ready: rows.filter(readyToApprove).map((r) => r.code),
     noEvidence,
   };

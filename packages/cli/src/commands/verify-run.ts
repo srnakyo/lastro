@@ -4,7 +4,7 @@ import type { LastroClient } from "../api/client";
 
 interface Plan {
   config: unknown;
-  requirements: { code: string; type: string; touches: string[]; status: string; testFiles: string[] }[];
+  requirements: { code: string; type: string; touches: string[]; status: string; testFiles: string[]; examples?: { given: string; expect: string }[] }[];
 }
 
 export interface GateState {

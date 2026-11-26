@@ -1,7 +1,7 @@
 id: REQ-F7H2Q
 title: Prisma migrations create the whole schema on Postgres, with an append-only audit table
 type: storage
-status: specified
+status: approved
 package: PKG-D4S8H
 sources:
   - ref: SRC-P4RD7
@@ -24,10 +24,12 @@ acceptance:
     tests:
       - tests/integration/projects.test.ts::has a projectId on every project-scoped table, filled on rows created through nested writes
       - tests/integration/projects.test.ts::reports no pending migration
+    locked: sha256:da537046b9b07ac749f066108dad6dc22f2fd40f04899259045622cff6818de2
   - id: AC-2
     text: Given an existing AuditEvent row, when an UPDATE or a DELETE targets it, then the database refuses the statement and the row is unchanged.
     tests:
       - tests/integration/projects.test.ts::never lets the audit log be edited or deleted
+    locked: sha256:c54dc0608fc56a5608501c7266e61e8f3f4bdbdad4e6cf807597fae94ce34a45
 decisions:
   - DEC-EPP25
   - DEC-F2H5P

@@ -1,8 +1,11 @@
 import type { RequirementStatus } from "@lastro/shared";
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { MoverChip } from "@/components/guide/mover-chip";
+import { requirementQaQuery } from "@/hooks/run-queries";
 import { useI18n, type MessageKey } from "@/lib/i18n";
+import { levelLabel } from "@/lib/type-label";
 import { PATH, pathIndex, type Mover } from "@/lib/lifecycle";
 import { MarkFinalButton } from "./approval-actions";
 import { holdsForNextStep, type Hold } from "./requirement-holds";
@@ -23,6 +26,7 @@ function pathMover(status: RequirementStatus): Mover | null {
 /** The one thing to do now for this requirement, from what actually holds it: the person's action comes with its button. */
 function useNext(projectKey: string, code: string, status: RequirementStatus, holds: Hold[]): Next {
   const { t } = useI18n();
+  const autonomy = useQuery(requirementQaQuery(projectKey, code)).data?.config.autonomy ?? "auto";
   const held = holdsForNextStep({ code, status, holds });
   const of = (kind: Hold["kind"]) => held.filter((h) => h.kind === kind).map((h) => h.detail);
   const sources = [...new Set(of("source_not_final"))];
@@ -41,6 +45,12 @@ function useNext(projectKey: string, code: string, status: RequirementStatus, ho
   }
   if (status === "specified" && sources.length) {
     return { who: "you", text: t("life.next.sourceNotFinal", { source: sources.join(", ") }), action: sources.map((s) => <MarkFinalButton key={s} projectKey={projectKey} source={s} />) };
+  }
+  const untested = of("criterion_without_test");
+  const levels = of("missing_test_level");
+  if (status === "specified" && (untested.length || levels.length)) {
+    const missing = levels.length ? t("life.next.levels", { levels: levels.map((l) => levelLabel(t, l)).join(", ") }) : "";
+    return { who: "agent", text: t(autonomy === "review" ? "life.next.needsTests.review" : "life.next.needsTests", { levels: missing }) };
   }
   if (status === "specified" && held.length === 0) return { who: "you", text: t("life.next.ready") };
   if (status === "captured" && fields.length) return { who: "agent", text: t("life.next.missingFields", { fields: fields.join(", ") }) };

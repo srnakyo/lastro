@@ -18,7 +18,8 @@ describe("importing this repository's .lastro/", () => {
     expect(report.plan.requirements.filter((r) => r.change === "new")).toHaveLength(snapshot.requirements.length);
     const views = await requirementsService.list(project.id);
     expect(views.every((v) => v.citations.every((c) => c.found))).toBe(true);
-    expect(views.every((v) => ["specified", "captured"].includes(v.status))).toBe(true);
+    // The repository runs in automatic mode: what has every criterion tested is approved and locked by Lastro.
+    expect(views.every((v) => (v.status === "approved" ? v.criteria.every((c) => c.lockedHash) : ["specified", "captured"].includes(v.status)))).toBe(true);
     expect(await database().decision.count({ where: { projectId: project.id } })).toBe(snapshot.decisions.length);
   });
 

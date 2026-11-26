@@ -1,7 +1,7 @@
 id: REQ-6T3JD
 title: Agent assumptions are recorded as proposed decisions
 type: behavior
-status: specified
+status: approved
 package: PKG-M7V0P
 sources:
   - ref: SRC-P4RD7
@@ -20,6 +20,7 @@ acceptance:
     text: Given a verified requirement with a proposed decision, when a person runs `lastro decision overturn`, then the requirement returns to building with the reason 'decision overturned'.
     tests:
       - tests/integration/decisions.test.ts::records agent assumptions as proposed and reopens what was built on an overturned one
+    locked: sha256:a441149a632568b4819126c99b1c9239b12863ca86e37587a643bf27dc160082
 decisions: []
 questions: []
 depends_on: []

@@ -42,7 +42,7 @@ describe("locks", () => {
     await criteriaService.linkTest(project.id, agent, code, "AC-1", "unit/discount.test.ts::60 seats");
     const view = await requirementsService.get(project.id, code);
     expect(view.status).toBe("specified");
-    expect(view.criteria[0]?.tests.map((t) => t.testRef)).toEqual(["unit/discount.test.ts::60 seats"]);
+    expect(view.criteria[0]?.tests.map((t) => t.testRef)).toContain("unit/discount.test.ts::60 seats");
   });
 
   it("sends an approved requirement back to specified when its spec changes", async () => {

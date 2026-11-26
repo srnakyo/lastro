@@ -1,8 +1,9 @@
-import type { ProjectConfig } from "@lastro/shared";
+import { needsTestQuality, TEST_QUALITY_STAGE, type ProjectConfig } from "@lastro/shared";
 import type { Tx } from "../db";
 import { blocksStep, computeBlockers } from "../lifecycle/blockers";
 import { loadGraph, toBlockerInput } from "../requirements/graph";
 import { gateText, NOT_RUN, type GateItem } from "./gate-items";
+import { neverRed } from "./red-first";
 
 export interface GateResult {
   pass: boolean;
@@ -31,11 +32,13 @@ export interface GateContext {
 
 function requiredStages(config: ProjectConfig, type: string) {
   const stages = [...config.global_flow, ...(config.types[type]?.flow ?? [])];
-  return stages.flatMap((s) => {
+  const flow = stages.flatMap((s) => {
     if (typeof s === "string") return [{ stage: s, condition: null as string | null, manual: false, builtin: false }];
     const name = s.run ?? s.check ?? "stage";
     return (s.conditions?.length ? s.conditions : [null]).map((condition) => ({ stage: name, condition, manual: !!s.manual, builtin: !s.run && !s.manual }));
   });
+  // The runner adds the test-quality stage (examples in the tests, coverage of the touched files) when the type asks.
+  return needsTestQuality(config, type) ? [...flow, { stage: TEST_QUALITY_STAGE, condition: null as string | null, manual: false, builtin: false }] : flow;
 }
 
 /**
@@ -141,6 +144,10 @@ export async function evaluateGate(tx: Tx, config: ProjectConfig, requirementId:
     if ((e.always || status) && status !== "passed") fix.push(e.kind === "regression" ? { kind: "regression", incident: e.code, test: e.ref, status: status ?? NOT_RUN } : { kind: "invariant", invariant: e.code, test: e.ref, status: status ?? NOT_RUN });
   }
   await lockedTests(tx, graph, ctx.testFiles ?? {}, fix);
+  if (config.tests.red_first) {
+    const locked = graph.criteria.flatMap((c) => (c.lockedAt ? c.tests.map((t) => ({ ref: t.testRef, since: c.lockedAt as Date })) : []));
+    for (const test of await neverRed(tx, graph.projectId, locked)) fix.push({ kind: "never_red", test });
+  }
   const holding = blocksStep(computeBlockers({ ...toBlockerInput(graph), hasEvidence: true }, config), "verified").filter((b) => b.kind !== "criterion_without_test");
   for (const b of holding) person.push({ kind: "blocker", blocker: b.kind, detail: b.detail ?? "" });
   return { pass: fix.length === 0 && person.length === 0, agentCanFix: fix.map(gateText), needsPerson: person.map(gateText), fixItems: fix, personItems: person };

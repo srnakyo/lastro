@@ -1,7 +1,7 @@
 id: REQ-4P8WB
 title: Quotes must exist literally in the source
 type: behavior
-status: specified
+status: approved
 package: PKG-M7V0P
 sources:
   - ref: SRC-P4RD7
@@ -23,14 +23,17 @@ acceptance:
     text: Given a quote that differs from the source by one word, when the requirement is evaluated, then it stays captured and the report shows the closest passage at that anchor.
     tests:
       - tests/unit/text.test.ts::rejects a quote with one word changed and points at the closest passage
+    locked: sha256:fbca74c712ab4e0c1feda63aad9e28f301e5719c6f3865fa6f986332bc89a3a1
   - id: AC-2
     text: Given a quote that differs only by line breaks or ** markers, when the requirement is evaluated, then the quote is accepted.
     tests:
       - tests/unit/text.test.ts::finds a quote under a section anchor, ignoring emphasis, code marks and line breaks
+    locked: sha256:cc5633609e52e8882bf1c2e0eb9ca48f48b09a36ed6064d96847cac589c03d20
   - id: AC-3
     text: Given a quote anchored to a section (@file#slug) that appears in its third paragraph, when the requirement is evaluated, then the quote is accepted and the Citation points to the passage @file#slug/p3.
     tests:
       - tests/unit/text.test.ts::accepts a quote in the third paragraph of a section anchor and points at /p3
+    locked: sha256:4f7734454ef9e82ba75d869625b9bd4dbcd06cecb2119e2afd33dbf5ffab7916
 decisions: []
 questions: []
 depends_on: []

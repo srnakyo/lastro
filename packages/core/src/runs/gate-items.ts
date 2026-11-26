@@ -14,7 +14,8 @@ export type GateItem =
   | { kind: "no_examples" }
   | { kind: "examples_short"; examples: number; passing: number }
   | { kind: "unknown_check"; check: string }
-  | { kind: "blocker"; blocker: string; detail: string };
+  | { kind: "blocker"; blocker: string; detail: string }
+  | { kind: "never_red"; test: string };
 
 /** "not run" for a test or stage with no result. */
 export const NOT_RUN = "not run";
@@ -46,5 +47,7 @@ export function gateText(item: GateItem): string {
       return `check ${item.check} has no automatic implementation: make it manual (signed) or a command`;
     case "blocker":
       return `${item.blocker}${item.detail ? ` ${item.detail}` : ""}`;
+    case "never_red":
+      return `${item.test} never failed on a Lastro run: write the test before the code, see it fail, then make it pass`;
   }
 }

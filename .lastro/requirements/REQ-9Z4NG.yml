@@ -1,7 +1,7 @@
 id: REQ-9Z4NG
 title: Read JUnit XML and SARIF results
 type: format
-status: specified
+status: approved
 package: PKG-M7V0P
 sources:
   - ref: SRC-P4RD7
@@ -19,10 +19,12 @@ acceptance:
     text: Given JUnit reports produced by Vitest, Jest, Playwright, pytest and PHPUnit, when parsed, then each test case is identified as 'file::test name' with its status.
     tests:
       - tests/unit/runner.test.ts::reads Vitest, Jest, Playwright, pytest and PHPUnit reports as file::test name
+    locked: sha256:eb4a2e44363105ee4ae9f497b13b711153c481fd69bf12b1226f763a6044002c
   - id: AC-2
     text: Given a SARIF 2.1.0 report with errors, when the stage is evaluated, then it fails and lists file, line and rule for each error.
     tests:
       - tests/unit/runner.test.ts::fails a stage with SARIF errors and keeps file, line and rule of each
+    locked: sha256:d10f870db5a72b76305c8bd7c3caa0b1a254a56cc41360ec0c35f29f6502e806
 decisions: []
 questions: []
 depends_on: []

@@ -1,7 +1,7 @@
 id: REQ-A2C7H
 title: "`lastro gate` evaluates the gate on the current commit"
 type: behavior
-status: specified
+status: approved
 package: PKG-M7V0P
 sources:
   - ref: SRC-P4RD7
@@ -23,14 +23,17 @@ acceptance:
     text: Given a requirement whose criterion AC-2 has no linked test, when `lastro gate` runs, then it exits with code 1 and lists AC-2 under what the agent can fix.
     tests:
       - tests/integration/cli.test.ts::exits 1 and lists a criterion without a test under what the agent can fix (REQ-A2C7H)
+    locked: sha256:17024a431a1dc2ec5c449615803f781ebe58be503f25f67868469cdcf4012d2d
   - id: AC-2
     text: Given a requirement whose only missing stage is a manual preview, then the gate exits with code 1 and lists the preview under what needs a person.
     tests:
       - tests/integration/runs.test.ts::holds a manual stage until a person signs it, and refuses an agent's signature
+    locked: sha256:5dfeadce2b605e4efaf776ff9f7fe98553d6f79183e3c494fc96b2df3c1f771e
   - id: AC-3
     text: Given a repository with a .lastro/ export and no server configured, when `lastro gate --ci` runs, then it evaluates the locked criteria from the export with runs it performs itself and exits 0 only if they pass.
     tests:
       - tests/integration/cli.test.ts::runs offline from the export with --ci and checks the locked criteria (REQ-A2C7H AC-3)
+    locked: sha256:b73474152155440e8e8d36a8a7821b3d4bf0243066baa613b5d1aef459fe8d61
 decisions:
   - DEC-Q0MW8
 questions: []

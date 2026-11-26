@@ -34,7 +34,8 @@ flowchart LR
   A["Requester's material<br/>docx · pdf · chat · audio · video"] --> B["Intake<br/>source with anchors and versions"]
   B --> C["Atomic requirements<br/>quote · required fields · criteria"]
   C --> D{"Questions and decisions"}
-  D --> E["approved by a person"]
+  D --> T["Tests first<br/>unit · integration · Playwright"]
+  T --> E["approved and locked automatically<br/>(by a person in review mode)"]
   E --> F["Agent implements<br/>(Claude Code, Codex, ...)"]
   F --> G["lastro verify<br/>QA flow by type and condition"]
   G --> H{"Gate"}
@@ -45,7 +46,8 @@ flowchart LR
 
 - **Postgres is the source of truth; git gets the export.** One self-hosted server holds every project. `lastro export` writes a deterministic `.lastro/` snapshot that is reviewed in the same pull request as the code.
 - **No LLM inside.** The agent you already use does the thinking. Lastro stores, enforces and checks. No API key, no token cost, no client data sent anywhere.
-- **Human actions stay human.** Approving, accepting, unlocking criteria, signing manual stages, importing a snapshot and changing the QA configuration are refused for agent tokens in the core, not only in the hooks.
+- **Automatic by default, a person where it counts.** Lastro approves and locks a requirement by itself once its spec is complete and every criterion has its tests at the levels its type asks; the latest version of a source counts. A person answers what only the requester knows and accepts the delivery. In review mode a person also approves each requirement. Approving, accepting, unlocking criteria, signing manual stages, importing a snapshot and changing the QA configuration are refused for agent tokens in the core, not only in the hooks.
+- **Tests that prove something.** Each requirement type says which tests it needs (unit, integration, end to end with Playwright, in every condition) and how much of the code it touches they must run (function and line coverage, read from LCOV). A test must fail on a Lastro run before it passes, and the requester's numbers must be in it. A requirement is not verified until all of that holds.
 - **Agnostic.** Claude Code first, with a CLI and an MCP server for any agent, on any stack whose tests write JUnit and whose linters write SARIF.
 
 ## The dashboard

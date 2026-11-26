@@ -1,7 +1,7 @@
 id: REQ-K1P4V
 title: Requirement detail shows the quote next to the source passage
 type: ui
-status: specified
+status: approved
 package: PKG-D4S8H
 sources:
   - ref: SRC-P4RD7
@@ -19,6 +19,7 @@ acceptance:
     tests:
       - tests/e2e/spec.spec.ts::a requirement shows its quote next to the source and what holds it back
       - tests/unit/highlight.test.ts::marks the quote inside the passage, across emphasis and line breaks
+    locked: sha256:ae1fcdd65a111f17a195ca077f685e77a734bca837ff8c74b3a12a32fbfbec68
 decisions: []
 questions: []
 depends_on: []

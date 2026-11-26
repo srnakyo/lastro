@@ -1,7 +1,7 @@
 id: REQ-C8E1K
 title: Locked criteria and tests need a human unlock
 type: behavior
-status: specified
+status: approved
 package: PKG-M7V0P
 sources:
   - ref: SRC-P4RD7
@@ -21,6 +21,7 @@ acceptance:
     tests:
       - tests/integration/cli.test.ts::runs offline from the export with --ci and checks the locked criteria (REQ-A2C7H AC-3)
       - tests/integration/runs.test.ts::fails naming a locked test whose file changed after it was sealed, until a person unlocks
+    locked: sha256:ecf37360ca2815291f9ca5a2f3b175f40f417092e3d2000603c69636b7034fbb
 decisions: []
 questions: []
 depends_on: []

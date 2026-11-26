@@ -4,7 +4,8 @@ import { en, ptBR, type MessageKey } from "./messages";
 export type Lang = "en" | "pt-BR";
 const DICTIONARIES: Record<Lang, Record<MessageKey, string>> = { en, "pt-BR": ptBR };
 
-export type Translate = (key: MessageKey, vars?: Record<string, string | number>) => string;
+export type { Translate } from "./messages";
+import type { Translate } from "./messages";
 
 const I18nContext = createContext<{ lang: Lang; t: Translate }>({ lang: "en", t: (k) => en[k] });
 

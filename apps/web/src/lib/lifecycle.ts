@@ -6,7 +6,7 @@ export type Mover = "you" | "agent" | "lastro";
 export const PATH: { status: RequirementStatus; who: Mover }[] = [
   { status: "captured", who: "agent" },
   { status: "specified", who: "lastro" },
-  { status: "approved", who: "you" },
+  { status: "approved", who: "lastro" },
   { status: "building", who: "agent" },
   { status: "verified", who: "lastro" },
   { status: "delivered", who: "you" },

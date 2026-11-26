@@ -1,7 +1,7 @@
 id: REQ-D1F4M
 title: Item-by-item package report in Markdown
 type: behavior
-status: specified
+status: approved
 package: PKG-M7V0P
 sources:
   - ref: SRC-P4RD7
@@ -20,6 +20,7 @@ acceptance:
     text: Given a package whose source numbers items 1 to 12 and item 7 has an open question, when `lastro report` runs, then items appear in source order and item 7 appears only under 'awaiting answer'.
     tests:
       - tests/integration/docs.test.ts::lists a package's items in the requester's order, and an item with an open question only under 'Awaiting answer' (REQ-D1F4M)
+    locked: sha256:a8c021193df65d4e0ab5aa8f47788007bc86a77800596dc681472f4a72c5e4f8
 decisions: []
 questions: []
 depends_on: []

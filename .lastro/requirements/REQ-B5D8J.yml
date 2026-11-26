@@ -1,7 +1,7 @@
 id: REQ-B5D8J
 title: Evidence goes stale when a touched file changes
 type: behavior
-status: specified
+status: approved
 package: PKG-M7V0P
 sources:
   - ref: SRC-P4RD7
@@ -21,10 +21,12 @@ acceptance:
     tests:
       - tests/integration/runs.test.ts::names the stale evidence with exactly that reason
       - tests/integration/verify-flow.test.ts::runs the project's command, records the evidence and makes it stale when a touched file changes
+    locked: sha256:d17e892095ee1ff04f140a0e49955c4c5d1b38b4b945ff22c961edb53666295a
   - id: AC-2
     text: Given a change only in files outside touches, then the requirement stays verified.
     tests:
       - tests/unit/runner.test.ts::keeps the fingerprint when only files outside the touched ones change
+    locked: sha256:c7360ce644a269e049bb00b683623187f694c81ae61f933bf3e5b07e316dc8d6
 decisions: []
 questions: []
 depends_on: []

@@ -1,7 +1,7 @@
 id: REQ-2K9DM
 title: Short random IDs with type prefixes
 type: format
-status: specified
+status: approved
 package: PKG-M7V0P
 sources:
   - ref: SRC-P4RD7
@@ -21,6 +21,7 @@ acceptance:
       - tests/unit/codes.test.ts::are INV-XXXXX like every other entity, and older INV-1 codes stay valid
       - tests/unit/codes.test.ts::generates Crockford base32 codes that the schema accepts
       - tests/unit/codes.test.ts::gives up after repeated collisions
+    locked: sha256:d64112e1602a06911e656ca15b10e4dfbbbc3d90e502bcd47fc0c7099bb41697
 decisions: []
 questions: []
 depends_on: []

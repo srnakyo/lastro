@@ -21,6 +21,78 @@
         "pt-BR"
       ]
     },
+    "autonomy": {
+      "default": "auto",
+      "type": "string",
+      "enum": [
+        "auto",
+        "review"
+      ]
+    },
+    "tests": {
+      "default": {
+        "levels": {
+          "e2e": [
+            "tests/e2e/**",
+            "e2e/**",
+            "**/*.spec.*"
+          ],
+          "integration": [
+            "tests/integration/**",
+            "**/*.integration.*"
+          ],
+          "unit": [
+            "tests/unit/**",
+            "**/*.test.*",
+            "**/__tests__/**"
+          ]
+        },
+        "red_first": false,
+        "examples_in_tests": false
+      },
+      "type": "object",
+      "properties": {
+        "levels": {
+          "default": {
+            "e2e": [
+              "tests/e2e/**",
+              "e2e/**",
+              "**/*.spec.*"
+            ],
+            "integration": [
+              "tests/integration/**",
+              "**/*.integration.*"
+            ],
+            "unit": [
+              "tests/unit/**",
+              "**/*.test.*",
+              "**/__tests__/**"
+            ]
+          },
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "red_first": {
+          "default": false,
+          "type": "boolean"
+        },
+        "examples_in_tests": {
+          "default": false,
+          "type": "boolean"
+        },
+        "coverage_report": {
+          "type": "string"
+        }
+      }
+    },
     "approval": {
       "default": {
         "spec": [
@@ -164,6 +236,36 @@
                   }
                 }
               ]
+            }
+          },
+          "tests": {
+            "default": {
+              "levels": []
+            },
+            "type": "object",
+            "properties": {
+              "levels": {
+                "default": [],
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "coverage": {
+                "type": "object",
+                "properties": {
+                  "functions": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  "lines": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100
+                  }
+                }
+              }
             }
           }
         }

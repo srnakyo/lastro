@@ -19,14 +19,17 @@ Above 50 seats the discount is 8%.
 `;
 
 /** A workspace with one project whose calculation type requires data_source and examples. */
-export async function createProject(options: { requireFinal?: boolean } = {}) {
+export async function createProject(options: { requireFinal?: boolean; autonomy?: "auto" | "review"; tests?: Record<string, unknown>; types?: Record<string, unknown> } = {}) {
   const user = await createUser();
   const actor = person(user.id);
   const workspace = await workspacesService.create(user.id, { name: "Acme", slug: "acme" });
   const config = projectConfigSchema.parse({
     project: "billing",
+    // The review flow is what most tests exercise; the automatic one has tests of its own.
+    autonomy: options.autonomy ?? "review",
     approval: { spec: ["dev"], require_final_source: options.requireFinal ?? false },
-    types: { calculation: { required: ["data_source", "examples"] }, behavior: { required: [] } },
+    ...(options.tests ? { tests: options.tests } : {}),
+    types: options.types ?? { calculation: { required: ["data_source", "examples"] }, behavior: { required: [] } },
   });
   const project = await projectsService.create(workspace.id, actor, { key: "billing", name: "Billing", config });
   return { user, actor, workspace, project };
@@ -51,5 +54,5 @@ export const discountRequirement = (source: string) => ({
   dataSource: "discount table at issue date",
   examples: [{ given: "annual plan, 60 seats", expect: "8% discount line" }],
   citations: [{ source, anchor: "@brief.md#volume-discount", quote: "The volume discount has to show on the invoice, including the annual plan." }],
-  criteria: [{ code: "AC-1", text: "Given 60 seats, then the invoice shows an 8% discount line.", tests: [] }],
+  criteria: [{ code: "AC-1", text: "Given 60 seats, then the invoice shows an 8% discount line.", tests: ["tests/discount.test.ts::shows the 8% line for 60 seats"] }],
 });

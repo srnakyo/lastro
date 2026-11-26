@@ -8,6 +8,7 @@ export const reqlistEn = {
   "blocker.short.source_not_final": "Source not final",
   "blocker.short.unconfirmed_transcript": "Transcript to confirm",
   "blocker.short.criterion_without_test": "Criterion without test",
+  "blocker.short.missing_test_level": "Test level missing",
   "blocker.short.no_evidence": "No evidence",
   "blocker.short.decision_overturned": "Decision overturned",
   "unblock.title": "What unlocks these requirements",
@@ -19,6 +20,7 @@ export const reqlistEn = {
   "unblock.questions": "{n} open question(s) hold {m} requirement(s) back.",
   "unblock.answer": "Answer",
   "unblock.fields": "{n} requirement(s) miss required fields: the agent fills them in.",
+  "unblock.tests": "{n} requirement(s) wait for tests: the agent writes and links them, at the levels each type asks, and Lastro approves what is ready.",
   "unblock.invalidQuote": "{n} quote(s) were not found in their source: the agent fixes them.",
   "unblock.ready": "{n} requirement(s) ready for your approval.",
   "unblock.approveAll": "Approve the {n}",
@@ -41,4 +43,7 @@ export const reqlistEn = {
   "life.next.missingFields": "The agent still has to fill in: {fields}.",
   "life.next.invalidQuote": "The quote was not found in the source: the agent fixes it.",
   "life.next.ready": "Nothing holds it back: review it and use Approve, at the top.",
+  "life.next.needsTests": "The agent writes and links a test for every criterion{levels}. Then Lastro approves it by itself.",
+  "life.next.needsTests.review": "The agent writes and links a test for every criterion{levels}. Then a person approves it.",
+  "life.next.levels": " (missing level: {levels})",
 } as const;

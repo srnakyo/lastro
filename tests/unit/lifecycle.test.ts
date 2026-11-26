@@ -2,8 +2,8 @@ import { describe, expect, it } from "bun:test";
 import { allowedActors, blocksStep, computeBlockers, computeHallmark, criterionHash, isPending, type BlockerInput } from "@lastro/core";
 import { projectConfigSchema } from "@lastro/shared";
 
-const config = (requireFinal = false) =>
-  projectConfigSchema.parse({ project: "p", approval: { require_final_source: requireFinal }, types: { calculation: { required: ["data_source", "examples"] } } });
+const config = (requireFinal = false, autonomy: "auto" | "review" = "review", levels: string[] = []) =>
+  projectConfigSchema.parse({ project: "p", autonomy, approval: { require_final_source: requireFinal }, types: { calculation: { required: ["data_source", "examples"], tests: { levels } } } });
 
 const input = (patch: Partial<BlockerInput> = {}): BlockerInput => ({
   type: "calculation",
@@ -17,8 +17,9 @@ const input = (patch: Partial<BlockerInput> = {}): BlockerInput => ({
 });
 
 describe("transitions", () => {
-  it("only a person approves, accepts and drops", () => {
-    expect(allowedActors("specified", "approved")).toEqual(["user"]);
+  it("only a person accepts and drops; approval is a person's, or Lastro's in automatic mode", () => {
+    expect(allowedActors("specified", "approved")).toEqual(["user", "system"]);
+    expect(allowedActors("specified", "approved")).not.toContain("agent");
     expect(allowedActors("delivered", "accepted")).toEqual(["user"]);
     expect(allowedActors("approved", "building")).toContain("agent");
     expect(allowedActors("building", "verified")).toEqual(["system"]);
@@ -37,11 +38,20 @@ describe("computeBlockers", () => {
     expect(blockers.filter((b) => b.kind === "missing_field").map((b) => b.detail)).toEqual(["data_source", "examples"]);
   });
 
-  it("holds approval back only when the project requires final sources", () => {
+  it("holds approval back for a draft source only in review mode with final sources required", () => {
     const draft = input({ citations: [{ source: "SRC-AAAAA", anchor: "@a", found: true, final: false, machineTranscript: false, confirmed: false }] });
     expect(computeBlockers(draft, config(false)).some((b) => b.kind === "source_not_final")).toBe(false);
     expect(blocksStep(computeBlockers(draft, config(true)), "approved").map((b) => b.kind)).toEqual(["source_not_final"]);
     expect(blocksStep(computeBlockers(draft, config(true)), "specified")).toEqual([]);
+    expect(computeBlockers(draft, config(true, "auto")).some((b) => b.kind === "source_not_final")).toBe(false);
+  });
+
+  it("holds approval back until every criterion has a test, at every level the type asks", () => {
+    expect(blocksStep(computeBlockers(input({ criteria: [{ code: "AC-1", tests: 0, testRefs: [] }] }), config()), "approved").map((b) => b.kind)).toEqual(["criterion_without_test"]);
+    const unitOnly = input({ criteria: [{ code: "AC-1", tests: 1, testRefs: ["tests/unit/total.test.ts::sums"] }] });
+    expect(computeBlockers(unitOnly, config(false, "review", ["unit", "e2e"])).filter((b) => b.kind === "missing_test_level")).toEqual([{ kind: "missing_test_level", detail: "e2e", blocks: "approved" }]);
+    const both = input({ criteria: [{ code: "AC-1", tests: 2, testRefs: ["tests/unit/total.test.ts::sums", "tests/e2e/checkout.spec.ts::shows the total"] }] });
+    expect(computeBlockers(both, config(false, "review", ["unit", "e2e"])).some((b) => b.kind === "missing_test_level")).toBe(false);
   });
 
   it("asks a person to confirm quotes taken from machine transcripts", () => {

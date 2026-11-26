@@ -36,6 +36,8 @@ The invoice goes by e-mail as soon as the payment is confirmed.
 
 export const SHOP_CONFIG = {
   project: "shop-demo",
+  // The demo history is scripted step by step, so a person approves as in it.
+  autonomy: "review",
   approval: { spec: ["dev"], require_final_source: true },
   commands: {
     lint: { run: "bun run lint:sarif", report: { sarif: ".lastro/.out/lint.sarif" } },

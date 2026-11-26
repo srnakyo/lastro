@@ -1,7 +1,7 @@
 id: REQ-J8M1T
 title: The dashboard is the web app, with sign-in, workspaces and a project switcher
 type: ui
-status: specified
+status: approved
 package: PKG-D4S8H
 sources:
   - ref: SRC-P4RD7
@@ -25,14 +25,17 @@ acceptance:
     text: Given no session, when any project URL opens, then the dashboard shows the sign-in page and returns to that URL after signing in.
     tests:
       - tests/e2e/dashboard.spec.ts::signing in from a project URL returns to that URL (REQ-J8M1T)
+    locked: sha256:84936e1389a85035c7acef8f259b033a407b23a7ad2193af8cec20cb01342b7e
   - id: AC-2
     text: Given a signed-in member, when they search the project switcher and pick a project, then the URL becomes /projects/<key>/ and the page shows that project.
     tests:
       - tests/e2e/dashboard.spec.ts::the project switcher moves between projects and keeps the page
+    locked: sha256:55d57b27abf8c1f2f8cfe934da2a963b57a18345f0d4e891fb9cf0795c3ed187
   - id: AC-3
     text: Given a signed-in member of another workspace, when they open /projects/<key>/ of a project they do not belong to, then the response is not found.
     tests:
       - tests/e2e/dashboard.spec.ts::a project outside the person's workspaces answers as not found (REQ-J8M1T)
+    locked: sha256:4dfb5c6224f084107ef247654c5da34b87c16e87c46faef8beb803b7253599ac
 decisions:
   - DEC-T2B5C
 questions:

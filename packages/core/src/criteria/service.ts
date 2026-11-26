@@ -21,6 +21,8 @@ export const criteriaService = {
       const scope = await loadScope(tx, projectId);
       const requirement = await findRequirement(tx, projectId, requirementCode);
       const criterion = await findCriterion(tx, requirement.id, criterionCode);
+      // Linking a test that is already linked changes nothing, so a locked criterion lets it through.
+      if (await tx.criterionTest.findUnique({ where: { criterionId_testRef: { criterionId: criterion.id, testRef } } })) return;
       if (criterion.lockedHash) throw new LastroError("HUMAN_ONLY", `${requirementCode} ${criterionCode} is locked; a person must unlock it`);
       await tx.criterionTest.upsert({
         where: { criterionId_testRef: { criterionId: criterion.id, testRef } },
@@ -28,6 +30,8 @@ export const criteriaService = {
         update: {},
       });
       await auditService.record(tx, { workspaceId: scope.workspaceId, projectId, actor, action: "criterion.link_test", entity: "requirement", entityId: requirementCode, data: { criterion: criterionCode, testRef } });
+      // The last missing test may be the one that lets the requirement be approved.
+      await reevaluate(tx, scope, requirement.id);
     });
   },
 

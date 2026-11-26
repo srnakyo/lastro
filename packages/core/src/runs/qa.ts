@@ -53,13 +53,15 @@ export async function diagramsData(projectId: string) {
     latestTests(projectId),
   ]);
   const live = views.filter((v) => v.status !== "dropped");
+  // A draft source is only a gap where approval asks for a final one: review mode with require_final_source.
+  const needsFinal = scope.config.autonomy === "review" && scope.config.approval.require_final_source;
   return {
     config: scope.config,
     types: Object.keys(scope.config.types),
     packages,
     requirements: live.map((r) => ({
       code: r.code, title: r.title, status: r.status, module: moduleOf(r.reach, r.type), package: r.package?.code ?? null,
-      finalSource: r.citations.every((c) => c.source.versions[0]?.final ?? false),
+      finalSource: !needsFinal || r.citations.every((c) => c.source.versions[0]?.final ?? false),
       citations: r.citations.map((c) => ({ source: c.source.code, anchor: c.anchor, found: c.found })),
       criteria: r.criteria.map((c) => ({ code: c.code, tests: c.tests.map((t) => t.testRef) })),
       // What holds it on its next step, for the blocked edges of the lifecycle diagram.

@@ -78,7 +78,7 @@ describe("lastro pending and lastro gate", () => {
     expect(res.stdout).toContain("awaiting approval (1)");
   });
 
-  it("exits 1 and lists a criterion without a test under what the agent can fix (REQ-A2C7H)", async () => {
+  it("exits 1 and lists a linked test that has not run under what the agent can fix (REQ-A2C7H)", async () => {
     const { run, project, actor, agentToken } = await setup();
     const source = await createBriefSource(project.id, actor, true);
     const req = await requirementsService.create(project.id, actor, discountRequirement(source.code));
@@ -88,7 +88,7 @@ describe("lastro pending and lastro gate", () => {
     await run(["req", "start", req.code], agentToken);
     const res = await run(["gate"], agentToken);
     expect(res.code).toBe(1);
-    expect(res.stdout).toContain("fix: AC-1 has no test");
+    expect(res.stdout).toContain("fix: AC-1 tests/discount.test.ts::shows the 8% line for 60 seats not run");
   });
 
   it("runs offline from the export with --ci and checks the locked criteria (REQ-A2C7H AC-3)", async () => {

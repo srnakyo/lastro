@@ -1,6 +1,22 @@
 version: 1
 project: lastro
 language: en
+autonomy: auto
+tests:
+  levels:
+    e2e:
+      - tests/e2e/**
+      - e2e/**
+      - "**/*.spec.*"
+    unit:
+      - tests/unit/**
+      - "**/*.test.*"
+      - "**/__tests__/**"
+    integration:
+      - tests/integration/**
+      - "**/*.integration.*"
+  red_first: false
+  examples_in_tests: false
 approval:
   spec:
     - dev
@@ -55,6 +71,8 @@ types:
       - check: preview
         manual: true
         by: dev
+    tests:
+      levels: []
   format:
     required:
       - examples
@@ -62,6 +80,8 @@ types:
       - typecheck
       - unit
       - check: examples
+    tests:
+      levels: []
   storage:
     required:
       - where
@@ -71,6 +91,8 @@ types:
       - run: unit
         conditions:
           - postgres
+    tests:
+      levels: []
   behavior:
     required:
       - where
@@ -78,6 +100,8 @@ types:
     flow:
       - typecheck
       - unit
+    tests:
+      levels: []
 global_flow:
   - typecheck
   - lint

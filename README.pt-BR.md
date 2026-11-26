@@ -34,7 +34,8 @@ flowchart LR
   A["Material de quem pediu<br/>docx · pdf · conversa · áudio · vídeo"] --> B["Entrada<br/>fonte com âncoras e versões"]
   B --> C["Requisitos atômicos<br/>citação · campos obrigatórios · critérios"]
   C --> D{"Perguntas e decisões"}
-  D --> E["aprovado por uma pessoa"]
+  D --> T["Testes primeiro<br/>unidade · integração · Playwright"]
+  T --> E["aprovado e travado automaticamente<br/>(por uma pessoa no modo com revisão)"]
   E --> F["Agente implementa<br/>(Claude Code, Codex, ...)"]
   F --> G["lastro verify<br/>fluxo de QA por tipo e condição"]
   G --> H{"Gate"}
@@ -45,7 +46,8 @@ flowchart LR
 
 - **O Postgres é a verdade, e o git recebe a exportação.** Um servidor auto-hospedado guarda todos os projetos. `lastro export` grava um retrato determinístico em `.lastro/`, revisado no mesmo PR que o código.
 - **Sem LLM dentro.** Quem pensa é o agente que você já usa. O Lastro guarda, cobra e confere. Sem chave de API, sem custo de token, sem mandar dado de cliente para lugar nenhum.
-- **Ação humana continua humana.** Aprovar, aceitar, destravar critério, assinar etapa manual, importar exportação e mudar a configuração de QA são recusados para token de agente no núcleo, não só nos hooks.
+- **Automático por padrão, pessoa onde importa.** O Lastro aprova e trava um requisito sozinho quando a especificação está completa e todo critério tem seus testes, nos níveis que o tipo exige; vale a versão mais recente de cada fonte. A pessoa responde o que só quem pediu sabe e aceita a entrega. No modo com revisão, a pessoa também aprova cada requisito. Aprovar, aceitar, destravar critério, assinar etapa manual, importar exportação e mudar a configuração de QA são recusados para token de agente no núcleo, não só nos hooks.
+- **Testes que provam alguma coisa.** Cada tipo de requisito diz quais testes precisa (unidade, integração, ponta a ponta com Playwright, em cada condição) e quanto do código que ele toca os testes precisam executar (cobertura de funções e linhas, lida do LCOV). O teste precisa falhar numa execução do Lastro antes de passar, e os números de quem pediu precisam estar nele. O requisito só fica verificado quando tudo isso vale.
 - **Agnóstico.** Claude Code primeiro, com CLI e servidor MCP para qualquer agente, em qualquer stack cujos testes gerem JUnit e cujos linters gerem SARIF.
 
 ## O painel

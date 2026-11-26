@@ -7,6 +7,7 @@ import { useI18n, type MessageKey } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 export interface NextStepsData {
+  autonomy: "auto" | "review";
   requirements: number;
   pending: number;
   byStatus: Partial<Record<RequirementStatus, number>>;
@@ -25,6 +26,8 @@ interface Step {
   n?: number;
   to: string;
   search?: Record<string, string>;
+  /** Shown last, tagged optional: it does not hold the work. */
+  optional?: boolean;
 }
 
 /** What waits, in the order it should be done: a person's steps first, since the agent waits on them. */
@@ -32,8 +35,8 @@ function stepsOf(o: NextStepsData): Step[] {
   const s = (status: RequirementStatus) => o.byStatus[status] ?? 0;
   const all: Step[] = [
     { who: "you", label: "next.questions", n: o.openQuestions, to: "/requirements/questions" },
-    { who: "you", label: "next.decisions.person", n: o.decisionsByPerson, to: "/requirements/decisions" },
-    { who: "you", label: "next.decisions.agent", n: o.decisionsByAgent, to: "/requirements/decisions" },
+    { who: "you", label: "next.decisions.person", n: o.decisionsByPerson, to: "/requirements/decisions", optional: o.autonomy === "auto" },
+    { who: "you", label: "next.decisions.agent", n: o.decisionsByAgent, to: "/requirements/decisions", optional: o.autonomy === "auto" },
     { who: "you", label: "next.approve", n: s("specified"), to: "/requirements", search: { status: "specified" } },
     { who: "you", label: "next.triage", n: o.openIncidents, to: "/bugs" },
     { who: "you", label: "next.accept", n: s("delivered"), to: "/requirements", search: { status: "delivered" } },
@@ -42,13 +45,14 @@ function stepsOf(o: NextStepsData): Step[] {
     { who: "agent", label: "next.untested", n: o.tests.pending, to: "/tests" },
     { who: "agent", label: "next.build", n: s("approved") + s("building") + s("reopened"), to: "/requirements", search: { status: "building" } },
   ];
-  return all.filter((step) => (step.n ?? 0) > 0);
+  const due = all.filter((step) => (step.n ?? 0) > 0);
+  return [...due.filter((s) => !s.optional), ...due.filter((s) => s.optional)];
 }
 
 const START: Step[] = [
   { who: "you", label: "start.source", to: "/sources" },
   { who: "agent", label: "start.intake", to: "/requirements" },
-  { who: "you", label: "start.approve", to: "/requirements" },
+  { who: "agent", label: "start.approve", to: "/requirements" },
   { who: "agent", label: "start.verify", to: "/runs" },
 ];
 
@@ -70,7 +74,14 @@ function StepRow({ step, base }: { step: Step; base: string }) {
     <li>
       <Link to={`${base}${step.to}` as never} search={step.search as never} className="group flex items-center gap-3 px-5 py-2.5 transition-colors hover:bg-accent/60">
         <WhoChip who={step.who} />
-        <span className="flex-1 text-[13.5px]">{t(step.label)}</span>
+        <span className="flex-1 text-[13.5px]">
+          {t(step.label)}
+          {step.optional && (
+            <span title={t("next.optional.help")} className="ml-2 rounded-full border px-1.5 py-px text-[11px] text-muted-foreground">
+              {t("next.optional")}
+            </span>
+          )}
+        </span>
         {step.n !== undefined && <span className="tabular min-w-6 rounded-md bg-muted px-1.5 py-0.5 text-center text-[12.5px] font-semibold">{step.n}</span>}
         <ChevronRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
       </Link>

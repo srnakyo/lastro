@@ -39,4 +39,6 @@ export const decisionsPtBR: Record<keyof typeof decisionsEn, string> = {
   "dec.row.agent": "Escolha do agente, confirmada",
   "next.decisions.person": "Conferir as decisões suas que o agente anotou",
   "next.decisions.agent": "Confirmar ou derrubar as escolhas do agente",
+  "next.optional": "opcional",
+  "next.optional.help": "No modo automático o agente segue sem esperar; as escolhas dele vão no relatório de entrega. Confira quando puder.",
 };

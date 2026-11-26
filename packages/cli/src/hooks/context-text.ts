@@ -1,6 +1,16 @@
+interface TestRules {
+  autonomy: string;
+  redFirst: boolean;
+  examplesInTests: boolean;
+  coverageReport: string | null;
+  types: Record<string, { levels: string[]; coverage: { functions?: number; lines?: number } | null }>;
+}
+
 interface AgentContext {
   project: string;
   rules: string[];
+  tests?: TestRules;
+  needTests?: { code: string; title: string; type: string; missing: string[] }[];
   active: { code: string; title: string; status: string; type: string; statement: string; where: string | null; criteria: { code: string; text: string; tests: string[]; locked: boolean }[]; blockers: { kind: string; detail: string; blocks: string }[] }[];
   pending: { code: string; title: string; status: string }[];
   glossary: { term: string; means: string; note: string | null }[];
@@ -12,11 +22,31 @@ interface AgentContext {
 
 const MAX = 12_000;
 
+/** What the tests must be: per type, the levels and the coverage; for all, red first and the requester's numbers. */
+function testRulesText(rules: TestRules): string {
+  const lines = Object.entries(rules.types)
+    .filter(([, t]) => t.levels.length || t.coverage)
+    .map(([type, t]) => {
+      const coverage = t.coverage ? [t.coverage.functions !== undefined ? `functions ≥ ${t.coverage.functions}%` : "", t.coverage.lines !== undefined ? `lines ≥ ${t.coverage.lines}%` : ""].filter(Boolean).join(", ") : "";
+      return `- ${type}: ${t.levels.length ? `tests at ${t.levels.join(", ")}` : "no level required"}${coverage ? `; coverage of the touched files: ${coverage}` : ""}`;
+    });
+  return [
+    "## Test rules",
+    `- Mode: ${rules.autonomy}.`,
+    rules.redFirst ? "- Red first: a test Lastro never saw fail does not count." : "",
+    rules.examplesInTests ? "- Every number in a requester example must appear in a test of its requirement." : "",
+    rules.coverageReport ? `- Coverage is read from ${rules.coverageReport} (LCOV) after the stages run.` : "",
+    ...lines,
+  ].filter(Boolean).join("\n");
+}
+
 /** The project context as Markdown for the agent: what to work on and the rules it must keep. */
 export function contextText(ctx: AgentContext): string {
   const parts = [
     `# Lastro: project ${ctx.project}`,
     ctx.rules.map((r) => `- ${r}`).join("\n"),
+    ctx.tests ? testRulesText(ctx.tests) : "",
+    ctx.needTests?.length ? `## Waiting for your tests\n${ctx.needTests.map((r) => `- ${r.code} (${r.type}): ${r.title}: ${r.missing.join(", ")}`).join("\n")}` : "",
     "## Active requirements",
     ctx.active.length === 0
       ? "None approved yet. Do not start implementing; propose requirements or ask."

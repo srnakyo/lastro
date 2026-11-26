@@ -50,6 +50,7 @@ export function UnblockCard({ projectKey, summary }: { projectKey: string; summa
     );
   }
   if (summary.missingFields > 0) lines.push(<Line key="fields" who="agent" text={t("unblock.fields", { n: summary.missingFields })} />);
+  if (summary.needsTests > 0) lines.push(<Line key="tests" who="agent" text={t("unblock.tests", { n: summary.needsTests })} />);
   if (summary.invalidQuotes > 0) lines.push(<Line key="quotes" who="agent" text={t("unblock.invalidQuote", { n: summary.invalidQuotes })} />);
   if (summary.noEvidence > 0) lines.push(<Line key="evidence" who="agent" text={t("unblock.evidence", { n: summary.noEvidence })} />);
   if (lines.length === 0) return null;

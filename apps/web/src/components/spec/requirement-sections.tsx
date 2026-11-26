@@ -8,6 +8,7 @@ import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDateTime } from "@/lib/format";
 import { useI18n, type MessageKey } from "@/lib/i18n";
 import { RichText } from "@/lib/rich-text";
+import { levelLabel } from "@/lib/type-label";
 
 export function BlockersList({ blockers }: { blockers: Blocker[] }) {
   const { t } = useI18n();
@@ -25,7 +26,11 @@ export function BlockersList({ blockers }: { blockers: Blocker[] }) {
           {[...groups.entries()].map(([kind, list]) => (
             <li key={kind} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-5 py-2.5">
               <span className="text-[13px] font-medium">{t(`blocker.${kind}` as never)}</span>
-              <span className="font-mono text-[11.5px] text-muted-foreground">{list.map((b) => b.detail).filter(Boolean).join(", ")}</span>
+              {kind === "missing_test_level" ? (
+                <span className="text-[12.5px] text-muted-foreground">{list.map((b) => levelLabel(t, b.detail)).join(", ")}</span>
+              ) : (
+                <span className="font-mono text-[11.5px] text-muted-foreground">{list.map((b) => b.detail).filter(Boolean).join(", ")}</span>
+              )}
               <span className="ml-auto text-[12px] text-muted-foreground">{t("req.detail.blocks", { step: t(`step.${list[0]?.blocks ?? "verified"}`) })}</span>
             </li>
           ))}

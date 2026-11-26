@@ -12,6 +12,7 @@ import { useI18n } from "@/lib/i18n";
 import { fromDraft, reducer, toDraft } from "./draft";
 import { FlowList } from "./flow-list";
 import { CommandsCard, ConditionsCard, GateCard } from "./lists-cards";
+import { TestRulesCard } from "./test-rules-card";
 import { TypeCard } from "./type-card";
 
 /** Visual editor of lastro.yml's QA part: flows per type, conditions, commands and gate. A person saves it. */
@@ -41,6 +42,7 @@ export function FlowEditor({ projectKey, config }: { projectKey: string; config:
           onConfirm={() => run(() => saveConfig({ data: { key: projectKey, config: preview } }), t("flow.saved"))}
         />
       </div>
+      <TestRulesCard draft={draft} dispatch={dispatch} />
       <Card className="min-w-0">
         <CardHeader><CardTitle>{t("flow.global")}</CardTitle></CardHeader>
         <div className="px-5 py-4"><FlowList flow="global" stages={draft.global} commands={commands} conditions={conditions} dispatch={dispatch} /></div>

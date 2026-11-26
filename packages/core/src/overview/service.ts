@@ -1,4 +1,4 @@
-import type { BlockerKind, Hallmark, LinkState, RequirementStatus } from "@lastro/shared";
+import { projectConfigSchema, type BlockerKind, type Hallmark, type LinkState, type RequirementStatus } from "@lastro/shared";
 import { db } from "../db";
 import { isPending } from "../lifecycle/transitions";
 import { requirementsService } from "../requirements/service";
@@ -46,6 +46,8 @@ export const overviewService = {
   /** Everything the project overview shows: KPIs, distribution, latest runs, quality per module, what holds items back. */
   async project(projectId: string) {
     const views = (await requirementsService.list(projectId)).filter((v) => v.status !== "dropped");
+    const { config } = await db().project.findUniqueOrThrow({ where: { id: projectId }, select: { config: true } });
+    const autonomy = projectConfigSchema.parse(config).autonomy;
     const latest = await latestTestResults(projectId);
     const testTotals = totals(latest);
     const pendingCriteria = views.flatMap((v) => v.criteria.filter((c) => c.tests.length === 0)).length;
@@ -58,6 +60,7 @@ export const overviewService = {
     ]);
     const proposedDecisions = decisionsByAgent + decisionsByPerson;
     return {
+      autonomy,
       requirements: views.length,
       pending: views.filter((v) => isPending(v.status)).length,
       coverage: views.length === 0 ? 0 : Math.round((views.filter(covered).length / views.length) * 100),

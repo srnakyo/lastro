@@ -31,5 +31,7 @@ export function gateItemText(t: Translate, item: GateItem): string {
       return t("gate.item.unknown_check", { check: item.check });
     case "blocker":
       return t("gate.item.blocker", { blocker: t(`blocker.${item.blocker}` as MessageKey), detail: item.detail }).trim();
+    case "never_red":
+      return t("gate.item.never_red", { test: item.test });
   }
 }

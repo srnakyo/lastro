@@ -1,29 +1,32 @@
 import type { RequirementStatus } from "@lastro/shared";
+import { useQuery } from "@tanstack/react-query";
 import { Ban, Check, LockOpen, Play, Stamp } from "lucide-react";
 import { ConfirmDialog } from "@/components/common/confirm-dialog";
 import { Button } from "@/components/ui/button";
 import { Tooltip } from "@/components/ui/tooltip";
 import { requirementAction } from "@/fns/requirements";
 import { useAction } from "@/hooks/use-action";
+import { requirementQaQuery } from "@/hooks/run-queries";
 import { useI18n } from "@/lib/i18n";
 
 type Action = "approve" | "unlock" | "start" | "drop" | "accept";
 
-/** The human actions the lifecycle allows from the current status. */
+/** The human actions the lifecycle allows from the current status. In automatic mode Lastro approves, so there is no approve button. */
 export function RequirementActions({ projectKey, code, status, locked, approveBlockedBy }: { projectKey: string; code: string; status: RequirementStatus; locked: boolean; approveBlockedBy: string[] }) {
   const { t } = useI18n();
   const { run } = useAction(projectKey);
+  const review = useQuery(requirementQaQuery(projectKey, code)).data?.config.autonomy === "review";
   const act = (action: Action) => (reason: string) => run(() => requirementAction({ data: { key: projectKey, code, action, reason } }), t("action.done"));
   return (
     <div className="flex flex-wrap gap-2">
-      {status === "specified" && approveBlockedBy.length > 0 && (
+      {review && status === "specified" && approveBlockedBy.length > 0 && (
         <Tooltip content={approveBlockedBy.join(" · ")}>
           <span tabIndex={0}>
             <Button disabled><Check /> {t("action.approve")}</Button>
           </span>
         </Tooltip>
       )}
-      {status === "specified" && approveBlockedBy.length === 0 && (
+      {review && status === "specified" && approveBlockedBy.length === 0 && (
         <ConfirmDialog trigger={<Button><Check /> {t("action.approve")}</Button>} title={t("action.approve.title")} description={t("action.approve.body")} confirmLabel={t("action.approve")} onConfirm={act("approve")} />
       )}
       {(status === "approved" || status === "reopened") && (

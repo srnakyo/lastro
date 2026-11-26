@@ -9,6 +9,7 @@ export const reqlistPtBR: Record<keyof typeof reqlistEn, string> = {
   "blocker.short.source_not_final": "Fonte não final",
   "blocker.short.unconfirmed_transcript": "Transcrição a confirmar",
   "blocker.short.criterion_without_test": "Critério sem teste",
+  "blocker.short.missing_test_level": "Falta nível de teste",
   "blocker.short.no_evidence": "Sem evidência",
   "blocker.short.decision_overturned": "Decisão derrubada",
   "unblock.title": "O que destrava estes requisitos",
@@ -20,6 +21,7 @@ export const reqlistPtBR: Record<keyof typeof reqlistEn, string> = {
   "unblock.questions": "{n} pergunta(s) em aberto travam {m} requisito(s).",
   "unblock.answer": "Responder",
   "unblock.fields": "{n} requisito(s) com campos obrigatórios faltando: o agente completa.",
+  "unblock.tests": "{n} requisito(s) esperam testes: o agente escreve e liga, nos níveis que cada tipo exige, e o Lastro aprova o que estiver pronto.",
   "unblock.invalidQuote": "{n} citação(ões) não foram achadas na fonte: o agente corrige.",
   "unblock.ready": "{n} requisito(s) prontos para a sua aprovação.",
   "unblock.approveAll": "Aprovar os {n}",
@@ -42,4 +44,7 @@ export const reqlistPtBR: Record<keyof typeof reqlistEn, string> = {
   "life.next.missingFields": "O agente ainda precisa preencher: {fields}.",
   "life.next.invalidQuote": "A citação não foi achada na fonte: o agente corrige.",
   "life.next.ready": "Nada trava: revise e use Aprovar, no topo.",
+  "life.next.needsTests": "O agente escreve e liga um teste para cada critério{levels}. Depois disso o Lastro aprova sozinho.",
+  "life.next.needsTests.review": "O agente escreve e liga um teste para cada critério{levels}. Depois disso uma pessoa aprova.",
+  "life.next.levels": " (nível faltando: {levels})",
 };

@@ -1,7 +1,7 @@
 id: REQ-Q3W6Z
 title: Test catalog with history, flaky and orphan tests
 type: ui
-status: specified
+status: approved
 package: PKG-M7V0P
 sources:
   - ref: SRC-P4RD7
@@ -20,11 +20,13 @@ acceptance:
     text: Given a test with a fail and a pass on two commits with no change in the files it covers, then the Tests page flags it as flaky.
     tests:
       - tests/integration/runs.test.ts::flags a test that failed and passed on two commits when its files did not change, and not when they did
+    locked: sha256:16515ad9f973856f24c954826b95b73bfaff9afc67397bb10f4dc15dee9fe5e8
   - id: AC-2
     text: Given a test referenced by no criterion, then the Tests page flags it as orphan.
     tests:
       - tests/e2e/quality.spec.ts::the test catalog shows flaky and orphan tests and the criteria without a test
       - tests/integration/runs.test.ts::builds the test catalog with flaky and orphan tests and compares a run with the previous one
+    locked: sha256:671331f03ca7b7f39fb030808236d1bcb5b5320f606d944886cbe5003b6956fe
 decisions:
   - DEC-ADZDA
 questions: []

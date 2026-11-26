@@ -1,0 +1,28 @@
+import type { testsEn } from "./tests-en";
+
+export const testsPtBR: Record<keyof typeof testsEn, string> = {
+  "qrules.title": "Autonomia e regras dos testes",
+  "qrules.lead": "Até onde o Lastro vai sozinho, e o que os testes precisam provar antes de algo contar como pronto.",
+  "qrules.auto": "Automático",
+  "qrules.auto.body": "O Lastro aprova e trava cada requisito sozinho quando a especificação está completa e todo critério tem seus testes, nos níveis que o tipo exige. Vale a versão mais recente de cada fonte.",
+  "qrules.review": "Com revisão",
+  "qrules.review.body": "Uma pessoa aprova cada requisito, e dá para exigir uma versão marcada como final nas fontes.",
+  "qrules.redFirst": "Vermelho antes do verde: o teste precisa falhar numa execução do Lastro antes de passar, ou seja, é escrito antes do código",
+  "qrules.examples": "Os números de quem pediu nos testes: todo número de um exemplo precisa aparecer num teste do requisito",
+  "qrules.coverageReport": "Relatório de cobertura (LCOV)",
+  "qrules.coverageReport.help": "Onde o comando de unidade ou de integração grava o LCOV, como coverage/lcov.info (bun test --coverage --coverage-reporter=lcov, vitest --coverage.reporter=lcov).",
+  "qrules.levels": "Níveis de teste, pelo caminho do arquivo de teste",
+  "qrules.type.levels": "Testes que precisa ter",
+  "qrules.type.coverage": "Cobertura dos arquivos que toca",
+  "qrules.type.functions": "% das funções",
+  "qrules.type.lines": "% das linhas",
+  "qrules.type.coverage.help": "Vazio para sem mínimo. 100% das funções quer dizer que toda rotina que o requisito toca roda num teste.",
+  "qrules.finalOnlyReview": "Só no modo com revisão: no automático vale a versão mais recente.",
+  "level.unit": "Unidade",
+  "level.integration": "Integração",
+  "level.e2e": "Ponta a ponta (Playwright)",
+  "tests.levels.title": "Testes por nível",
+  "tests.levels.wanted": "Este tipo exige",
+  "tests.levels.none": "Este tipo não exige nenhum nível em especial.",
+  "tests.levels.missing": "faltando",
+};

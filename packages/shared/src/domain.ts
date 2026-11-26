@@ -8,6 +8,7 @@ export type BlockerKind =
   | "source_not_final"
   | "unconfirmed_transcript"
   | "criterion_without_test"
+  | "missing_test_level"
   | "no_evidence"
   | "decision_overturned";
 

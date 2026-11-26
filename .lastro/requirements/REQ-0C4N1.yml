@@ -1,7 +1,7 @@
 id: REQ-0C4N1
 title: "`lastro init` creates the project on the server and the first .lastro/ export"
 type: behavior
-status: specified
+status: approved
 package: PKG-M7V0P
 sources:
   - ref: SRC-P4RD7
@@ -20,10 +20,12 @@ acceptance:
     text: Given an empty git repository and a signed-in CLI, when `lastro init` runs, then the server has a new project whose key is in .lastro/lastro.yml, .lastro/ contains lastro.yml, glossary.yml, design.yml and the folders sources/, requirements/, decisions/, questions/, incidents/, packages/, and .gitignore ignores .lastro/.out/.
     tests:
       - tests/integration/cli.test.ts::creates the project and the whole .lastro/ export, then says it is already initialized without changing anything
+    locked: sha256:f614fa403ce680018d1c4f6249bf15df2acc8cc34329104f29a8a9e7ba2c026b
   - id: AC-2
     text: Given a repository with an existing .lastro/lastro.yml linked to a project, when `lastro init` runs, then no existing file changes and the server has no new project.
     tests:
       - tests/integration/cli.test.ts::creates the project and the whole .lastro/ export, then says it is already initialized without changing anything
+    locked: sha256:adeeb97d1d8e4053a2721b8e448efad3b4ed6037a45ba5f2271e96d47b7d55ea
 decisions: []
 questions: []
 depends_on: []

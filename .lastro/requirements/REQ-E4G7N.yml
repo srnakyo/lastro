@@ -1,7 +1,7 @@
 id: REQ-E4G7N
 title: "Human commands require a person: refused for agents in the core, confirmed on the terminal"
 type: behavior
-status: specified
+status: approved
 package: PKG-M7V0P
 sources:
   - ref: SRC-P4RD7
@@ -26,6 +26,7 @@ acceptance:
     tests:
       - tests/integration/cli.test.ts::accepts --yes only from a person listed in gate.human_identities
       - tests/integration/cli.test.ts::refuses with exit code 2 and changes nothing when there is no terminal and no --yes
+    locked: sha256:885adfe8492e59a7a9b522f38e58f1e584f42760e59746041c2473a2e90caa05
   - id: AC-2
     text: Given an agent actor, when any human-only operation is requested through the API, the CLI or the MCP, then the core refuses it and nothing changes.
     tests:
@@ -33,6 +34,7 @@ acceptance:
       - tests/integration/api.test.ts::lets an agent create requirements but never approve them
       - "tests/integration/lifecycle.test.ts::is a human command: agents can neither approve nor mark sources final"
       - tests/unit/hooks.test.ts::refuses human commands in Bash and lets the rest through
+    locked: sha256:e4ea1a51af697207229dd62cee27a8b42a43ed456f85b6ce6d47f77da3d70d2b
 decisions: []
 questions: []
 depends_on: []

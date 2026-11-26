@@ -38,4 +38,6 @@ export const decisionsEn = {
   "dec.row.agent": "The agent's choice, confirmed",
   "next.decisions.person": "Check the decisions you made that the agent wrote down",
   "next.decisions.agent": "Confirm or overturn the choices the agent made",
+  "next.optional": "optional",
+  "next.optional.help": "In automatic mode the agent goes on without waiting; its choices go in the delivery report. Check them when you can.",
 } as const;

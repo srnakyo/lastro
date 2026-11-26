@@ -6,7 +6,7 @@ import { loadScope } from "../scope/project-scope";
 import { loadGraph, toBlockerInput } from "../requirements/graph";
 import { findRequirement } from "../requirements/service";
 import { blocksStep, computeBlockers } from "./blockers";
-import { criterionHash } from "./lock";
+import { approveAndLock } from "./approve";
 import { recordTransition } from "./record";
 
 export const lifecycleService = {
@@ -19,14 +19,7 @@ export const lifecycleService = {
       const graph = await loadGraph(tx, target.id);
       const blocking = blocksStep(computeBlockers(toBlockerInput(graph), scope.config), "approved");
       if (blocking.length > 0) throw new LastroError("BLOCKED", `${code} cannot be approved yet`, blocking);
-      await recordTransition(tx, scope, target, "approved", actor, null);
-      for (const criterion of graph.criteria) {
-        const tests = criterion.tests.map((t) => t.testRef);
-        await tx.criterion.update({
-          where: { id: criterion.id },
-          data: { lockedHash: await criterionHash(criterion.text, tests), lockedAt: new Date(), lockedById: actor.id },
-        });
-      }
+      await approveAndLock(tx, scope, graph, actor, null);
     });
   },
 

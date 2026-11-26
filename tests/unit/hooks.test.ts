@@ -59,4 +59,17 @@ describe("session context", () => {
     expect(text).toContain("AC-1 [locked]");
     expect(text).toContain("INV-1: Totals never negative");
   });
+
+  it("tells the agent the test rules and which requirements wait for its tests", () => {
+    const ctx: AgentContext = {
+      project: "billing", rules: [], active: [], pending: [], glossary: [], invariants: [], design: null, decisions: [], openQuestions: [],
+      tests: { autonomy: "auto", redFirst: true, examplesInTests: true, coverageReport: "coverage/lcov.info", types: { ui: { levels: ["unit", "e2e"], coverage: { functions: 90 } }, content: { levels: [], coverage: null } } },
+      needTests: [{ code: "REQ-B", title: "Invoice line", type: "ui", missing: ["missing_test_level e2e"] }],
+    };
+    const text = contextText(ctx);
+    expect(text).toContain("- Red first: a test Lastro never saw fail does not count.");
+    expect(text).toContain("- ui: tests at unit, e2e; coverage of the touched files: functions ≥ 90%");
+    expect(text).not.toContain("- content:");
+    expect(text).toContain("## Waiting for your tests\n- REQ-B (ui): Invoice line: missing_test_level e2e");
+  });
 });

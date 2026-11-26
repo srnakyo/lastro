@@ -1,10 +1,11 @@
 import { existsSync, readFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
-import type { ProjectConfig } from "@lastro/shared";
+import { needsTestQuality, type ProjectConfig } from "@lastro/shared";
 import { runCommand } from "./exec";
 import { commitInfo, fileHashes, treeHash } from "./git";
 import { mergeResults, parseJunit, type TestCaseResult } from "./junit";
 import { planStages } from "./plan";
+import { qualityStage, readCoverage } from "./quality";
 import { parseSarif, type Finding } from "./sarif";
 
 export interface RequirementToVerify {
@@ -13,6 +14,8 @@ export interface RequirementToVerify {
   touches: string[];
   /** Files of the tests linked to its criteria. */
   testFiles?: string[];
+  /** The requester's examples, checked against the test files when the project asks. */
+  examples?: { given: string; expect: string }[];
 }
 
 export interface StageRun {
@@ -85,6 +88,9 @@ export async function verify(cwd: string, config: ProjectConfig, requirements: R
       stages.push({ requirement: req.code, ...(done.get(key) as Omit<StageRun, "requirement">) });
     }
   }
+  // After the commands, so the coverage report they write is there to read.
+  const coverage = readCoverage(cwd, config);
+  for (const req of requirements) if (needsTestQuality(config, req.type)) stages.push({ requirement: req.code, ...qualityStage(cwd, config, req, coverage) });
   return {
     trigger, ...commitInfo(cwd), environment: { node: process.version, platform: process.platform },
     startedAt: new Date(started).toISOString(), durationMs: Date.now() - started, stages,

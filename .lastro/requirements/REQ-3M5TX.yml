@@ -1,7 +1,7 @@
 id: REQ-3M5TX
 title: Required fields per type gate the move to specified
 type: behavior
-status: specified
+status: approved
 package: PKG-M7V0P
 sources:
   - ref: SRC-P4RD7
@@ -21,10 +21,12 @@ acceptance:
     tests:
       - tests/integration/cli.test.ts::lists the missing fields by name, grouped by reason (REQ-3M5TX, REQ-7V6KE)
       - tests/unit/lifecycle.test.ts::lists the required fields that are missing
+    locked: sha256:3626f3fc7a81c32e650820897fca5166cc7487a82e5f9f696de291a66c4b8333
   - id: AC-2
     text: Given the same requirement with every required field filled, a valid quote and no blocking question, when it is evaluated, then its status becomes specified.
     tests:
       - tests/integration/requirements.test.ts::becomes specified when every required field and quote is in place
+    locked: sha256:6db308709cd092dbf407a7d03d10ac5765623966950901c848ef63b9f00a3a1c
 decisions: []
 questions: []
 depends_on: []

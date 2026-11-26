@@ -1,7 +1,7 @@
 id: REQ-S9A2B
 title: Runs page compares each run with the previous one
 type: ui
-status: specified
+status: approved
 package: PKG-M7V0P
 sources:
   - ref: SRC-P4RD7
@@ -18,6 +18,7 @@ acceptance:
     text: Given two consecutive runs of a requirement, when the second is opened, then tests that changed from pass to fail and from fail to pass are listed separately.
     tests:
       - tests/integration/runs.test.ts::lists the tests that started failing and those passing again in separate lists (REQ-S9A2B)
+    locked: sha256:50785da1ec44ed28ca841e39fc5ead8bb03701d06f5d69784e9bba8e742ee686
 decisions: []
 questions: []
 depends_on: []

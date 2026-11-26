@@ -32,7 +32,7 @@ describe("QA flow editor draft", () => {
     d = reducer(d, { type: "command.set", index: 1, value: { sarif: "lint.sarif" } });
     d = reducer(d, { type: "gate.set", value: { max_stop_blocks: 5 } });
     const out = fromDraft(d);
-    expect(out.types.calculation).toEqual({ required: ["data_source"], flow: [] });
+    expect(out.types.calculation).toEqual({ required: ["data_source"], flow: [], tests: { levels: [] } });
     expect(out.conditions.dark?.env).toEqual({ THEME: "dark", ZOOM: "200" });
     expect(out.commands.e2e?.report).toEqual({ sarif: "lint.sarif" });
     expect(out.gate.max_stop_blocks).toBe(5);

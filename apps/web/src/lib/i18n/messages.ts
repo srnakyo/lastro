@@ -14,11 +14,16 @@ import { helpEn } from "./help-en";
 import { auditEn } from "./audit-en";
 import { decisionsEn } from "./decisions-en";
 import { reqlistEn } from "./reqlist-en";
+import { testsEn } from "./tests-en";
+import { testsPtBR } from "./tests-pt-BR";
 import { reqlistPtBR } from "./reqlist-pt-BR";
 import { decisionsPtBR } from "./decisions-pt-BR";
 import { auditPtBR } from "./audit-pt-BR";
 import { helpPtBR } from "./help-pt-BR";
 
-export const en = { ...enBase, ...specEn, ...settingsEn, ...qualityEn, ...docsEn, ...adminEn, ...helpEn, ...auditEn, ...decisionsEn, ...reqlistEn };
+export const en = { ...enBase, ...specEn, ...settingsEn, ...qualityEn, ...docsEn, ...adminEn, ...helpEn, ...auditEn, ...decisionsEn, ...reqlistEn, ...testsEn };
 export type MessageKey = keyof typeof en;
-export const ptBR: Record<MessageKey, string> = { ...ptBRBase, ...specPtBR, ...settingsPtBR, ...qualityPtBR, ...docsPtBR, ...adminPtBR, ...helpPtBR, ...auditPtBR, ...decisionsPtBR, ...reqlistPtBR };
+export const ptBR: Record<MessageKey, string> = { ...ptBRBase, ...specPtBR, ...settingsPtBR, ...qualityPtBR, ...docsPtBR, ...adminPtBR, ...helpPtBR, ...auditPtBR, ...decisionsPtBR, ...reqlistPtBR, ...testsPtBR };
+
+/** Turns a message key into text in the current language, filling its {placeholders}. */
+export type Translate = (key: MessageKey, vars?: Record<string, string | number>) => string;

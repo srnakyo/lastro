@@ -1,7 +1,7 @@
 id: REQ-7V6KE
 title: "`lastro pending` lists only what is not verified"
 type: behavior
-status: specified
+status: approved
 package: PKG-M7V0P
 sources:
   - ref: SRC-P4RD7
@@ -19,6 +19,7 @@ acceptance:
     tests:
       - tests/integration/cli.test.ts::lists the missing fields by name, grouped by reason (REQ-3M5TX, REQ-7V6KE)
       - tests/unit/lifecycle.test.ts::pending is only what has not reached verified
+    locked: sha256:ad6c29518238e0782369a418336a9f7380a41e7202c994906d1c292d7c5fdb72
 decisions: []
 questions: []
 depends_on: []

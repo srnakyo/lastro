@@ -68,6 +68,7 @@ export function GateCard({ draft, dispatch }: { draft: Draft; dispatch: (a: Acti
         {check(t("gate.blockStop"), draft.gate.block_agent_stop, (v) => dispatch({ type: "gate.set", value: { block_agent_stop: v } }))}
         {check(t("gate.stale"), draft.gate.stale_on_change, (v) => dispatch({ type: "gate.set", value: { stale_on_change: v } }))}
         {check(t("gate.requireFinal"), draft.requireFinal, (v) => dispatch({ type: "approval.final", on: v }))}
+        {draft.autonomy === "auto" && <p className="-mt-1.5 pl-6 text-[12px] text-muted-foreground">{t("qrules.finalOnlyReview")}</p>}
         <label className="flex items-center gap-2.5 text-[13px]">
           <Input type="number" min={1} max={20} value={draft.gate.max_stop_blocks} onChange={(e) => dispatch({ type: "gate.set", value: { max_stop_blocks: Math.max(1, Number(e.target.value) || 1) } })} className="h-8 w-20" />
           {t("gate.maxBlocks")}

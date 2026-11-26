@@ -46,7 +46,7 @@ export function toBlockerInput(graph: RequirementGraph): BlockerInput {
       machineTranscript: c.source.machineTranscript,
       confirmed: c.confirmed,
     })),
-    criteria: graph.criteria.map((c) => ({ code: c.code, tests: c.tests.length })),
+    criteria: graph.criteria.map((c) => ({ code: c.code, tests: c.tests.length, testRefs: c.tests.map((t) => t.testRef) })),
     questions: graph.questions.map((q) => ({ code: q.question.code, open: !q.question.answer, blocks: q.question.blocks })),
     decisions: graph.decisions.map((d) => ({ code: d.decision.code, status: d.decision.status })),
     hasEvidence: graph.evidence.length > 0,

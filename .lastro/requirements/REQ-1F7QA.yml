@@ -1,7 +1,7 @@
 id: REQ-1F7QA
 title: Every .lastro/ file validates against a published JSON Schema
 type: format
-status: specified
+status: approved
 package: PKG-M7V0P
 sources:
   - ref: SRC-P4RD7
@@ -19,11 +19,13 @@ acceptance:
     text: Given a requirement file with an invalid status value, when `lastro doctor` runs, then it reports the file, the field path and the allowed values, and exits with code 1.
     tests:
       - tests/integration/cli.test.ts::names the file, the field and the allowed values of an invalid status, and exits 1
+    locked: sha256:38d67760b62929054a2b6e79d2f81e7f15d4119265af95ae0a2230604e9ee061
   - id: AC-2
     text: Given packages/shared, when it is built, then there is one JSON Schema per exported entity and each example file in the PRD validates against it.
     tests:
       - tests/unit/export-schemas.test.ts::accept every example file of the PRD
       - tests/unit/export-schemas.test.ts::are one per export file and match the contracts
+    locked: sha256:bd6869e2e1c991a93cb8dac6f24667eeb52544fddcb1aa9d13edacd63306f5f0
 decisions: []
 questions: []
 depends_on: []

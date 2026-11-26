@@ -1,14 +1,19 @@
 ---
 name: build
-description: Implement an approved Lastro requirement until its gate is green - start it, write code and the linked tests, run lastro_verify, fix what fails. Use when the developer asks to implement, build or fix a requirement.
+description: Implement a Lastro requirement test first until its gate is green - write the tests at every level its type asks, see them fail, write the code, run lastro_verify, fix what fails. Use when the developer asks to implement, build or fix a requirement.
 ---
 
-# Build: until the gate is green
+# Build: tests first, until the gate is green
 
-1. `lastro_get_requirement <code>`: read the quote, the fields, the criteria and the QA flow of its type. If it is not approved, stop and say so.
-2. `lastro_start <code>` before touching code.
-3. Implement. Keep to the glossary, the invariants and the layout contract from `lastro_context`. Anything the spec does not say: `lastro_record_decision` or `lastro_ask`, never a silent choice. When the person already decided it (in the chat, a call, a document), record it with `madeBy: "person"` and `sourceRef` saying where they said it: it shows as their decision for them to check, not as yours to approve.
-4. Write the tests linked to the criteria, with exactly the linked names. Tests of locked criteria cannot be edited: if one is wrong, ask the developer to unlock the criterion.
-5. `lastro_verify <code>` runs the project's stages on this machine, in every condition the type requires, and records the evidence. Only that counts: your own test runs do not.
-6. Read what failed (`agentCanFix`), fix, verify again. What needs a person (`needsPerson`: a manual preview, a sign-off) is not yours: tell the developer.
-7. Done means `lastro_submit <code>` answers `done: true`. If you must stop before that, `lastro_pause` with the reason.
+1. `lastro_get_requirement <code>`: read the quote, the fields, the examples, the criteria and the QA flow of its type, and the test levels and coverage its type asks for (`lastro_context` has the project's test rules). In automatic mode Lastro approves the requirement by itself once every criterion has its tests; in review mode a person approves it.
+2. **Write the tests before the code**, one or more per criterion, at every level the type asks:
+   - **unit**: each rule and calculation in isolation, with the requester's numbers from the examples, the boundaries around them (the value itself, just below, just above) and the invalid inputs;
+   - **integration**: the real database, queue or API the requirement touches, no mocks of what is being tested;
+   - **e2e (Playwright)**: the user's path on the real screens, in every condition the type requires (theme, viewport, profile), with web-first assertions (`expect(locator).toBeVisible()`, roles and labels over CSS), no fixed sleeps.
+   Each test independent (its own data, no order between tests), named after what it proves, arrange / act / assert. Never `expect(true)`, never a test that cannot fail.
+3. Link every test with `lastro_link_test` (`file::test name`, exactly as the runner reports it in JUnit). Linking the last missing test lets the requirement be approved; from then on the criteria and their test files are locked: if one is wrong, ask the developer to unlock it, never weaken it.
+4. `lastro_start <code>`, then `lastro_verify <code>` **before writing the code**: the new tests must fail. Lastro records that red; with `red_first` on, a test it never saw fail does not count.
+5. Implement. Keep to the glossary, the invariants and the layout contract from `lastro_context`. Anything the spec does not say: `lastro_record_decision` or `lastro_ask`, never a silent choice. When the person already decided it (in the chat, a call, a document), record it with `madeBy: "person"` and `sourceRef` saying where they said it.
+6. `lastro_verify <code>` runs the project's stages on this machine, in every condition, plus the `test-quality` stage when the type asks: the requester's numbers must be in the tests, and the functions and lines of the files you touched must run in tests up to the type's coverage. Only that counts: your own test runs do not.
+7. Read what failed (`agentCanFix`): a failing test, a routine no test runs (cover it with a test, do not delete it), an example whose number no test uses. Fix, verify again. What needs a person (`needsPerson`) is not yours: tell the developer.
+8. Done means `lastro_submit <code>` answers `done: true`. If you must stop before that, `lastro_pause` with the reason.

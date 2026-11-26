@@ -39,7 +39,7 @@ export async function offlineGate(root: string, trigger: RunReport["trigger"]) {
   const snapshot = await readSnapshot(root);
   const selected = snapshot.requirements.filter((r) => SELECTED.includes(r.status));
   if (selected.length === 0) return { pass: true, requirements: {} as Record<string, GateState>, manual: [] as string[] };
-  const report = await verify(root, snapshot.config, selected.map((r) => ({ code: r.code, type: r.type, touches: r.touches, testFiles: testFilesOf(r) })), trigger);
+  const report = await verify(root, snapshot.config, selected.map((r) => ({ code: r.code, type: r.type, touches: r.touches, testFiles: testFilesOf(r), examples: r.examples })), trigger);
   const requirements: Record<string, GateState> = {};
   for (const r of selected) requirements[r.code] = await judge(r, report);
   const manual = selected.flatMap((r) => manualStages(snapshot.config, r.type).map((s) => `${r.code} ${s}`));

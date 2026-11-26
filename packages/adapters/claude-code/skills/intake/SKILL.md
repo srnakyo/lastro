@@ -15,4 +15,4 @@ description: Turn material a requester sent (brief, document, chat export, audio
    - `lastro_ask` with `blocks: true` when the answer changes what gets built;
    - `lastro_record_decision` (kind `assumption`) when a reasonable default exists, with the reason.
    - `lastro_record_decision` with `madeBy: "person"` and `sourceRef` when the material already carries the person's decision: never record the person's choice as your own.
-5. Finish with a short list: requirements created, questions opened (and to whom), assumptions recorded. A person approves; you never approve.
+5. Finish with a short list: requirements created, questions opened (and to whom), assumptions recorded. You never approve: in automatic mode Lastro approves each requirement once its tests are linked (see the spec and build skills), in review mode a person does.

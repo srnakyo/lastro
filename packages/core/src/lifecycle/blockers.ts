@@ -1,10 +1,10 @@
-import type { Blocker, ProjectConfig } from "@lastro/shared";
+import { levelsCovered, type Blocker, type ProjectConfig } from "@lastro/shared";
 
 export interface BlockerInput {
   type: string;
   fields: Record<string, unknown>;
   citations: { source: string; anchor: string; found: boolean; closest?: string | null; final: boolean; machineTranscript: boolean; confirmed: boolean }[];
-  criteria: { code: string; tests: number }[];
+  criteria: { code: string; tests: number; testRefs?: string[] }[];
   questions: { code: string; open: boolean; blocks: boolean }[];
   decisions: { code: string; status: "proposed" | "confirmed" | "overturned" }[];
   hasEvidence: boolean;
@@ -32,9 +32,18 @@ function originBlockers(input: BlockerInput, config: ProjectConfig): Blocker[] {
     const out: Blocker[] = [];
     if (!c.found) out.push({ kind: "invalid_quote", detail: c.closest ? `${where} (closest passage: ${c.closest})` : where, blocks: "specified" });
     if (c.machineTranscript && !c.confirmed) out.push({ kind: "unconfirmed_transcript", detail: where, blocks: "specified" });
-    if (config.approval.require_final_source && !c.final) out.push({ kind: "source_not_final", detail: c.source, blocks: "approved" });
+    // In automatic mode the latest version of a source counts; review mode can ask for a version marked final.
+    if (config.autonomy === "review" && config.approval.require_final_source && !c.final) out.push({ kind: "source_not_final", detail: c.source, blocks: "approved" });
     return out;
   });
+}
+
+/** The test levels the type asks for (unit, integration, e2e…) that no linked test covers yet. */
+function levelBlockers(input: BlockerInput, config: ProjectConfig): Blocker[] {
+  const wanted = config.types[input.type]?.tests.levels ?? [];
+  if (wanted.length === 0) return [];
+  const covered = levelsCovered(input.criteria.flatMap((c) => c.testRefs ?? []), config.tests.levels);
+  return wanted.filter((level) => !covered.has(level)).map((level) => ({ kind: "missing_test_level", detail: level, blocks: "approved" }));
 }
 
 /** Everything that holds a requirement back, each with the transition it blocks. */
@@ -48,9 +57,11 @@ export function computeBlockers(input: BlockerInput, config: ProjectConfig): Blo
     ...input.decisions
       .filter((d) => d.status === "overturned")
       .map((d): Blocker => ({ kind: "decision_overturned", detail: d.code, blocks: "verified" })),
+    // Criteria lock on approval and refuse new tests after it: every criterion needs its test before.
     ...input.criteria
       .filter((c) => c.tests === 0)
-      .map((c): Blocker => ({ kind: "criterion_without_test", detail: c.code, blocks: "verified" })),
+      .map((c): Blocker => ({ kind: "criterion_without_test", detail: c.code, blocks: "approved" })),
+    ...levelBlockers(input, config),
     ...(input.hasEvidence ? [] : [{ kind: "no_evidence", detail: "", blocks: "verified" } as Blocker]),
   ];
 }
