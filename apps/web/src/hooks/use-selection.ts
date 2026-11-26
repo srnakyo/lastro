@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 
-/** A set of selected codes, with toggle and clear. */
+/** A set of selected codes, with toggle, many at once and clear. */
 export function useSelection() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const toggle = useCallback((code: string) => {
@@ -11,6 +11,16 @@ export function useSelection() {
       return next;
     });
   }, []);
+  const setMany = useCallback((codes: string[], on: boolean) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      for (const code of codes) {
+        if (on) next.add(code);
+        else next.delete(code);
+      }
+      return next;
+    });
+  }, []);
   const clear = useCallback(() => setSelected(new Set()), []);
-  return { selected, toggle, clear };
+  return { selected, toggle, setMany, clear };
 }

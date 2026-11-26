@@ -15,7 +15,26 @@ export const listRequirements = createServerFn({ method: "GET" })
     return views.map((v) => ({
       code: v.code, title: v.title, type: v.type, status: v.status, package: v.package, hallmark: v.hallmark,
       blockers: [...new Set(v.blockers.map((b) => b.kind))], criteria: v.criteria.length, tested: v.criteria.filter((c) => c.tests.length > 0).length,
+      holds: v.blockers.map((b) => ({ kind: b.kind, detail: b.detail, blocks: b.blocks })),
     }));
+  });
+
+/** A person approves several requirements at once; each refusal comes back with its reason. */
+export const approveRequirements = createServerFn({ method: "POST" })
+  .validator((d: unknown) => keySchema.extend({ codes: z.array(z.string()).min(1) }).parse(d))
+  .handler(async ({ data }) => {
+    const { project, actor } = await requireProject(data.key);
+    const approved: string[] = [];
+    const refused: { code: string; message: string }[] = [];
+    for (const code of data.codes) {
+      try {
+        await lifecycleService.approve(project.id, actor, code);
+        approved.push(code);
+      } catch (error) {
+        refused.push({ code, message: (error as Error).message });
+      }
+    }
+    return { approved, refused };
   });
 
 export const getRequirement = createServerFn({ method: "GET" })

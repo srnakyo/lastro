@@ -49,7 +49,7 @@ function RequirementDetail() {
           <RequirementActions projectKey={key} code={r.code} status={r.status} locked={locked} approveBlockedBy={[...new Set(r.blockers.filter((b) => b.blocks !== "verified").map((b) => t(`blocker.${b.kind}`)))]} />
         </div>
       </div>
-      <LifecycleStepper projectKey={key} status={r.status} />
+      <LifecycleStepper projectKey={key} code={r.code} status={r.status} holds={r.blockers} />
       <HallmarkPanel hallmark={r.hallmark} />
       <BlockersList blockers={r.blockers} />
       <section className="grid gap-3" aria-label={t("req.detail.request")}>

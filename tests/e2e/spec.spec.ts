@@ -9,6 +9,16 @@ async function open(page: Page, path: string) {
   await page.waitForLoadState("networkidle");
 }
 
+test("the requirements list says what unlocks them, and the requirement says its next step", async ({ page }) => {
+  await signIn(page);
+  await open(page, "/projects/e2e-demo/requirements");
+  const unlock = page.locator("div").filter({ has: page.getByText("What unlocks these requirements") }).first();
+  await expect(unlock.getByText(/is not marked final: it holds 2 requirement\(s\) back from approval/)).toBeVisible();
+  await expect(unlock.getByRole("button", { name: /^Mark SRC-\w+ final$/ })).toBeVisible();
+  await open(page, "/projects/e2e-demo/requirements/REQ-E2E01");
+  await expect(page.getByText(/Before approving, mark the source SRC-\w+ as final/)).toBeVisible();
+});
+
 test("a requirement shows its quote next to the source and what holds it back", async ({ page }) => {
   await signIn(page);
   await open(page, "/projects/e2e-demo/requirements/REQ-E2E01");

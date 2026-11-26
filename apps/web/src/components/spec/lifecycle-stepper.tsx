@@ -1,26 +1,17 @@
 import type { RequirementStatus } from "@lastro/shared";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, Check } from "lucide-react";
-import { MoverChip } from "@/components/guide/mover-chip";
 import { Card } from "@/components/ui/card";
-import { useI18n, type MessageKey } from "@/lib/i18n";
-import { PATH, pathIndex, type Mover } from "@/lib/lifecycle";
+import { useI18n } from "@/lib/i18n";
+import { PATH, pathIndex } from "@/lib/lifecycle";
 import { cn } from "@/lib/utils";
-
-/** Who acts next from each status: the mover of the following step, or the requester's acceptance. */
-function nextMover(status: RequirementStatus): Mover | null {
-  if (status === "accepted" || status === "dropped") return null;
-  if (status === "reopened" || status === "approved") return "agent";
-  if (status === "building") return "agent";
-  const i = pathIndex(status);
-  return PATH[i + 1]?.who ?? null;
-}
+import { NextAction } from "./next-action";
+import type { Hold } from "./requirement-holds";
 
 /** The requirement's place on the main path, what comes next and who does it. */
-export function LifecycleStepper({ projectKey, status }: { projectKey: string; status: RequirementStatus }) {
+export function LifecycleStepper({ projectKey, code, status, holds }: { projectKey: string; code: string; status: RequirementStatus; holds: Hold[] }) {
   const { t } = useI18n();
   const current = pathIndex(status);
-  const mover = nextMover(status);
   const dropped = status === "dropped";
   return (
     <Card className="min-w-0 p-4">
@@ -46,11 +37,11 @@ export function LifecycleStepper({ projectKey, status }: { projectKey: string; s
           );
         })}
       </ol>
-      <div className="mt-3 flex flex-wrap items-center gap-2 border-t pt-3 text-[13px]">
-        <span className="font-semibold">{t("life.next")}:</span>
-        {mover && <MoverChip who={mover} />}
-        <span className="text-muted-foreground">{t(`life.next.${status}` as MessageKey)}</span>
-        <Link to="/projects/$key/guide" params={{ key: projectKey }} className="ml-auto inline-flex items-center gap-1 text-[12.5px] font-medium text-primary hover:underline">
+      <div className="mt-3 flex flex-wrap items-center gap-3 border-t pt-3">
+        <div className="min-w-0 basis-full md:basis-0 md:flex-1">
+          <NextAction projectKey={projectKey} code={code} status={status} holds={holds} />
+        </div>
+        <Link to="/projects/$key/guide" params={{ key: projectKey }} className="inline-flex items-center gap-1 text-[12.5px] font-medium text-primary hover:underline">
           {t("nav.guide")} <ArrowRight className="size-3.5" />
         </Link>
       </div>
