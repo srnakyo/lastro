@@ -14,4 +14,5 @@ description: Turn material a requester sent (brief, document, chat export, audio
 4. Where the material is silent or ambiguous, do not fill the gap with a guess:
    - `lastro_ask` with `blocks: true` when the answer changes what gets built;
    - `lastro_record_decision` (kind `assumption`) when a reasonable default exists, with the reason.
+   - `lastro_record_decision` with `madeBy: "person"` and `sourceRef` when the material already carries the person's decision: never record the person's choice as your own.
 5. Finish with a short list: requirements created, questions opened (and to whom), assumptions recorded. A person approves; you never approve.

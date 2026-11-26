@@ -11,7 +11,25 @@ export const listDecisions = createServerFn({ method: "GET" })
   .validator((d: unknown) => keySchema.parse(d))
   .handler(async ({ data }) => {
     const { project } = await requireProject(data.key);
-    return (await decisionsService.list(project.id)).map((d) => ({ ...d, requirements: d.requirements.map((r) => r.requirement.code) }));
+    return (await decisionsService.list(project.id)).map((d) => ({ ...d, requirements: d.requirements.map((r) => r.requirement) }));
+  });
+
+/** A person confirms decisions, one or many; `mine` makes the agent-written ones theirs. */
+export const confirmDecisions = createServerFn({ method: "POST" })
+  .validator((d: unknown) => keySchema.extend({ codes: z.array(z.string()).min(1), mine: z.boolean().optional() }).parse(d))
+  .handler(async ({ data }) => {
+    const { project, actor } = await requireProject(data.key);
+    await decisionsService.confirm(project.id, actor, data.codes, { mine: data.mine });
+    return { ok: true };
+  });
+
+/** A person says a decision repeats another. */
+export const mergeDecision = createServerFn({ method: "POST" })
+  .validator((d: unknown) => codeSchema.extend({ into: z.string() }).parse(d))
+  .handler(async ({ data }) => {
+    const { project, actor } = await requireProject(data.key);
+    await decisionsService.merge(project.id, actor, data.code, data.into);
+    return { ok: true };
   });
 
 export const recordDecision = createServerFn({ method: "POST" })

@@ -45,7 +45,6 @@ export const helpEn = {
   "next.you.help": "Only a person can do this: Lastro refuses it for agent tokens.",
   "next.agent.help": "The AI agent does this, in Claude Code or any agent connected to Lastro.",
   "next.questions": "Answer the open questions that block requirements",
-  "next.decisions": "Confirm or overturn the decisions the agent proposed",
   "next.approve": "Review and approve the requirements ready for approval",
   "next.triage": "Triage the reported bugs",
   "next.accept": "Get the requester's acceptance for what was delivered",

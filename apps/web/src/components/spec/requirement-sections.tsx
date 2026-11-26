@@ -2,6 +2,7 @@ import { values } from "@lastro/docs";
 import type { Blocker } from "@lastro/shared";
 import { Link } from "@tanstack/react-router";
 import { Lock } from "lucide-react";
+import { MoverChip } from "@/components/guide/mover-chip";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDateTime } from "@/lib/format";
@@ -65,7 +66,7 @@ export function CriteriaList({ criteria }: { criteria: { code: string; text: str
   );
 }
 
-export function RelatedList({ projectKey, decisions, questions }: { projectKey: string; decisions: { decision: { code: string; text: string; status: string } }[]; questions: { question: { code: string; text: string; answer: string | null; blocks: boolean } }[] }) {
+export function RelatedList({ projectKey, decisions, questions }: { projectKey: string; decisions: { decision: { code: string; text: string; status: string; decidedByAgent?: boolean } }[]; questions: { question: { code: string; text: string; answer: string | null; blocks: boolean } }[] }) {
   const { t } = useI18n();
   const empty = decisions.length === 0 && questions.length === 0;
   return (
@@ -79,12 +80,20 @@ export function RelatedList({ projectKey, decisions, questions }: { projectKey: 
         <ul className="divide-y text-[13px]">
           {decisions.map(({ decision: d }) => (
             <li key={d.code} className="px-5 py-3">
-              <Link to="/projects/$key/requirements/decisions" params={{ key: projectKey }} className="font-mono text-[11.5px] text-muted-foreground hover:text-primary">
-                {d.code}
-              </Link>
-              <Badge className="ml-2" tone={d.status === "confirmed" ? "success" : d.status === "overturned" ? "danger" : "warning"}>
-                {t(`dec.status.${d.status}` as never)}
-              </Badge>
+              <div className="flex flex-wrap items-center gap-2">
+                <Link to="/projects/$key/requirements/decisions" params={{ key: projectKey }} hash={d.code} className="font-mono text-[11.5px] text-muted-foreground hover:text-primary">
+                  {d.code}
+                </Link>
+                {d.decidedByAgent !== undefined && <MoverChip who={d.decidedByAgent ? "agent" : "you"} />}
+                <Badge tone={d.status === "confirmed" ? "success" : d.status === "overturned" ? "danger" : "warning"}>
+                  {d.status === "proposed" ? t("dec.view.waiting") : t(`dec.status.${d.status}` as never)}
+                </Badge>
+                {d.status === "proposed" && (
+                  <Link to="/projects/$key/requirements/decisions" params={{ key: projectKey }} hash={d.code} className="ml-auto text-[12.5px] font-medium text-primary hover:underline">
+                    {t("dec.decide")} →
+                  </Link>
+                )}
+              </div>
               <p className="mt-1">{d.text}</p>
             </li>
           ))}

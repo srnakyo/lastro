@@ -89,3 +89,17 @@ test("uploading a file turns it into a source with anchored passages", async ({ 
   await expect(page.getByText("The checkout accepts PIX and card.")).toBeVisible();
   await expect(page.getByText("@checkout.md#payment").first()).toBeVisible();
 });
+
+test("decisions wait in groups, and 'I decided this' confirms one as the person's own", async ({ page }) => {
+  await signIn(page);
+  await open(page, "/projects/shop-demo/requirements/decisions");
+  await expect(page.getByRole("heading", { name: /The agent decided on its own/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /The agent assumed/ })).toBeVisible();
+  const card = page.locator("li#DEC-CPN01");
+  await card.getByRole("button", { name: "I decided this" }).click();
+  await expect(card).toHaveCount(0);
+  await page.getByRole("tab", { name: /Confirmed/ }).click();
+  const row = page.locator("li#DEC-CPN01");
+  await expect(row).toBeVisible();
+  await expect(row.getByText("Your decision")).toBeVisible();
+});

@@ -49,12 +49,14 @@ export const overviewService = {
     const latest = await latestTestResults(projectId);
     const testTotals = totals(latest);
     const pendingCriteria = views.flatMap((v) => v.criteria.filter((c) => c.tests.length === 0)).length;
-    const [runs, openQuestions, proposedDecisions, openIncidents] = await Promise.all([
+    const [runs, openQuestions, decisionsByAgent, decisionsByPerson, openIncidents] = await Promise.all([
       latestRuns(projectId),
       db().question.count({ where: { projectId, answer: null } }),
-      db().decision.count({ where: { projectId, status: "proposed" } }),
+      db().decision.count({ where: { projectId, status: "proposed", decidedByAgent: true } }),
+      db().decision.count({ where: { projectId, status: "proposed", decidedByAgent: false } }),
       db().incident.count({ where: { projectId, triagedAt: null } }),
     ]);
+    const proposedDecisions = decisionsByAgent + decisionsByPerson;
     return {
       requirements: views.length,
       pending: views.filter((v) => isPending(v.status)).length,
@@ -66,6 +68,9 @@ export const overviewService = {
       ...summarize(views),
       openQuestions,
       proposedDecisions,
+      /** Proposed decisions the agent made, and the ones it wrote down for the person to check. */
+      decisionsByAgent,
+      decisionsByPerson,
       openIncidents,
     };
   },

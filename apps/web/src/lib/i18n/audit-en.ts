@@ -24,6 +24,7 @@ export const auditEn = {
   "audit.action.decision.create": "Recorded a decision",
   "audit.action.decision.confirm": "Confirmed a decision",
   "audit.action.decision.overturn": "Overturned a decision",
+  "audit.action.decision.merge": "Merged a repeated decision",
   "audit.action.incident.report": "Reported an incident",
   "audit.action.incident.triage": "Triaged an incident",
   "audit.action.run.record": "Recorded a run",

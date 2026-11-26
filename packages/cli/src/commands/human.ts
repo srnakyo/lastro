@@ -59,8 +59,10 @@ export function humanCommands(program: Command) {
     });
 
   const decision = program.command("decision").description("confirm or overturn a decision");
-  decision.command("confirm").argument("<code>").option("--yes")
-    .action(async (code: string, o: { yes?: boolean }) => { await human(`Confirm ${code}?`, o.yes, `/decisions/${code}/confirm`); console.log(`${code} confirmed`); });
+  decision.command("confirm").argument("<code>").option("--mine", "you made this decision, not the agent").option("--yes")
+    .action(async (code: string, o: { mine?: boolean; yes?: boolean }) => { await human(`Confirm ${code}${o.mine ? " as your own decision" : ""}?`, o.yes, `/decisions/${code}/confirm`, { mine: !!o.mine }); console.log(`${code} confirmed`); });
+  decision.command("merge").argument("<code>").requiredOption("--into <code>", "the decision it repeats").option("--yes")
+    .action(async (code: string, o: { into: string; yes?: boolean }) => { await human(`${code} repeats ${o.into}: move its links there and remove it?`, o.yes, `/decisions/${code}/merge`, { into: o.into }); console.log(`${code} merged into ${o.into}`); });
   decision.command("overturn").argument("<code>").requiredOption("--reason <reason>").option("--yes")
     .action(async (code: string, o: { reason: string; yes?: boolean }) => { await human(`Overturn ${code}? What was built on it goes back to building.`, o.yes, `/decisions/${code}/overturn`, { reason: o.reason }); console.log(`${code} overturned`); });
 

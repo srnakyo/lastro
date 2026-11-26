@@ -46,7 +46,6 @@ export const helpPtBR: Record<keyof typeof helpEn, string> = {
   "next.you.help": "Só uma pessoa pode fazer isso: o Lastro recusa para token de agente.",
   "next.agent.help": "O agente de IA faz isso, no Claude Code ou em qualquer agente ligado ao Lastro.",
   "next.questions": "Responder as perguntas em aberto que travam requisitos",
-  "next.decisions": "Confirmar ou derrubar as decisões que o agente propôs",
   "next.approve": "Revisar e aprovar os requisitos prontos para aprovação",
   "next.triage": "Fazer a triagem dos bugs reportados",
   "next.accept": "Colher o aceite de quem pediu sobre o que foi entregue",

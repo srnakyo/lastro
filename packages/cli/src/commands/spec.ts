@@ -72,8 +72,10 @@ export function specCommands(program: Command) {
     .option("--reason <reason>")
     .option("--about <codes>", "requirement codes, comma separated", "")
     .option("--kind <kind>", "assumption, decision or client_answer", "decision")
-    .action(async (text: string, o: { reason?: string; about: string; kind: string }) => {
-      const d = await new LastroClient().post<{ code: string }>(`/projects/${project()}/decisions`, { text, reason: o.reason, kind: o.kind, decidedBy: "dev", requirements: o.about.split(",").filter(Boolean) });
+    .option("--said-by-person <where>", "the person already decided this; where they said it (message, call, document)")
+    .action(async (text: string, o: { reason?: string; about: string; kind: string; saidByPerson?: string }) => {
+      const byPerson = o.saidByPerson ? { madeBy: "person", sourceRef: o.saidByPerson } : {};
+      const d = await new LastroClient().post<{ code: string }>(`/projects/${project()}/decisions`, { text, reason: o.reason, kind: o.kind, decidedBy: "dev", requirements: o.about.split(",").filter(Boolean), ...byPerson });
       console.log(`recorded ${d.code}`);
     });
 }

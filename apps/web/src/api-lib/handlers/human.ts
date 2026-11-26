@@ -26,8 +26,14 @@ export function humanRoutes(router: ApiRouter) {
     })
     .on("POST", "/projects/:key/questions/:code/answer", async ({ token, params, request }) =>
       questionsService.answer((await tokenProject(token, params.key ?? "")).id, token.actor, params.code ?? "", answerInputSchema.parse(await body(request))))
-    .on("POST", "/projects/:key/decisions/:code/confirm", async ({ token, params }) => {
-      await decisionsService.confirm((await tokenProject(token, params.key ?? "")).id, token.actor, params.code ?? "");
+    .on("POST", "/projects/:key/decisions/:code/confirm", async ({ token, params, request }) => {
+      const options = z.object({ mine: z.boolean().optional() }).parse(await body(request));
+      await decisionsService.confirm((await tokenProject(token, params.key ?? "")).id, token.actor, params.code ?? "", options);
+      return ok;
+    })
+    .on("POST", "/projects/:key/decisions/:code/merge", async ({ token, params, request }) => {
+      const { into } = z.object({ into: z.string().min(1) }).parse(await body(request));
+      await decisionsService.merge((await tokenProject(token, params.key ?? "")).id, token.actor, params.code ?? "", into);
       return ok;
     })
     .on("POST", "/projects/:key/decisions/:code/overturn", async ({ token, params, request }) => {

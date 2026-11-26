@@ -11,7 +11,7 @@ export const TOOLS = {
   lastro_get_source: { description: "Passages of a source under an anchor, from its latest version.", input: z.object({ source: z.string(), anchor: z.string() }) },
   lastro_propose_requirements: { description: "Propose requirements from a source. Each needs a literal quote with its anchor; they start captured and a person approves them.", input: z.object({ requirements: z.array(requirementInputSchema) }) },
   lastro_update_requirement: { description: "Fill or change spec fields. Changing an approved requirement sends it back to specified.", input: z.object({ code, patch: requirementUpdateSchema }) },
-  lastro_record_decision: { description: "Record an assumption or decision instead of deciding silently. It starts as proposed.", input: decisionInputSchema },
+  lastro_record_decision: { description: "Record an assumption or decision instead of deciding silently. It starts as proposed. When the person already decided it (in chat, a call, a document), pass madeBy: \"person\" and sourceRef with where they said it: it is shown as theirs and waits only for them to check the record.", input: decisionInputSchema },
   lastro_ask: { description: "Ask the developer or the requester. A blocking question holds back only its requirements.", input: questionInputSchema },
   lastro_link_test: { description: "Link a test ('file::test name' as in JUnit) to an acceptance criterion. Locked criteria refuse it.", input: z.object({ code, criterion: z.string(), test: z.string() }) },
   lastro_start: { description: "Start building an approved or reopened requirement before changing code for it.", input: z.object({ code, branch: z.string().optional() }) },

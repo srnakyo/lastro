@@ -6,7 +6,7 @@ export const graphInclude = {
   citations: { orderBy: { position: "asc" }, include: { source: { select: { code: true, kind: true, machineTranscript: true, versions: { orderBy: { version: "desc" }, take: 1, select: { final: true, version: true } } } } } },
   criteria: { orderBy: { position: "asc" }, include: { tests: { select: { testRef: true, lockedHash: true } } } },
   questions: { include: { question: { select: { code: true, text: true, blocks: true, answer: true } } } },
-  decisions: { include: { decision: { select: { code: true, status: true, text: true, kind: true, decidedBy: true } } } },
+  decisions: { include: { decision: { select: { code: true, status: true, text: true, kind: true, decidedBy: true, decidedByAgent: true } } } },
   evidence: { orderBy: { verifiedAt: "desc" }, take: 1, select: { runId: true, treeHash: true, verifiedAt: true } },
   package: { select: { code: true, title: true } },
   dependsOn: { select: { dependsOn: { select: { code: true } } } },

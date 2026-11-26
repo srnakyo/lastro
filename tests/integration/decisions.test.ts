@@ -28,6 +28,38 @@ describe("questions", () => {
 });
 
 describe("decisions", () => {
+  it("an agent writes down the person's decision only with where they said it, and it waits for them as theirs", async () => {
+    const { project, code } = await withRequirement();
+    await expect(decisionsService.record(project.id, agent, { kind: "decision", text: "Postgres is the source of truth", decidedBy: "dev", madeBy: "person", requirements: [code] })).rejects.toThrow("sourceRef");
+    const d = await decisionsService.record(project.id, agent, { kind: "decision", text: "Postgres is the source of truth", decidedBy: "dev", madeBy: "person", sourceRef: "chat 2026-11-25", requirements: [code] });
+    expect(d.decidedByAgent).toBe(false);
+    expect(d.status).toBe("proposed");
+    expect(d.sourceRef).toBe("chat 2026-11-25");
+  });
+
+  it("a person confirms many decisions at once, and can claim the agent's ones as their own", async () => {
+    const { project, actor } = await withRequirement();
+    const a = await decisionsService.record(project.id, agent, { kind: "decision", text: "TypeScript 6", decidedBy: "dev" });
+    const b = await decisionsService.record(project.id, agent, { kind: "decision", text: "MIT license", decidedBy: "dev" });
+    await expect(decisionsService.confirm(project.id, agent, [a.code, b.code])).rejects.toThrow("needs a person");
+    await decisionsService.confirm(project.id, actor, [a.code, b.code], { mine: true });
+    const rows = await database().decision.findMany({ where: { projectId: project.id }, orderBy: { code: "asc" } });
+    expect(rows.map((r) => [r.status, r.decidedByAgent])).toEqual([["confirmed", false], ["confirmed", false]]);
+  });
+
+  it("merging a repeat moves its requirements and answers to the original and reopens nothing", async () => {
+    const { project, actor, code } = await withRequirement();
+    const original = await decisionsService.record(project.id, actor, { kind: "client_answer", text: "MIT", decidedBy: "client" });
+    const repeat = await decisionsService.record(project.id, agent, { kind: "decision", text: "Lastro is licensed under MIT.", decidedBy: "dev", requirements: [code] });
+    await setStatus(code, "verified");
+    await expect(decisionsService.merge(project.id, agent, repeat.code, original.code)).rejects.toThrow("needs a person");
+    await decisionsService.merge(project.id, actor, repeat.code, original.code);
+    expect(await database().decision.findUnique({ where: { id: repeat.id } })).toBeNull();
+    const links = await database().decisionRequirement.findMany({ where: { decisionId: original.id } });
+    expect(links).toHaveLength(1);
+    expect((await requirementsService.get(project.id, code)).status).toBe("verified");
+  });
+
   it("records agent assumptions as proposed and reopens what was built on an overturned one", async () => {
     const { project, actor, code } = await withRequirement();
     const d = await decisionsService.record(project.id, agent, { kind: "assumption", text: "M-2 means M-1 or M-2", decidedBy: "dev", requirements: [code] });

@@ -12,7 +12,8 @@ export interface NextStepsData {
   byStatus: Partial<Record<RequirementStatus, number>>;
   tests: { tests: number; failed: number; pending: number };
   openQuestions: number;
-  proposedDecisions: number;
+  decisionsByPerson: number;
+  decisionsByAgent: number;
   openIncidents: number;
 }
 
@@ -31,7 +32,8 @@ function stepsOf(o: NextStepsData): Step[] {
   const s = (status: RequirementStatus) => o.byStatus[status] ?? 0;
   const all: Step[] = [
     { who: "you", label: "next.questions", n: o.openQuestions, to: "/requirements/questions" },
-    { who: "you", label: "next.decisions", n: o.proposedDecisions, to: "/requirements/decisions" },
+    { who: "you", label: "next.decisions.person", n: o.decisionsByPerson, to: "/requirements/decisions" },
+    { who: "you", label: "next.decisions.agent", n: o.decisionsByAgent, to: "/requirements/decisions" },
     { who: "you", label: "next.approve", n: s("specified"), to: "/requirements", search: { status: "specified" } },
     { who: "you", label: "next.triage", n: o.openIncidents, to: "/bugs" },
     { who: "you", label: "next.accept", n: s("delivered"), to: "/requirements", search: { status: "delivered" } },

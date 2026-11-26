@@ -25,6 +25,7 @@ export const auditPtBR: Record<keyof typeof auditEn, string> = {
   "audit.action.decision.create": "Registrou uma decisão",
   "audit.action.decision.confirm": "Confirmou uma decisão",
   "audit.action.decision.overturn": "Derrubou uma decisão",
+  "audit.action.decision.merge": "Juntou uma decisão repetida",
   "audit.action.incident.report": "Registrou um incidente",
   "audit.action.incident.triage": "Fez a triagem de um incidente",
   "audit.action.run.record": "Registrou uma execução",

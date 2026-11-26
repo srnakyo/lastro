@@ -1,70 +1,87 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { Link, createFileRoute } from "@tanstack/react-router";
-import { Gavel } from "lucide-react";
-import { ConfirmDialog } from "@/components/common/confirm-dialog";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { CircleCheck, Gavel } from "lucide-react";
+import { z } from "zod";
+import { BulkBar } from "@/components/decisions/bulk-bar";
+import { DecisionRow } from "@/components/decisions/decision-card";
+import { DecisionGroup } from "@/components/decisions/decision-group";
+import { groupOf, type DecisionItem, type WaitingGroup } from "@/components/decisions/decision-rules";
 import { PageHeader } from "@/components/page-header";
 import { NewDecisionDialog } from "@/components/spec/decision-forms";
 import { EmptyState } from "@/components/states";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { decisionAction } from "@/fns/decisions";
 import { decisionsQuery } from "@/hooks/spec-queries";
-import { useAction } from "@/hooks/use-action";
-import { useI18n } from "@/lib/i18n";
+import { useSelection } from "@/hooks/use-selection";
+import { useI18n, type MessageKey } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
+
+const VIEWS = ["waiting", "confirmed", "overturned"] as const;
+type View = (typeof VIEWS)[number];
+const GROUPS: WaitingGroup[] = ["person", "agent", "assumption"];
+const STATUS: Record<View, DecisionItem["status"]> = { waiting: "proposed", confirmed: "confirmed", overturned: "overturned" };
 
 export const Route = createFileRoute("/_app/projects/$key/requirements/decisions")({
+  validateSearch: (s) => z.object({ view: z.enum(VIEWS).optional() }).parse(s),
   loader: ({ context, params }) => context.queryClient.ensureQueryData(decisionsQuery(params.key)),
   component: Decisions,
 });
 
-const TONE = { proposed: "warning", confirmed: "success", overturned: "danger" } as const;
+function ViewTabs({ view, counts, onChange }: { view: View; counts: Record<View, number>; onChange: (v: View) => void }) {
+  const { t } = useI18n();
+  return (
+    <div role="tablist" className="scrollbar-none mb-5 flex max-w-full gap-1 overflow-x-auto rounded-lg bg-muted p-1 sm:w-fit">
+      {VIEWS.map((v) => (
+        <button key={v} role="tab" aria-selected={view === v} onClick={() => onChange(v)} className={cn("flex shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-md px-3 py-1.5 text-[13px] font-medium text-muted-foreground transition-colors", view === v && "bg-card text-foreground shadow-sm")}>
+          {t(`dec.view.${v}` as MessageKey)}
+          <span className={cn("tabular rounded-full px-1.5 text-[11.5px] font-semibold", v === "waiting" && counts.waiting > 0 ? "bg-warning/15 text-warning" : "bg-background/60")}>{counts[v]}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
 
 function Decisions() {
   const { t } = useI18n();
   const { key } = Route.useParams();
+  const search = Route.useSearch();
+  const navigate = useNavigate({ from: Route.fullPath });
   const { data: decisions } = useSuspenseQuery(decisionsQuery(key));
-  const { run } = useAction(key);
-  const act = (code: string, action: "confirm" | "overturn") => (reason: string) => run(() => decisionAction({ data: { key, code, action, reason } }), t("action.done"));
+  const { selected, toggle, clear } = useSelection();
+  const counts = Object.fromEntries(VIEWS.map((v) => [v, decisions.filter((d) => d.status === STATUS[v]).length])) as Record<View, number>;
+  const view: View = search.view ?? (counts.waiting > 0 || counts.confirmed === 0 ? "waiting" : "confirmed");
+  const shown = decisions.filter((d) => d.status === STATUS[view]);
+  const live = [...selected].filter((code) => shown.some((d) => d.code === code));
   return (
     <>
-      <PageHeader title={t("spec.tabs.decisions")} description={t("dec.lead")} actions={<NewDecisionDialog projectKey={key} />} />
+      <PageHeader title={t("spec.tabs.decisions")} description={t("dec.page.lead")} actions={<NewDecisionDialog projectKey={key} />} />
       {decisions.length === 0 ? (
-        <EmptyState icon={<Gavel />} title={t("dec.empty")} body={t("dec.lead")} />
+        <EmptyState icon={<Gavel />} title={t("dec.empty")} body={t("dec.page.lead")} />
       ) : (
-        <Card>
-          <ul className="divide-y">
-            {decisions.map((d) => (
-              <li key={d.code} className="grid gap-3 px-5 py-4 lg:grid-cols-[1fr_auto]">
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-center gap-2 text-[12px]">
-                    <span className="font-mono text-muted-foreground">{d.code}</span>
-                    <Badge tone={TONE[d.status]}>{t(`dec.status.${d.status}`)}</Badge>
-                    <Badge>{t(`dec.kind.${d.kind}`)}</Badge>
-                    <span className="text-muted-foreground">{t(`role.${d.decidedBy}`)}{d.decidedByAgent ? ` · ${t("dec.byAgent")}` : ""}</span>
-                  </div>
-                  <p className="mt-1.5 max-w-[90ch] text-[13.5px] font-medium">{d.text}</p>
-                  {d.reason && <p className="mt-1 max-w-[90ch] text-[13px] text-muted-foreground">{d.reason}</p>}
-                  {d.requirements.length > 0 && (
-                    <p className="mt-2 flex flex-wrap gap-2">
-                      {d.requirements.map((code) => (
-                        <Link key={code} to="/projects/$key/requirements/$code" params={{ key, code }} className="font-mono text-[11.5px] text-primary hover:underline">{code}</Link>
-                      ))}
-                    </p>
-                  )}
-                </div>
-                {d.status !== "overturned" && (
-                  <div className="flex items-start gap-2">
-                    {d.status === "proposed" && (
-                      <ConfirmDialog trigger={<Button size="sm">{t("dec.confirm")}</Button>} title={t("dec.confirm.title")} description={t("dec.confirm.body")} confirmLabel={t("dec.confirm")} onConfirm={act(d.code, "confirm")} />
-                    )}
-                    <ConfirmDialog trigger={<Button size="sm" variant="outline">{t("dec.overturn")}</Button>} title={t("dec.overturn.title")} description={t("dec.overturn.body")} confirmLabel={t("dec.overturn")} reasonLabel={t("dec.overturn.reason")} destructive onConfirm={act(d.code, "overturn")} />
-                  </div>
-                )}
-              </li>
-            ))}
-          </ul>
-        </Card>
+        <>
+          <ViewTabs view={view} counts={counts} onChange={(v) => { clear(); void navigate({ search: { view: v }, replace: true }); }} />
+          {view === "waiting" ? (
+            shown.length === 0 ? (
+              <EmptyState icon={<CircleCheck />} title={t("dec.none.waiting")} body="" />
+            ) : (
+              <div className="grid gap-8">
+                {GROUPS.map((g) => (
+                  <DecisionGroup key={g} projectKey={key} group={g} items={shown.filter((d) => groupOf(d) === g)} all={decisions} selected={selected} onSelect={toggle} />
+                ))}
+                <BulkBar projectKey={key} codes={live} onDone={clear} />
+              </div>
+            )
+          ) : shown.length === 0 ? (
+            <p className="text-[13px] text-muted-foreground">{t("dec.none.view")}</p>
+          ) : (
+            <Card>
+              <ul className="divide-y">
+                {shown.map((d) => (
+                  <DecisionRow key={d.code} projectKey={key} decision={d} />
+                ))}
+              </ul>
+            </Card>
+          )}
+        </>
       )}
     </>
   );

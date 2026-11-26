@@ -12,9 +12,11 @@ import { qualityPtBR } from "./quality-pt-BR";
 import { settingsPtBR } from "./settings-pt-BR";
 import { helpEn } from "./help-en";
 import { auditEn } from "./audit-en";
+import { decisionsEn } from "./decisions-en";
+import { decisionsPtBR } from "./decisions-pt-BR";
 import { auditPtBR } from "./audit-pt-BR";
 import { helpPtBR } from "./help-pt-BR";
 
-export const en = { ...enBase, ...specEn, ...settingsEn, ...qualityEn, ...docsEn, ...adminEn, ...helpEn, ...auditEn };
+export const en = { ...enBase, ...specEn, ...settingsEn, ...qualityEn, ...docsEn, ...adminEn, ...helpEn, ...auditEn, ...decisionsEn };
 export type MessageKey = keyof typeof en;
-export const ptBR: Record<MessageKey, string> = { ...ptBRBase, ...specPtBR, ...settingsPtBR, ...qualityPtBR, ...docsPtBR, ...adminPtBR, ...helpPtBR, ...auditPtBR };
+export const ptBR: Record<MessageKey, string> = { ...ptBRBase, ...specPtBR, ...settingsPtBR, ...qualityPtBR, ...docsPtBR, ...adminPtBR, ...helpPtBR, ...auditPtBR, ...decisionsPtBR };

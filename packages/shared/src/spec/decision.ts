@@ -11,6 +11,11 @@ export const decisionInputSchema = z.object({
   showToClient: z.boolean().default(true),
   sourceRef: z.string().optional(),
   requirements: z.array(codeSchema("REQ")).default([]),
+  /**
+   * Who made the choice. An agent writing down what the person already decided passes "person" and, in
+   * sourceRef, where the person said it; it still waits for the person to confirm the record.
+   */
+  madeBy: z.enum(["agent", "person"]).optional(),
 });
 export type DecisionInput = z.input<typeof decisionInputSchema>;
 export type DecisionData = z.output<typeof decisionInputSchema>;
