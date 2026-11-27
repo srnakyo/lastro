@@ -7,15 +7,18 @@ import { agent, createBriefSource, createProject, createUser, discountRequiremen
 beforeEach(resetDatabase);
 
 describe("QA configuration", () => {
-  it("is changed by a person only, and re-checks requirements against new required fields", async () => {
+  it("takes a stricter configuration from the agent and re-checks requirements against new required fields; loosening needs a person", async () => {
     const { project, actor } = await createProject();
     const source = await createBriefSource(project.id, actor);
     const req = await requirementsService.create(project.id, actor, discountRequirement(source.code));
     expect(req.status).toBe("specified");
-    const stricter = projectConfigSchema.parse({ ...project.config as object, types: { calculation: { required: ["data_source", "examples", "period"] } } });
-    await expect(projectsService.updateConfig(project.id, agent, stricter)).rejects.toThrow("needs a person");
-    await projectsService.updateConfig(project.id, actor, stricter);
+    const current = projectConfigSchema.parse(project.config);
+    const stricter = { ...current, types: { ...current.types, calculation: { required: ["data_source", "examples", "period"], flow: [], tests: { levels: [] } } } };
+    await projectsService.updateConfig(project.id, agent, stricter);
     expect((await requirementsService.get(project.id, req.code)).status).toBe("captured");
+    const dropped = { ...stricter, types: { calculation: stricter.types.calculation } };
+    await expect(projectsService.updateConfig(project.id, agent, dropped)).rejects.toThrow("only a person can loosen the QA rules: type behavior removed");
+    await projectsService.updateConfig(project.id, actor, dropped);
   });
 });
 

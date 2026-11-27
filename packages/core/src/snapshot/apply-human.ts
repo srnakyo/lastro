@@ -35,17 +35,23 @@ async function apply(projectId: string, actor: Actor, snapshot: Snapshot, a: Hum
   }
 }
 
+/** What an agent's import may apply of these: the QA configuration, when it loosens nothing (the service checks). */
+const agentMay = (a: HumanAction) => a.kind === "config";
+
 /**
- * Applies the human actions of a snapshot for a person. For an agent nothing is applied: every action is
- * returned as refused, so the output can name it. An action the lifecycle refuses (a blocked approval) is
- * returned as refused with the reason.
+ * Applies the human actions of a snapshot for a person. For an agent only the QA configuration is tried (a
+ * change that loosens a rule is refused with the reason); every other action is returned as refused, so the
+ * output can name it. An action the lifecycle refuses (a blocked approval) is returned as refused with the reason.
  */
 export async function applyHumanActions(projectId: string, actor: Actor, snapshot: Snapshot, actions: HumanAction[]) {
   const sorted = [...actions].sort((a, b) => ORDER.indexOf(a.kind) - ORDER.indexOf(b.kind));
-  if (actor.type !== "user") return { applied: [] as HumanAction[], refused: sorted.map((a) => ({ ...a, reason: "needs a person's token" })) };
   const applied: HumanAction[] = [];
   const refused: (HumanAction & { reason: string })[] = [];
   for (const a of sorted) {
+    if (actor.type !== "user" && !agentMay(a)) {
+      refused.push({ ...a, reason: "needs a person's token" });
+      continue;
+    }
     try {
       await apply(projectId, actor, snapshot, a);
       applied.push(a);

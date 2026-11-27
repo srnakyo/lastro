@@ -1,6 +1,7 @@
 export * from "./codes";
 export * from "./enums";
 export * from "./config";
+export * from "./starter-config";
 export * from "./test-levels";
 export * from "./domain";
 export * from "./spec/source";

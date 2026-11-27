@@ -9,7 +9,9 @@ Keeps Claude Code on the requirements:
 | `PostToolUse` | Records each file the agent changes on the requirements in building, so their evidence goes stale when those files change |
 | `Stop` | While something the agent can fix holds a requirement in building, it may not end its turn. It stops after `lastro_pause`, when only a person can move things, or after `gate.max_stop_blocks` attempts |
 
-It also starts the `lastro` MCP server (`lastro mcp`) and adds the skills `/lastro:intake`, `/lastro:spec`, `/lastro:build`, `/lastro:report` and `/lastro:triage`.
+It also starts the `lastro` MCP server (`lastro mcp`) and adds the skills `/lastro:start`, `/lastro:intake`, `/lastro:spec`, `/lastro:build`, `/lastro:report` and `/lastro:triage`.
+
+In a folder that is not a Lastro project yet, the session starts with a one-line hint. Say "let's use Lastro" and `/lastro:start` does the rest: `lastro init` creates the project on the server (with the strict test rules) and links the folder, `lastro install-hooks` adds the pre-push gate, the agent sets up the QA commands and brings your documents in as sources.
 
 ## Install
 

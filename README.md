@@ -46,7 +46,7 @@ flowchart LR
 
 - **Postgres is the source of truth; git gets the export.** One self-hosted server holds every project. `lastro export` writes a deterministic `.lastro/` snapshot that is reviewed in the same pull request as the code.
 - **No LLM inside.** The agent you already use does the thinking. Lastro stores, enforces and checks. No API key, no token cost, no client data sent anywhere.
-- **Automatic by default, a person where it counts.** Lastro approves and locks a requirement by itself once its spec is complete and every criterion has its tests at the levels its type asks; the latest version of a source counts. A person answers what only the requester knows and accepts the delivery. In review mode a person also approves each requirement. Approving, accepting, unlocking criteria, signing manual stages, importing a snapshot and changing the QA configuration are refused for agent tokens in the core, not only in the hooks.
+- **Automatic by default, a person where it counts.** Lastro approves and locks a requirement by itself once its spec is complete and every criterion has its tests at the levels its type asks; the latest version of a source counts. A person answers what only the requester knows and accepts the delivery. In review mode a person also approves each requirement. Approving, accepting, unlocking criteria, signing manual stages and loosening any QA rule are refused for agent tokens in the core, not only in the hooks; an agent may create a project (always with the strict start) and set up and tighten its QA configuration.
 - **Tests that prove something.** Each requirement type says which tests it needs (unit, integration, end to end with Playwright, in every condition) and how much of the code it touches they must run (function and line coverage, read from LCOV). A test must fail on a Lastro run before it passes, and the requester's numbers must be in it. A requirement is not verified until all of that holds.
 - **Agnostic.** Claude Code first, with a CLI and an MCP server for any agent, on any stack whose tests write JUnit and whose linters write SARIF.
 
@@ -108,7 +108,7 @@ lastro install-hooks          # git pre-push runs lastro gate
 /plugin install lastro@lastro
 ```
 
-The plugin uses the machine's `lastro login`. It adds the hooks, the `lastro` MCP server and the skills `/lastro:intake`, `/lastro:spec`, `/lastro:build`, `/lastro:report` and `/lastro:triage`. Other agents connect to `lastro mcp` (stdio) or to `/api/mcp` over HTTP with a Bearer token.
+The plugin uses the machine's `lastro login`. It adds the hooks, the `lastro` MCP server and the skills `/lastro:start`, `/lastro:intake`, `/lastro:spec`, `/lastro:build`, `/lastro:report` and `/lastro:triage`. Other agents connect to `lastro mcp` (stdio) or to `/api/mcp` over HTTP with a Bearer token.
 
 **4. CI and review:** the [GitHub Action](packages/adapters/github-action) runs `lastro verify` and `lastro gate`, with a job summary. The [Claude Ship templates](packages/adapters/claude-ship) bring a `REVIEW.md` for Claude Code Review and a Claude Approvals policy with the `lastro_scope` classifier.
 
@@ -118,7 +118,7 @@ The plugin uses the machine's `lastro login`. It adds the hooks, the `lastro` MC
 
 **Why a token, even on localhost.** The token tells Lastro who is calling: you in the dashboard, or the agent through the CLI and Claude Code. The agent's token registers requirements, runs tests and sends results; Lastro refuses it what is a person's (approving, accepting, unlocking, answering), which you do in the dashboard. That is what keeps an agent from approving its own work, on localhost as on a server.
 
-**Projects are a person's.** Create them in the dashboard; `lastro init <key>` links a folder to one.
+**The AI sets the project up.** Say "let's use Lastro" in Claude Code: the plugin's `/lastro:start` runs `lastro init`, which creates the project on the server when it does not exist (always with the strict test rules), links the folder and writes `.lastro/`, then brings your documents in as sources. The agent also sets up the QA commands and flows and may tighten the rules; loosening one (red first, the requester's numbers, coverage, a test level, a flow stage, a condition) is refused to it and stays yours, in the dashboard.
 
 **Tokens by hand** are for what has no browser. In **Workspace settings › Access tokens**: a token for every project, for CI (`LASTRO_URL` and `LASTRO_TOKEN` as secrets) or `lastro login --token` on a server. In a project's **Settings › Access tokens**: a token that works only in that project; the CLI keeps it for that project and uses it in that project's folder. A person's token acts as you in the terminal, only to run the person's commands there. Revoke any token in the same places.
 

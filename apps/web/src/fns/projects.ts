@@ -1,5 +1,5 @@
 import { overviewService, projectsService } from "@lastro/core";
-import { projectConfigSchema, projectKeySchema } from "@lastro/shared";
+import { projectKeySchema, starterProjectConfig } from "@lastro/shared";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { activeWorkspace, requireProject, requireUser } from "./context.server";
@@ -18,7 +18,8 @@ export const createProject = createServerFn({ method: "POST" })
     const { user, actor } = await requireUser();
     const { workspace } = await activeWorkspace(user.id);
     if (!workspace) throw new Error("NO_WORKSPACE");
-    const config = projectConfigSchema.parse({ project: data.key, types: { behavior: { required: ["where"] } } });
+    // The same start as `lastro init`: automatic and strict about tests.
+    const config = starterProjectConfig(data.key);
     const project = await projectsService.create(workspace.id, actor, { ...data, config });
     return { key: project.key };
   });

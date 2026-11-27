@@ -11,12 +11,12 @@ interface Step {
 }
 
 const STEPS: Step[] = [
-  { title: "guide.connect.project", body: "guide.connect.project.body" },
-  { title: "guide.connect.login", body: "guide.connect.login.body", command: (origin) => `lastro login --url ${origin}` },
-  { title: "guide.connect.init", body: "guide.connect.init.body", command: (_origin, key) => `lastro init ${key}` },
+  { title: "guide.connect.project", body: "guide.connect.project.body", command: (origin) => `lastro login --url ${origin}` },
+  { title: "guide.connect.login", body: "guide.connect.login.body", command: (_origin, key) => `lastro init ${key}` },
+  { title: "guide.connect.init", body: "guide.connect.init.body" },
 ];
 
-/** From a new project to a terminal that works in it: the project, the login of the machine, the folder. */
+/** From a machine to a project the AI works in: the login, "let's use Lastro", and following it here. */
 export function GuideConnect({ projectKey }: { projectKey?: string }) {
   const { t } = useI18n();
   const origin = typeof window === "undefined" ? "" : window.location.origin;

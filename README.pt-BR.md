@@ -46,7 +46,7 @@ flowchart LR
 
 - **O Postgres é a verdade, e o git recebe a exportação.** Um servidor auto-hospedado guarda todos os projetos. `lastro export` grava um retrato determinístico em `.lastro/`, revisado no mesmo PR que o código.
 - **Sem LLM dentro.** Quem pensa é o agente que você já usa. O Lastro guarda, cobra e confere. Sem chave de API, sem custo de token, sem mandar dado de cliente para lugar nenhum.
-- **Automático por padrão, pessoa onde importa.** O Lastro aprova e trava um requisito sozinho quando a especificação está completa e todo critério tem seus testes, nos níveis que o tipo exige; vale a versão mais recente de cada fonte. A pessoa responde o que só quem pediu sabe e aceita a entrega. No modo com revisão, a pessoa também aprova cada requisito. Aprovar, aceitar, destravar critério, assinar etapa manual, importar exportação e mudar a configuração de QA são recusados para token de agente no núcleo, não só nos hooks.
+- **Automático por padrão, pessoa onde importa.** O Lastro aprova e trava um requisito sozinho quando a especificação está completa e todo critério tem seus testes, nos níveis que o tipo exige; vale a versão mais recente de cada fonte. A pessoa responde o que só quem pediu sabe e aceita a entrega. No modo com revisão, a pessoa também aprova cada requisito. Aprovar, aceitar, destravar critério, assinar etapa manual e afrouxar qualquer regra de QA são recusados para token de agente no núcleo, não só nos hooks; o agente pode criar projeto (sempre com o início rígido) e montar e endurecer a configuração de QA dele.
 - **Testes que provam alguma coisa.** Cada tipo de requisito diz quais testes precisa (unidade, integração, ponta a ponta com Playwright, em cada condição) e quanto do código que ele toca os testes precisam executar (cobertura de funções e linhas, lida do LCOV). O teste precisa falhar numa execução do Lastro antes de passar, e os números de quem pediu precisam estar nele. O requisito só fica verificado quando tudo isso vale.
 - **Agnóstico.** Claude Code primeiro, com CLI e servidor MCP para qualquer agente, em qualquer stack cujos testes gerem JUnit e cujos linters gerem SARIF.
 
@@ -108,7 +108,7 @@ lastro install-hooks          # o pre-push do git roda lastro gate
 /plugin install lastro@lastro
 ```
 
-O plugin usa o `lastro login` da máquina. Ele traz os hooks, o servidor MCP `lastro` e as skills `/lastro:intake`, `/lastro:spec`, `/lastro:build`, `/lastro:report` e `/lastro:triage`. Outros agentes se conectam pelo `lastro mcp` (stdio) ou pelo `/api/mcp` em HTTP com token Bearer.
+O plugin usa o `lastro login` da máquina. Ele traz os hooks, o servidor MCP `lastro` e as skills `/lastro:start`, `/lastro:intake`, `/lastro:spec`, `/lastro:build`, `/lastro:report` e `/lastro:triage`. Outros agentes se conectam pelo `lastro mcp` (stdio) ou pelo `/api/mcp` em HTTP com token Bearer.
 
 **4. CI e revisão:** a [GitHub Action](packages/adapters/github-action) roda `lastro verify` e `lastro gate`, com resumo no job. Os [modelos do Claude Ship](packages/adapters/claude-ship) trazem um `REVIEW.md` para o Claude Code Review e uma política do Claude Approvals com o classificador `lastro_scope`.
 
@@ -118,7 +118,7 @@ O plugin usa o `lastro login` da máquina. Ele traz os hooks, o servidor MCP `la
 
 **Por que token, mesmo no localhost.** O token diz ao Lastro quem está chamando: você, no painel, ou o agente, pela CLI e pelo Claude Code. O token do agente registra requisitos, roda testes e manda resultados; o Lastro recusa a ele o que é de pessoa (aprovar, aceitar, destravar, responder), que você faz no painel. É isso que impede o agente de aprovar o próprio trabalho, no localhost como num servidor.
 
-**Projeto é coisa de pessoa.** Crie no painel; o `lastro init <chave>` liga uma pasta a ele.
+**A IA monta o projeto.** Diga "vamos usar o Lastro" no Claude Code: o `/lastro:start` do plugin roda o `lastro init`, que cria o projeto no servidor quando ele não existe (sempre com as regras de teste rígidas), liga a pasta e grava o `.lastro/`, e depois traz os seus documentos como fontes. O agente também monta os comandos e fluxos de QA e pode endurecer as regras; afrouxar uma delas (vermelho antes do verde, números de quem pediu, cobertura, nível de teste, etapa de fluxo, condição) é recusado a ele e fica com você, no painel.
 
 **Token à mão** é para o que não tem navegador. Em **Configurações gerais › Tokens de acesso**: um token para todos os projetos, para o CI (`LASTRO_URL` e `LASTRO_TOKEN` como segredos) ou para o `lastro login --token` num servidor. Nas **Configurações › Tokens de acesso** de um projeto: um token que vale só nele; a CLI guarda esse token para o projeto e usa na pasta dele. Token de pessoa age como você no terminal, só para rodar lá os comandos de pessoa. Revogue qualquer token nos mesmos lugares.
 

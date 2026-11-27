@@ -1,16 +1,25 @@
 import { reevaluate } from "../requirements/evaluate";
 import { loadScope } from "../scope/project-scope";
-import { requireHuman } from "../scope/actor";
-import { projectConfigSchema, projectInputSchema, type Actor, type ProjectConfigInput, type ProjectInput } from "@lastro/shared";
+import { projectConfigSchema, projectInputSchema, starterProjectConfig, type Actor, type ProjectConfig, type ProjectConfigInput, type ProjectInput } from "@lastro/shared";
 import { auditService } from "../audit/service";
 import { db, transaction } from "../db";
 import { LastroError, notFound } from "../errors";
+import { loosenings } from "./loosening";
 import { stampTestRules } from "./test-rules";
+
+/**
+ * An agent may create a project (`lastro init` when the person says "let's use Lastro"), but always with the
+ * strict start: only a person may loosen the QA rules, so the configuration an agent sends is not used.
+ */
+function startingConfig(actor: Actor, key: string, config: ProjectConfig): ProjectConfig {
+  if (actor.type === "user") return config;
+  return { ...starterProjectConfig(key), language: config.language };
+}
 
 export const projectsService = {
   async create(workspaceId: string, actor: Actor, raw: ProjectInput) {
-    requireHuman(actor, "creating a project");
-    const input = projectInputSchema.parse(raw);
+    const parsed = projectInputSchema.parse(raw);
+    const input = { ...parsed, config: startingConfig(actor, parsed.key, parsed.config) };
     return transaction(async (tx) => {
       const taken = await tx.project.findUnique({ where: { workspaceId_key: { workspaceId, key: input.key } } });
       if (taken) throw new LastroError("CONFLICT", `project ${input.key} already exists`);
@@ -40,13 +49,18 @@ export const projectsService = {
     return { ...project, config: projectConfigSchema.parse(project.config) };
   },
 
-  /** A person changes the QA flows, conditions, commands or gate; requirements are re-checked against the new required fields. */
+  /**
+   * Changes the QA flows, conditions, commands or gate; requirements are re-checked against the new required
+   * fields. An agent may set them up and tighten them; loosening a rule needs a person.
+   */
   async updateConfig(projectId: string, actor: Actor, raw: ProjectConfigInput) {
-    requireHuman(actor, "changing the QA configuration");
     const parsed = projectConfigSchema.parse(raw);
     return transaction(async (tx) => {
       const current = await tx.project.findUniqueOrThrow({ where: { id: projectId }, select: { config: true } });
-      const config = stampTestRules(projectConfigSchema.parse(current.config), parsed);
+      const previous = projectConfigSchema.parse(current.config);
+      const loose = actor.type === "user" ? [] : loosenings(previous, parsed);
+      if (loose.length) throw new LastroError("HUMAN_ONLY", `only a person can loosen the QA rules: ${loose.join("; ")}`, { loosenings: loose });
+      const config = stampTestRules(previous, parsed);
       const project = await tx.project.update({ where: { id: projectId }, data: { config, language: config.language } });
       await auditService.record(tx, { workspaceId: project.workspaceId, projectId, actor, action: "project.config", entity: "project", entityId: projectId });
       const scope = await loadScope(tx, projectId);

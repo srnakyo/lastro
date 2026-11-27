@@ -25,7 +25,7 @@ export const snapshotService = {
   async import(projectId: string, actor: Actor, raw: SnapshotInput, options: { dryRun?: boolean } = {}): Promise<ImportReport> {
     const snapshot = snapshotSchema.parse(raw);
     const plan = await planImport(projectId, snapshot);
-    if (options.dryRun) return { plan, applied: [], refused: actor.type === "user" ? [] : plan.human.map((a) => ({ ...a, reason: "needs a person's token" })), dryRun: true };
+    if (options.dryRun) return { plan, applied: [], refused: actor.type === "user" ? [] : plan.human.filter((a) => a.kind !== "config").map((a) => ({ ...a, reason: "needs a person's token" })), dryRun: true };
     await applySources(projectId, snapshot);
     await applyRequirements(projectId, actor, snapshot, plan);
     await applyRecords(projectId, actor, snapshot, plan);

@@ -1,7 +1,7 @@
 import { commitInfo } from "@lastro/runner";
 import { LastroClient } from "../api/client";
 import { readCredentials } from "../config/credentials";
-import { findRoot, linkedProject } from "../config/project";
+import { findRoot, linkedProject, tryRoot } from "../config/project";
 import { runGate } from "../commands/verify-run";
 import { contextText, type AgentContext } from "./context-text";
 import { guardToolCall, touchedFile, type ToolCall } from "./guard";
@@ -35,6 +35,15 @@ function setup(input: HookInput): Ctx | null {
     return null;
   }
 }
+
+/** Logged in but this folder has no Lastro project yet: tell the agent how to start when the person asks for Lastro. */
+function hintUnlinked(input: HookInput) {
+  if (!readCredentials(input.cwd ?? process.cwd()) || tryRoot(input.cwd ?? process.cwd())) return;
+  print({ hookSpecificOutput: { hookEventName: "SessionStart", additionalContext: UNLINKED_HINT } });
+}
+
+export const UNLINKED_HINT =
+  "Lastro is set up on this machine, but this folder is not a Lastro project yet. When the person asks to use Lastro here, follow /lastro:start: `lastro init` creates the project on the server and links this folder, then bring their material in as sources.";
 
 const event = (c: Ctx, kind: string, payload: Record<string, unknown> = {}) =>
   c.client.post(`/projects/${c.project}/agent-events`, { agent: "claude-code", session: c.session, kind, payload }).catch(() => undefined);
@@ -103,6 +112,7 @@ export async function runHook(name: string) {
     const input = (raw ? JSON.parse(raw) : {}) as HookInput;
     const c = setup(input);
     if (c) await handler(c, input);
+    else if (name === "session-start") hintUnlinked(input);
   } catch (error) {
     process.stderr.write(`lastro hook ${name}: ${(error as Error).message}\n`);
   }

@@ -32,19 +32,19 @@ describe("authorizing a terminal in the browser", () => {
     expect(verified).toMatchObject({ workspaceId: workspace.id, projectId: null, kind: "agent" });
     expect((await database().apiToken.findFirstOrThrow({ where: { id: verified.id } })).name).toBe("CLI · nakyo-pc");
 
-    expect(cliLoginService.collect(login.id, login.secret)).rejects.toThrow("already used");
+    await expect(cliLoginService.collect(login.id, login.secret)).rejects.toThrow("already used");
     expect((await cliLoginService.get(login.id)).state).toBe("used");
   });
 
   it("refuses a wrong secret, an agent answering, and an answer after 10 minutes", async () => {
     const { workspace, actor } = await createProject();
     const login = await cliLoginService.start({ host: "laptop" });
-    expect(cliLoginService.collect(login.id, "not-the-secret")).rejects.toThrow("wrong secret");
-    expect(cliLoginService.approve(login.id, workspace.id, { type: "agent", id: "token:lst_x" })).rejects.toThrow("needs a person");
+    await expect(cliLoginService.collect(login.id, "not-the-secret")).rejects.toThrow("wrong secret");
+    await expect(cliLoginService.approve(login.id, workspace.id, { type: "agent", id: "token:lst_x" })).rejects.toThrow("needs a person");
     const later = new Date(Date.now() + CLI_LOGIN_TTL_MS + 1000);
-    expect(cliLoginService.approve(login.id, workspace.id, actor, later)).rejects.toThrow("expired or was already answered");
+    await expect(cliLoginService.approve(login.id, workspace.id, actor, later)).rejects.toThrow("expired or was already answered");
     expect(await cliLoginService.collect(login.id, login.secret, later)).toEqual({ status: "expired" });
-    expect(cliLoginService.get("not-a-login")).rejects.toThrow("does not exist");
+    await expect(cliLoginService.get("not-a-login")).rejects.toThrow("does not exist");
   });
 
   it("tells the terminal when the person refused, and the refused login cannot be authorized afterwards", async () => {
@@ -53,13 +53,13 @@ describe("authorizing a terminal in the browser", () => {
     expect((await cliLoginService.get(login.id)).host).toBe("laptop");
     await cliLoginService.deny(login.id, actor);
     expect(await cliLoginService.collect(login.id, login.secret)).toEqual({ status: "denied" });
-    expect(cliLoginService.approve(login.id, workspace.id, actor)).rejects.toThrow("expired or was already answered");
-    expect(cliLoginService.deny(login.id, actor)).rejects.toThrow("expired or was already answered");
+    await expect(cliLoginService.approve(login.id, workspace.id, actor)).rejects.toThrow("expired or was already answered");
+    await expect(cliLoginService.deny(login.id, actor)).rejects.toThrow("expired or was already answered");
   });
 
   it(`caps the logins waiting at ${CLI_LOGIN_MAX_PENDING}, since starting one needs no token`, async () => {
     await database().cliLogin.createMany({ data: Array.from({ length: CLI_LOGIN_MAX_PENDING }, (_, i) => ({ code: `CODE-${i}`, secretHash: "00", host: "x", expiresAt: new Date(Date.now() + CLI_LOGIN_TTL_MS) })) });
-    expect(cliLoginService.start({ host: "one more" })).rejects.toThrow("too many logins waiting");
+    await expect(cliLoginService.start({ host: "one more" })).rejects.toThrow("too many logins waiting");
     const res = await post("/cli/login", { host: "one more" });
     expect(res.status).toBe(429);
   });
@@ -75,7 +75,7 @@ describe("authorizing a terminal in the browser", () => {
 });
 
 describe("lastro login", () => {
-  it("waits for the browser, stores the token, and then init works in a repository with no token in the environment", async () => {
+  it("waits for the browser, stores the token, and then the agent creates and links the project with no token in the environment", async () => {
     const { workspace, actor } = await createProject();
     const repo = tempRepo();
     const env = { PATH: process.env.PATH ?? "", HOME: repo, XDG_CONFIG_HOME: join(repo, ".config"), LASTRO_LOGIN_POLL_MS: "50" };
@@ -97,18 +97,20 @@ describe("lastro login", () => {
     expect(stored.current).toBe(api.url);
     expect((await tokensService.verify(stored.servers[api.url]?.token ?? "")).kind).toBe("agent");
 
-    // The agent token links the repository to a project a person created; it does not create projects.
-    const run = async (args: string[]) => {
-      const p = Bun.spawn(["bun", entry, ...args], { cwd: repo, env, stdin: "ignore", stdout: "pipe", stderr: "pipe" });
+    // "Let's use Lastro": before init the session hook tells the agent how to start; init creates the project.
+    const run = async (args: string[], stdin?: string) => {
+      const p = Bun.spawn(["bun", entry, ...args], { cwd: repo, env, stdin: stdin === undefined ? "ignore" : new Blob([stdin]), stdout: "pipe", stderr: "pipe" });
       const [stdout, stderr, code] = await Promise.all([new Response(p.stdout).text(), new Response(p.stderr).text(), p.exited]);
       return { stdout, stderr, code };
     };
-    const missing = await run(["init", "shop"]);
-    expect(missing.code).toBe(1);
-    expect(missing.stderr).toContain(`the project shop does not exist yet: create it in the dashboard (${api.url}, New project, key shop)`);
-    const linked = await run(["init", "billing"]);
-    expect(linked.stdout).toContain("linked to the existing project billing");
-    expect(readFileSync(join(repo, ".lastro", "lastro.yml"), "utf8")).toContain("project: billing");
+    const hint = await run(["hook", "session-start"], JSON.stringify({ cwd: repo, session_id: "s1" }));
+    expect(hint.stdout).toContain("this folder is not a Lastro project yet");
+    expect(hint.stdout).toContain("/lastro:start");
+    const created = await run(["init", "shop"]);
+    expect(created.stdout).toContain("created project shop");
+    const shop = await database().project.findFirstOrThrow({ where: { key: "shop", workspaceId: workspace.id } });
+    expect(shop.config).toMatchObject({ autonomy: "auto", tests: { red_first: true, examples_in_tests: true } });
+    expect(readFileSync(join(repo, ".lastro", "lastro.yml"), "utf8")).toContain("project: shop");
   });
 
   it("stores a token made by hand for one project under that project", async () => {

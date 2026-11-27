@@ -7,7 +7,7 @@ The CLI talks to your Lastro server with a token. It never touches the database.
 ```sh
 npm install -g @nakyo/lastro
 lastro login --url https://lastro.example.com   # opens the browser: authorize this machine, once
-lastro init my-project            # links this folder to a project created in the dashboard
+lastro init my-project            # creates the project when it does not exist, and links this folder
 ```
 
 `lastro login` shows a code, opens the dashboard and waits while you compare the code and click **Authorize**. The machine gets an agent token for every project of the workspace, kept in `~/.config/lastro/credentials.json`; each repository names its project in `.lastro/lastro.yml`, so one login serves every repository. The agent token does everything but what is a person's (approve, accept, unlock, answer): that happens in the dashboard. Without a browser, create a token in **Workspace settings › Access tokens** and run `lastro login --token <token>`; a token made in a project's settings works only there, and the CLI keeps it for that project.
