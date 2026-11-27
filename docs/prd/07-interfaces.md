@@ -10,7 +10,7 @@ The first three go through the Lastro server's HTTP API and the same core servic
 
 | Command | What it does |
 |---|---|
-| `lastro login [<url>]` | Signs in to the Lastro server through the browser and keeps the person's token on the machine, outside the repository |
+| `lastro login [--url] [--token]` | Connects the machine to the Lastro server: the person authorizes it in the browser (same code on both sides) and the machine keeps an agent token for every project of the workspace, outside the repository. `--token` takes a token made by hand, for CI or a machine without a browser |
 | `lastro link [<project>]` | Links the repository to a project on the server and writes its key to `lastro.yml` |
 | `lastro init` | Creates the project on the server, links the repository to it and writes the first `.lastro/` with an empty `lastro.yml`, glossary and layout contract, plus the `.gitignore` for the `.out/` folder |
 | `lastro setup claude\|codex\|gemini\|cursor\|git\|github` | Installs the integrations for each level |

@@ -77,6 +77,7 @@ bun workspaces and Turborepo: `apps/`, `packages/`, `tooling/`.
 | 9 | Distribution: Docker image and production compose, npm package, README in English and Portuguese with real screenshots | done |
 | 10 | Dogfood: Lastro tracks itself on its own server, tests linked to criteria, gate in CI | done: every criterion of Lastro's 26 requirements is linked to tests, `lastro gate --ci` runs in CI and a dry run of the full flow passes; Lastro approved them by itself once every criterion had its tests (phase 11) |
 | 11 | Automatic by default and test quality: Lastro approves and locks what is ready (review mode keeps a person's approval); test levels per type (unit, integration, Playwright), red before green, the requester's numbers in the tests, coverage of the touched files from LCOV; Settings, requirement page and `lastro init` template | done: Lastro's own project runs these rules (see below) |
+| 12 | Connecting a terminal: `lastro login` authorized in the browser (same code on both sides) gives the machine an agent token for every project of the workspace; the CLI keeps one login per server plus tokens made for one project, and picks the token of the folder's project; Workspace settings (tokens for every project, members) one click from the projects page; the guide explains it | done: CLI 0.2.0 |
 
 ## What the dogfood found
 

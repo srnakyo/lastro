@@ -15,7 +15,7 @@ It also starts the `lastro` MCP server (`lastro mcp`) and adds the skills `/last
 
 ```sh
 npm install -g @nakyo/lastro                       # the hooks and the MCP server call the lastro CLI
-lastro login --url https://lastro.example.com --token <agent token>
+lastro login --url https://lastro.example.com      # authorize this machine in the browser, once
 ```
 
 Then in Claude Code:
@@ -25,6 +25,6 @@ Then in Claude Code:
 /plugin install lastro@lastro
 ```
 
-Use an **agent** token (Settings › Access tokens › Agent): it can propose, update, link tests, start and verify, and can never approve, accept, unlock or import. In CI, set `LASTRO_URL` and `LASTRO_TOKEN` instead of logging in.
+`lastro login` gives the machine an **agent** token for every project of the workspace: it can propose, update, link tests, start and verify, and can never approve, accept, unlock or import. Those are yours, in the dashboard. In CI, set `LASTRO_URL` and `LASTRO_TOKEN` (a token from Workspace settings › Access tokens) instead of logging in.
 
 The hooks stay out of the way in a repository without `.lastro/lastro.yml`, and never break a session: if the server cannot be reached, the agent goes on.

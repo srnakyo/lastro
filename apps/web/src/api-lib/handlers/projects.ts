@@ -9,7 +9,12 @@ export function projectRoutes(router: ApiRouter) {
   router
     .on("GET", "/me", async ({ token }) => {
       const person = token.actor.type === "user" ? await database().user.findUnique({ where: { id: token.actor.id ?? "" }, select: { email: true, name: true } }) : null;
-      return { workspaceId: token.workspaceId, projectId: token.projectId, kind: token.kind, email: person?.email ?? null, name: person?.name ?? null };
+      const workspace = await database().workspace.findUnique({ where: { id: token.workspaceId }, select: { name: true, slug: true } });
+      const project = token.projectId ? await database().project.findUnique({ where: { id: token.projectId }, select: { key: true } }) : null;
+      return {
+        workspaceId: token.workspaceId, workspace, projectId: token.projectId, projectKey: project?.key ?? null,
+        kind: token.kind, email: person?.email ?? null, name: person?.name ?? null,
+      };
     })
     .on("GET", "/projects", async ({ token }) => (await projectsService.list(token.workspaceId)).map((p) => ({ key: p.key, name: p.name })))
     .on("POST", "/projects", async ({ token, request }) => {

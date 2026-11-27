@@ -5,8 +5,8 @@ import { toast } from "sonner";
 import { errorText } from "@/lib/error-text";
 import { useI18n } from "@/lib/i18n";
 
-/** Runs a server action, shows its error as a toast, then refreshes the queries of the project. */
-export function useAction(projectKey: string) {
+/** Runs a server action, shows its error as a toast, then refreshes the queries of the project (or of the workspace, without one). */
+export function useAction(projectKey?: string) {
   const { lang } = useI18n();
   const queryClient = useQueryClient();
   const router = useRouter();
@@ -15,7 +15,7 @@ export function useAction(projectKey: string) {
     setPending(true);
     try {
       const result = await work();
-      await queryClient.invalidateQueries({ queryKey: ["project", projectKey] });
+      await queryClient.invalidateQueries({ queryKey: projectKey ? ["project", projectKey] : ["workspace"] });
       await router.invalidate();
       if (success) toast.success(success);
       return result;

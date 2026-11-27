@@ -29,6 +29,7 @@ export { overviewService } from "./overview/service";
 export { exportSnapshot } from "./snapshot/export";
 export { sourceReads } from "./sources/reads";
 export { tokensService, type TokenKind, type VerifiedToken } from "./tokens/service";
+export { CLI_LOGIN_MAX_PENDING, CLI_LOGIN_TTL_MS, cliLoginService, type CliLoginResult, type CliLoginState } from "./cli-login/service";
 export { agentContext } from "./agent/context";
 export { artifactsService, type ArtifactInput } from "./artifacts/service";
 export { intakeService, type IntakeTarget } from "./sources/intake";

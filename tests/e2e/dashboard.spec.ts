@@ -70,13 +70,16 @@ test("the overview says where the project stands and each next step opens the pl
   await expect(page).toHaveURL(/\/projects\/shop-demo\/.+/);
 });
 
-test("the guide explains the path and the words, and opens inside the project", async ({ page }) => {
+test("the guide explains the path, the words and how to connect a terminal, and opens inside the project", async ({ page }) => {
   await signIn(page);
   await page.goto("/projects/shop-demo");
   await page.getByRole("link", { name: "How Lastro works" }).click();
   await expect(page).toHaveURL(/\/projects\/shop-demo\/guide$/);
   await expect(page.getByRole("heading", { name: "How Lastro works", level: 1 })).toBeVisible();
-  for (const name of ["The path of a requirement", "The four proofs", "Who does what", "Words you will see"]) await expect(page.getByRole("heading", { name })).toBeVisible();
+  for (const name of ["The path of a requirement", "The four proofs", "Who does what", "Connecting a terminal", "Words you will see"]) await expect(page.getByRole("heading", { name })).toBeVisible();
+  const connect = page.locator("section#connect");
+  await expect(connect.getByText(/^lastro login --url http/)).toBeVisible();
+  await expect(connect.getByText("lastro init shop-demo")).toBeVisible();
 });
 
 test("the language switch in the top bar changes every page, and back", async ({ page, isMobile }) => {

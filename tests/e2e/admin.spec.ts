@@ -51,9 +51,9 @@ test("agent sessions show what the agent did, refused actions included", async (
   await expect(page.getByText("Stop held by the gate")).toBeVisible();
 });
 
-test("members are listed with their roles", async ({ page }) => {
+test("members are listed with their roles, in the workspace settings", async ({ page }) => {
   await signIn(page);
-  await open(page, "/projects/e2e-demo/settings");
+  await open(page, "/settings");
   await page.getByRole("tab", { name: "Members" }).click();
   await expect(page.getByText("dev@lastro.local")).toBeVisible();
 });

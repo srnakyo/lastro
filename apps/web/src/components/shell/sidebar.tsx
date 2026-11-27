@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { CircleHelp, FolderKanban } from "lucide-react";
+import { CircleHelp, FolderKanban, SlidersHorizontal } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { Tooltip } from "@/components/ui/tooltip";
 import { useI18n } from "@/lib/i18n";
@@ -66,7 +66,8 @@ export function Sidebar({ projectKey, collapsed }: { projectKey: string | null; 
             </div>
           ))}
       </nav>
-      <div className="border-t px-2.5 py-2.5">
+      <div className="grid gap-0.5 border-t px-2.5 py-2.5">
+        <Item href="/settings" item={{ label: "nav.workspaceSettings", icon: SlidersHorizontal }} active={pathname === "/settings"} collapsed={collapsed} />
         <Item href={`${base}/guide`} item={{ label: "nav.guide", icon: CircleHelp }} active={pathname.endsWith("/guide")} collapsed={collapsed} />
       </div>
     </aside>

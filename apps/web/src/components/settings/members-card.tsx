@@ -15,9 +15,9 @@ import { useI18n } from "@/lib/i18n";
 type Role = "owner" | "admin" | "member";
 const ROLES: Role[] = ["owner", "admin", "member"];
 
-function AddMember({ projectKey }: { projectKey: string }) {
+function AddMember() {
   const { t } = useI18n();
-  const { run } = useAction(projectKey);
+  const { run } = useAction();
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<Role>("member");
   return (
@@ -27,7 +27,7 @@ function AddMember({ projectKey }: { projectKey: string }) {
       description={t("members.lead")}
       submitLabel={t("members.add")}
       disabled={!email.includes("@")}
-      onSubmit={() => run(() => addMember({ data: { key: projectKey, email, role } }), t("action.done"))}
+      onSubmit={() => run(() => addMember({ data: { email, role } }), t("action.done"))}
     >
       <label className="grid gap-1.5 text-[13px] font-medium">{t("members.email")}<Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} /></label>
       <label className="grid gap-1.5 text-[13px] font-medium">{t("members.role")}
@@ -37,13 +37,14 @@ function AddMember({ projectKey }: { projectKey: string }) {
   );
 }
 
-export function MembersCard({ projectKey }: { projectKey: string }) {
+/** The people of the workspace: they see every project in it. */
+export function MembersCard() {
   const { t } = useI18n();
-  const { run } = useAction(projectKey);
-  const { data: members = [] } = useQuery(membersQuery(projectKey));
+  const { run } = useAction();
+  const { data: members = [] } = useQuery(membersQuery);
   return (
     <Card>
-      <CardHeader><CardTitle>{t("members.title")}</CardTitle><AddMember projectKey={projectKey} /></CardHeader>
+      <CardHeader><CardTitle>{t("members.title")}</CardTitle><AddMember /></CardHeader>
       <ul className="divide-y">
         {members.map((m) => (
           <li key={m.id} className="flex flex-wrap items-center gap-3 px-5 py-3">
@@ -52,10 +53,10 @@ export function MembersCard({ projectKey }: { projectKey: string }) {
               <p className="text-[13px] font-medium">{m.user.name}</p>
               <p className="truncate text-[12px] text-muted-foreground">{m.user.email}</p>
             </div>
-            <Select value={m.role} onChange={(e) => void run(() => changeMember({ data: { key: projectKey, id: m.id, role: e.target.value as Role } }), t("action.done"))} className="h-8 w-auto" aria-label={`${t("members.role")} ${m.user.email}`}>
+            <Select value={m.role} onChange={(e) => void run(() => changeMember({ data: { id: m.id, role: e.target.value as Role } }), t("action.done"))} className="h-8 w-auto" aria-label={`${t("members.role")} ${m.user.email}`}>
               {ROLES.map((r) => <option key={r} value={r}>{t(`role.${r}`)}</option>)}
             </Select>
-            <ConfirmDialog trigger={<Button size="sm" variant="ghost">{t("members.remove")}</Button>} title={t("members.remove.title")} description={t("members.remove.body")} confirmLabel={t("members.remove")} destructive onConfirm={() => run(() => changeMember({ data: { key: projectKey, id: m.id, role: null } }))} />
+            <ConfirmDialog trigger={<Button size="sm" variant="ghost">{t("members.remove")}</Button>} title={t("members.remove.title")} description={t("members.remove.body")} confirmLabel={t("members.remove")} destructive onConfirm={() => run(() => changeMember({ data: { id: m.id, role: null } }))} />
           </li>
         ))}
       </ul>

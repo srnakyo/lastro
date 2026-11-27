@@ -4,9 +4,13 @@ import { basename, join } from "node:path";
 import { snapshotSchema, type Snapshot } from "@lastro/shared";
 import { writeSnapshot } from "@lastro/snapshot";
 import type { Command } from "commander";
-import { LastroClient } from "../api/client";
-import { writeCredentials } from "../config/credentials";
+import { ApiError, LastroClient } from "../api/client";
+import { currentServer, saveLogin, serverKey } from "../config/credentials";
 import { findRoot, linkedProject, writeLink } from "../config/project";
+import { browserLogin } from "../login/browser-login";
+
+/** Where a Lastro server listens by default (docker/compose.prod.yml and the dev server). */
+const DEFAULT_SERVER = "http://localhost:4317";
 
 /**
  * A new project starts automatic and strict about tests: written before the code, at the levels each type
@@ -48,16 +52,32 @@ function ignoreOutput(root: string) {
   appendFileSync(file, `${current && !current.endsWith("\n") ? "\n" : ""}.lastro/.out/\n`);
 }
 
+/** Creates the project, or says where to create it: with an agent token only a person may, in the dashboard. */
+async function createProject(client: LastroClient, key: string, name: string) {
+  try {
+    await client.post("/projects", { key, name, config: STARTER_CONFIG(key) });
+  } catch (error) {
+    if (error instanceof ApiError && error.code === "HUMAN_ONLY") {
+      throw new Error(`the project ${key} does not exist yet: create it in the dashboard (${client.baseUrl}, New project, key ${key}), then run lastro init ${key} again`, { cause: error });
+    }
+    throw error;
+  }
+}
+
 export function accountCommands(program: Command) {
   program
     .command("login")
-    .description("store the server URL and your token")
-    .requiredOption("--url <url>", "Lastro server, like https://lastro.example.com")
-    .requiredOption("--token <token>", "a person's token from Settings › Access tokens")
-    .action(async (o: { url: string; token: string }) => {
-      const me = await new LastroClient({ url: o.url, token: o.token }).get<{ kind: string }>("/me");
-      writeCredentials({ url: o.url, token: o.token });
-      console.log(`logged in to ${o.url} with ${me.kind === "agent" ? "an agent" : "a person's"} token`);
+    .description("connect this machine to a Lastro server: authorize it in the browser, once for every project")
+    .option("--url <url>", "Lastro server (default: the last one, or http://localhost:4317)")
+    .option("--token <token>", "a token created by hand in Settings, for CI or a machine without a browser")
+    .option("--no-browser", "print the authorization link without opening the browser")
+    .action(async (o: { url?: string; token?: string; browser: boolean }) => {
+      const url = o.url ?? process.env.LASTRO_URL ?? currentServer() ?? DEFAULT_SERVER;
+      if (!o.token) return browserLogin(url, { open: o.browser && process.env.LASTRO_NO_BROWSER !== "1", pollMs: Number(process.env.LASTRO_LOGIN_POLL_MS) || undefined });
+      const me = await new LastroClient({ url, token: o.token }).get<{ kind: string; projectKey: string | null }>("/me");
+      saveLogin(url, o.token, me.projectKey);
+      const reach = me.projectKey ? `only for the ${me.projectKey} project` : "for every project";
+      console.log(`logged in to ${serverKey(url)} with ${me.kind === "agent" ? "an agent" : "a person's"} token, ${reach}`);
     });
 
   program
@@ -74,7 +94,7 @@ export function accountCommands(program: Command) {
       const project = key ?? basename(root).toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-+|-+$/g, "");
       const client = new LastroClient();
       const existing = await client.get(`/projects/${project}`).then(() => true, () => false);
-      if (!existing) await client.post("/projects", { key: project, name: o.name ?? project, config: STARTER_CONFIG(project) });
+      if (!existing) await createProject(client, project, o.name ?? project);
       const snapshot = snapshotSchema.parse(await client.get<Snapshot>(`/projects/${project}/export`));
       writeSnapshot(root, { ...snapshot, config: { ...snapshot.config, server: { ...snapshot.config.server, project } } });
       ignoreOutput(root);

@@ -10,7 +10,7 @@ As três primeiras passam pela API HTTP do servidor do Lastro e pelos mesmos ser
 
 | Comando | O que faz |
 |---|---|
-| `lastro login [<url>]` | Entra no servidor do Lastro pelo navegador e guarda o token da pessoa na máquina, fora do repositório |
+| `lastro login [--url] [--token]` | Conecta a máquina ao servidor do Lastro: a pessoa autoriza no navegador (o mesmo código dos dois lados) e a máquina guarda um token de agente que vale para todos os projetos do workspace, fora do repositório. `--token` recebe um token criado à mão, para o CI ou uma máquina sem navegador |
 | `lastro link [<projeto>]` | Liga o repositório a um projeto do servidor e grava a chave dele no `lastro.yml` |
 | `lastro init` | Cria o projeto no servidor, liga o repositório a ele e grava o primeiro `.lastro/` com `lastro.yml`, glossário e contrato de layout vazios, e o `.gitignore` da pasta `.out/` |
 | `lastro setup claude\|codex\|gemini\|cursor\|git\|github` | Instala as integrações de cada nível |

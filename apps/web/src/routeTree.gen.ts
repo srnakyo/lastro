@@ -15,10 +15,12 @@ import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as SignUpRouteImport } from './routes/sign-up'
 import { Route as AppIndexRouteImport } from './routes/_app.index'
 import { Route as AppGuideRouteImport } from './routes/_app.guide'
+import { Route as AppSettingsRouteImport } from './routes/_app.settings'
 import { Route as ApiMcpRouteImport } from './routes/api/mcp'
 import { Route as AppProjectsKeyRouteImport } from './routes/_app.projects.$key'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiV1SplatRouteImport } from './routes/api/v1/$'
+import { Route as AppCliAuthorizeIdRouteImport } from './routes/_app.cli.authorize.$id'
 import { Route as AppProjectsKeyIndexRouteImport } from './routes/_app.projects.$key.index'
 import { Route as AppProjectsKeyAgentsRouteImport } from './routes/_app.projects.$key.agents'
 import { Route as AppProjectsKeyAuditRouteImport } from './routes/_app.projects.$key.audit'
@@ -74,6 +76,11 @@ const AppGuideRoute = AppGuideRouteImport.update({
   path: '/guide',
   getParentRoute: () => AppRoute,
 } as any)
+const AppSettingsRoute = AppSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AppRoute,
+} as any)
 const ApiMcpRoute = ApiMcpRouteImport.update({
   id: '/api/mcp',
   path: '/api/mcp',
@@ -93,6 +100,11 @@ const ApiV1SplatRoute = ApiV1SplatRouteImport.update({
   id: '/api/v1/$',
   path: '/api/v1/$',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AppCliAuthorizeIdRoute = AppCliAuthorizeIdRouteImport.update({
+  id: '/cli/authorize/$id',
+  path: '/cli/authorize/$id',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppProjectsKeyIndexRoute = AppProjectsKeyIndexRouteImport.update({
   id: '/',
@@ -235,10 +247,12 @@ export interface FileRoutesByFullPath {
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/guide': typeof AppGuideRoute
+  '/settings': typeof AppSettingsRoute
   '/api/mcp': typeof ApiMcpRoute
   '/projects/$key': typeof AppProjectsKeyRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/v1/$': typeof ApiV1SplatRoute
+  '/cli/authorize/$id': typeof AppCliAuthorizeIdRoute
   '/projects/$key/agents': typeof AppProjectsKeyAgentsRoute
   '/projects/$key/audit': typeof AppProjectsKeyAuditRoute
   '/projects/$key/bugs': typeof AppProjectsKeyBugsRoute
@@ -270,10 +284,12 @@ export interface FileRoutesByTo {
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/guide': typeof AppGuideRoute
+  '/settings': typeof AppSettingsRoute
   '/api/mcp': typeof ApiMcpRoute
   '/': typeof AppIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/v1/$': typeof ApiV1SplatRoute
+  '/cli/authorize/$id': typeof AppCliAuthorizeIdRoute
   '/projects/$key/agents': typeof AppProjectsKeyAgentsRoute
   '/projects/$key/audit': typeof AppProjectsKeyAuditRoute
   '/projects/$key/bugs': typeof AppProjectsKeyBugsRoute
@@ -306,11 +322,13 @@ export interface FileRoutesById {
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
   '/_app/guide': typeof AppGuideRoute
+  '/_app/settings': typeof AppSettingsRoute
   '/api/mcp': typeof ApiMcpRoute
   '/_app/': typeof AppIndexRoute
   '/_app/projects/$key': typeof AppProjectsKeyRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/v1/$': typeof ApiV1SplatRoute
+  '/_app/cli/authorize/$id': typeof AppCliAuthorizeIdRoute
   '/_app/projects/$key/agents': typeof AppProjectsKeyAgentsRoute
   '/_app/projects/$key/audit': typeof AppProjectsKeyAuditRoute
   '/_app/projects/$key/bugs': typeof AppProjectsKeyBugsRoute
@@ -345,10 +363,12 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/sign-up'
     | '/guide'
+    | '/settings'
     | '/api/mcp'
     | '/projects/$key'
     | '/api/auth/$'
     | '/api/v1/$'
+    | '/cli/authorize/$id'
     | '/projects/$key/agents'
     | '/projects/$key/audit'
     | '/projects/$key/bugs'
@@ -380,10 +400,12 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/sign-up'
     | '/guide'
+    | '/settings'
     | '/api/mcp'
     | '/'
     | '/api/auth/$'
     | '/api/v1/$'
+    | '/cli/authorize/$id'
     | '/projects/$key/agents'
     | '/projects/$key/audit'
     | '/projects/$key/bugs'
@@ -415,11 +437,13 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/sign-up'
     | '/_app/guide'
+    | '/_app/settings'
     | '/api/mcp'
     | '/_app/'
     | '/_app/projects/$key'
     | '/api/auth/$'
     | '/api/v1/$'
+    | '/_app/cli/authorize/$id'
     | '/_app/projects/$key/agents'
     | '/_app/projects/$key/audit'
     | '/_app/projects/$key/bugs'
@@ -505,6 +529,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppGuideRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/settings': {
+      id: '/_app/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AppSettingsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/api/mcp': {
       id: '/api/mcp'
       path: '/api/mcp'
@@ -532,6 +563,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/v1/$'
       preLoaderRoute: typeof ApiV1SplatRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_app/cli/authorize/$id': {
+      id: '/_app/cli/authorize/$id'
+      path: '/cli/authorize/$id'
+      fullPath: '/cli/authorize/$id'
+      preLoaderRoute: typeof AppCliAuthorizeIdRouteImport
+      parentRoute: typeof AppRoute
     }
     '/_app/projects/$key/': {
       id: '/_app/projects/$key/'
@@ -780,14 +818,18 @@ const AppProjectsKeyRouteWithChildren = AppProjectsKeyRoute._addFileChildren(
 
 interface AppRouteChildren {
   AppGuideRoute: typeof AppGuideRoute
+  AppSettingsRoute: typeof AppSettingsRoute
   AppIndexRoute: typeof AppIndexRoute
   AppProjectsKeyRoute: typeof AppProjectsKeyRouteWithChildren
+  AppCliAuthorizeIdRoute: typeof AppCliAuthorizeIdRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppGuideRoute: AppGuideRoute,
+  AppSettingsRoute: AppSettingsRoute,
   AppIndexRoute: AppIndexRoute,
   AppProjectsKeyRoute: AppProjectsKeyRouteWithChildren,
+  AppCliAuthorizeIdRoute: AppCliAuthorizeIdRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

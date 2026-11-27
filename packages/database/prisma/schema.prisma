@@ -88,6 +88,7 @@ model Workspace {
   memberships Membership[]
   projects    Project[]
   tokens      ApiToken[]
+  cliLogins   CliLogin[]
 }
 
 model Membership {
@@ -103,6 +104,30 @@ model Membership {
 }
 
 /// API, CLI, CI and MCP tokens. Only the SHA-256 hash is stored; the prefix identifies it in lists.
+enum CliLoginStatus {
+  pending
+  approved
+  denied
+  used
+}
+
+/// A `lastro login` waiting for a person to authorize it in the browser. The CLI keeps the secret it polls
+/// with; only its hash is stored, and the token is made when the CLI collects it, so no plain token is kept.
+model CliLogin {
+  id           String         @id @default(uuid(7)) @db.Uuid
+  code         String
+  secretHash   String
+  host         String
+  status       CliLoginStatus @default(pending)
+  workspaceId  String?        @db.Uuid
+  workspace    Workspace?     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  approvedById String?
+  expiresAt    DateTime
+  createdAt    DateTime       @default(now())
+
+  @@index([expiresAt])
+}
+
 model ApiToken {
   id          String    @id @default(uuid(7)) @db.Uuid
   workspaceId String    @db.Uuid

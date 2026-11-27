@@ -3,7 +3,7 @@ kind: text
 title: Lastro PRD (pt-BR original)
 from: dev
 received_at: 2026-11-25T14:30:00.000Z
-hash: sha256:52c7adbffcae75a83d0584c0cc5f717b0372f265a07fa1ed8a7df8a046cf44e0
+hash: sha256:87021582b280f8eff5baf4a36c2beb47c6c980d952976a8e8608414b13f3b6e9
 final: false
 machine_transcript: false
 path: docs/pt-BR/prd/

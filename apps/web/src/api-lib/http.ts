@@ -2,7 +2,7 @@ import { LastroError, tokensService, type VerifiedToken } from "@lastro/core";
 import { redactSecrets } from "@lastro/shared";
 import { ZodError } from "zod";
 
-const STATUS: Record<string, number> = { NOT_FOUND: 404, VALIDATION: 422, CONFLICT: 409, HUMAN_ONLY: 403, FORBIDDEN: 403, INVALID_TRANSITION: 409, BLOCKED: 409 };
+const STATUS: Record<string, number> = { NOT_FOUND: 404, VALIDATION: 422, CONFLICT: 409, HUMAN_ONLY: 403, FORBIDDEN: 403, INVALID_TRANSITION: 409, BLOCKED: 409, RATE_LIMITED: 429 };
 
 export const json = (body: unknown, status = 200) => Response.json(body, { status });
 

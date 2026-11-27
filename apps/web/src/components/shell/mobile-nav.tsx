@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { CircleHelp, Menu } from "lucide-react";
+import { CircleHelp, Menu, SlidersHorizontal } from "lucide-react";
 import { useState } from "react";
 import { Logo } from "@/components/logo";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -34,7 +34,10 @@ export function MobileNav({ projectKey }: { projectKey: string | null }) {
                   ))}
                 </div>
               ))}
-            <Link to={(projectKey ? `/projects/${projectKey}/guide` : "/guide") as never} className="mt-3 flex h-11 items-center gap-3 rounded-md border-t px-3 pt-px text-[15px] hover:bg-accent">
+            <Link to="/settings" className="mt-3 flex h-11 items-center gap-3 rounded-md border-t px-3 pt-px text-[15px] hover:bg-accent">
+              <SlidersHorizontal className="size-[18px] text-muted-foreground" /> {t("nav.workspaceSettings")}
+            </Link>
+            <Link to={(projectKey ? `/projects/${projectKey}/guide` : "/guide") as never} className="flex h-11 items-center gap-3 rounded-md px-3 text-[15px] hover:bg-accent">
               <CircleHelp className="size-[18px] text-muted-foreground" /> {t("nav.guide")}
             </Link>
           </nav>

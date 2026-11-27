@@ -3,7 +3,7 @@ import { BASE_URL, signIn } from "./helpers";
 
 test.skip(({ isMobile }) => isMobile, "runs once, on desktop");
 
-test("a person creates an agent token, sees it once with the commands that connect the repository, and revokes it in a dialog", async ({ page }) => {
+test("a project's own token is made in its settings, shown once with the commands that connect the repository, and revoked in a dialog", async ({ page }) => {
   await signIn(page);
   await page.goto("/projects/e2e-demo/settings");
   await page.waitForLoadState("networkidle");
@@ -26,14 +26,14 @@ test("a person creates an agent token, sees it once with the commands that conne
   await page.screenshot({ path: ".lastro/.out/screens/settings-tokens.png", fullPage: true });
 });
 
-test("an empty project starts with connecting the repository, which opens the access tokens", async ({ page }) => {
+test("an empty project starts with connecting the repository, which opens the workspace tokens with the login command", async ({ page }) => {
   await signIn(page);
   await page.goto("/projects/billing-demo");
   await page.waitForLoadState("networkidle");
   const first = page.getByRole("link", { name: /Connect the repository/ });
   await expect(first).toBeVisible();
   await first.click();
-  await expect(page).toHaveURL(/\/projects\/billing-demo\/settings\?tab=tokens$/);
+  await expect(page).toHaveURL(/\/settings\?tab=tokens$/);
   await expect(page.getByRole("tab", { name: "Access tokens" })).toHaveAttribute("aria-selected", "true");
-  await expect(page.getByText(/Claude Code, the CLI and CI use an agent token/).first()).toBeVisible();
+  await expect(page.getByText(`lastro login --url ${BASE_URL}`)).toBeVisible();
 });

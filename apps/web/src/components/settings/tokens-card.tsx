@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 import { Copy, KeyRound, Plus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -14,21 +15,25 @@ import { useAction } from "@/hooks/use-action";
 import { formatDateTime } from "@/lib/format";
 import { useI18n } from "@/lib/i18n";
 
-function NewToken({ projectKey, onCreated }: { projectKey: string; onCreated: (token: string) => void }) {
+/** A project's tokens work only there; without a project, the workspace's tokens work in every project. */
+interface Scope {
+  projectKey?: string;
+}
+
+function NewToken({ projectKey, onCreated }: Scope & { onCreated: (token: string) => void }) {
   const { t } = useI18n();
   const { run } = useAction(projectKey);
   const [name, setName] = useState("");
   const [kind, setKind] = useState<"person" | "agent">("agent");
-  const [projectOnly, setProjectOnly] = useState(true);
   return (
     <FormDialog
       trigger={<Button size="sm"><Plus /> {t("tokens.new")}</Button>}
       title={t("tokens.new")}
-      description={t("tokens.lead")}
+      description={t(projectKey ? "tokens.lead.project" : "tokens.lead.workspace")}
       submitLabel={t("common.save")}
       disabled={!name}
       onSubmit={async () => {
-        const created = await run(() => createToken({ data: { key: projectKey, name, kind, projectOnly } }));
+        const created = await run(() => createToken({ data: { key: projectKey, name, kind } }));
         if (created) onCreated(created.token);
         return created;
       }}
@@ -40,16 +45,16 @@ function NewToken({ projectKey, onCreated }: { projectKey: string; onCreated: (t
           <option value="person">{t("tokens.option.person")}</option>
         </Select>
       </label>
-      <label className="flex items-center gap-2 text-[13px]"><input type="checkbox" checked={projectOnly} onChange={(e) => setProjectOnly(e.target.checked)} className="size-4" />{t("tokens.projectOnly")}</label>
+      <p className="text-[12.5px] leading-relaxed text-muted-foreground">{t("tokens.kinds")}</p>
     </FormDialog>
   );
 }
 
 /** What to run with a token just created: the login, then the link of the repository to this project. */
-function FreshToken({ token, projectKey }: { token: string; projectKey: string }) {
+function FreshToken({ token, projectKey }: Scope & { token: string }) {
   const { t } = useI18n();
   const origin = typeof window === "undefined" ? "" : window.location.origin;
-  const commands = `lastro login --url ${origin} --token ${token}\nlastro init ${projectKey}`;
+  const commands = [`lastro login --url ${origin} --token ${token}`, ...(projectKey ? [`lastro init ${projectKey}`] : [])].join("\n");
   const copy = (text: string) => void navigator.clipboard.writeText(text).then(() => toast.success(t("tokens.copied")));
   return (
     <div className="rounded-md border border-warning/30 bg-warning/10 p-3" role="status">
@@ -71,12 +76,13 @@ function FreshToken({ token, projectKey }: { token: string; projectKey: string }
   );
 }
 
-export function TokensCard({ projectKey }: { projectKey: string }) {
+export function TokensCard({ projectKey }: Scope) {
   const { t, lang } = useI18n();
   const { run } = useAction(projectKey);
-  const tokens = useQuery({ queryKey: ["project", projectKey, "tokens"], queryFn: () => listTokens({ data: { key: projectKey } }) });
+  const tokens = useQuery({ queryKey: projectKey ? ["project", projectKey, "tokens"] : ["workspace", "tokens"], queryFn: () => listTokens({ data: { key: projectKey } }) });
   const [fresh, setFresh] = useState<string | null>(null);
-  const mcpUrl = typeof window === "undefined" ? "/api/mcp" : `${window.location.origin}/api/mcp?project=${projectKey}`;
+  const origin = typeof window === "undefined" ? "" : window.location.origin;
+  const mcpUrl = `${origin}/api/mcp${projectKey ? `?project=${projectKey}` : ""}`;
   return (
     <Card>
       <CardHeader>
@@ -84,7 +90,20 @@ export function TokensCard({ projectKey }: { projectKey: string }) {
         <NewToken projectKey={projectKey} onCreated={setFresh} />
       </CardHeader>
       <div className="grid gap-3 border-b px-5 py-4">
-        <p className="text-[13px] text-muted-foreground">{t("tokens.lead")}</p>
+        <p className="text-[13px] leading-relaxed text-muted-foreground">
+          {t(projectKey ? "tokens.lead.project" : "tokens.lead.workspace")}
+          {projectKey && (
+            <>
+              {" "}
+              <Link to="/settings" className="font-medium text-primary hover:underline">{t("nav.workspaceSettings")}</Link>.
+            </>
+          )}
+        </p>
+        {!projectKey && (
+          <p className="text-[12.5px]">
+            {t("tokens.login")}: <code className="rounded bg-muted px-1.5 py-0.5 font-mono">lastro login --url {origin}</code>
+          </p>
+        )}
         <p className="text-[12.5px]">{t("tokens.mcp")}: <code className="rounded bg-muted px-1.5 py-0.5 font-mono">{mcpUrl}</code></p>
         {fresh && <FreshToken token={fresh} projectKey={projectKey} />}
       </div>
@@ -97,7 +116,7 @@ export function TokensCard({ projectKey }: { projectKey: string }) {
               <KeyRound className="size-4 text-muted-foreground" />
               <div className="min-w-0 flex-1">
                 <p className="text-[13px] font-medium">{tk.name}</p>
-                <p className="font-mono text-[11.5px] text-muted-foreground">{tk.prefix}… · {tk.project?.key ?? "workspace"}</p>
+                <p className="font-mono text-[11.5px] text-muted-foreground">{tk.prefix}… · {tk.project?.key ?? t("tokens.everyProject")}</p>
               </div>
               <Badge tone={tk.scopes.includes("person") ? "primary" : "info"}>{tk.scopes.includes("person") ? t("tokens.kind.person") : t("tokens.kind.agent")}</Badge>
               <span className="text-[12px] text-muted-foreground">{t("tokens.lastUsed")}: {tk.lastUsedAt ? formatDateTime(tk.lastUsedAt, lang) : t("tokens.never")}</span>

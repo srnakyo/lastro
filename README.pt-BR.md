@@ -85,14 +85,14 @@ cp .env.example .env      # defina LASTRO_URL, BETTER_AUTH_SECRET e POSTGRES_PAS
 docker compose -f docker/compose.prod.yml --env-file .env up -d
 ```
 
-Abra o `LASTRO_URL`, crie sua conta e o workspace, depois um projeto. Crie os tokens em **Configurações › Tokens de acesso**: token de pessoa para a CLI e o CI, token de agente para o MCP.
+Abra o `LASTRO_URL`, crie sua conta e o workspace, depois um projeto (**Projetos › Novo projeto**).
 
 **2. CLI** no seu repositório:
 
 ```bash
 npm install -g @nakyo/lastro
-lastro login --url https://lastro.exemplo.com --token <token>
-lastro init meu-app           # ou: lastro link meu-app
+lastro login --url https://lastro.exemplo.com   # abre o navegador: você autoriza esta máquina, uma vez
+lastro init meu-app           # liga esta pasta ao projeto
 lastro intake "pedido v4.docx"
 lastro pending
 lastro verify REQ-K7Q2M
@@ -108,9 +108,19 @@ lastro install-hooks          # o pre-push do git roda lastro gate
 /plugin install lastro@lastro
 ```
 
-Faça o login da CLI com um token de **agente** na máquina onde o Claude Code roda. O plugin traz os hooks, o servidor MCP `lastro` e as skills `/lastro:intake`, `/lastro:spec`, `/lastro:build`, `/lastro:report` e `/lastro:triage`. Outros agentes se conectam pelo `lastro mcp` (stdio) ou pelo `/api/mcp` em HTTP com token Bearer.
+O plugin usa o `lastro login` da máquina. Ele traz os hooks, o servidor MCP `lastro` e as skills `/lastro:intake`, `/lastro:spec`, `/lastro:build`, `/lastro:report` e `/lastro:triage`. Outros agentes se conectam pelo `lastro mcp` (stdio) ou pelo `/api/mcp` em HTTP com token Bearer.
 
 **4. CI e revisão:** a [GitHub Action](packages/adapters/github-action) roda `lastro verify` e `lastro gate`, com resumo no job. Os [modelos do Claude Ship](packages/adapters/claude-ship) trazem um `REVIEW.md` para o Claude Code Review e uma política do Claude Approvals com o classificador `lastro_scope`.
+
+### Como a CLI se conecta
+
+**Um login por máquina.** O `lastro login` abre o painel no navegador, mostra um código para você comparar com o do terminal e pede para você **Autorizar**. A máquina recebe um token de agente que vale para todos os projetos do workspace, guardado em `~/.config/lastro/credentials.json`, fora de qualquer repositório. Cada repositório diz qual é o seu projeto (`server.project` no `.lastro/lastro.yml`, gravado pelo `lastro init`), então o mesmo login vale em todos os repositórios e nada é trocado entre eles.
+
+**Por que token, mesmo no localhost.** O token diz ao Lastro quem está chamando: você, no painel, ou o agente, pela CLI e pelo Claude Code. O token do agente registra requisitos, roda testes e manda resultados; o Lastro recusa a ele o que é de pessoa (aprovar, aceitar, destravar, responder), que você faz no painel. É isso que impede o agente de aprovar o próprio trabalho, no localhost como num servidor.
+
+**Projeto é coisa de pessoa.** Crie no painel; o `lastro init <chave>` liga uma pasta a ele.
+
+**Token à mão** é para o que não tem navegador. Em **Configurações gerais › Tokens de acesso**: um token para todos os projetos, para o CI (`LASTRO_URL` e `LASTRO_TOKEN` como segredos) ou para o `lastro login --token` num servidor. Nas **Configurações › Tokens de acesso** de um projeto: um token que vale só nele; a CLI guarda esse token para o projeto e usa na pasta dele. Token de pessoa age como você no terminal, só para rodar lá os comandos de pessoa. Revogue qualquer token nos mesmos lugares.
 
 ## Desenvolvimento
 

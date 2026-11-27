@@ -7,7 +7,7 @@ export const auditQuery = (key: string, filter: { action?: string; actorType?: "
 export const agentsQuery = (key: string) => queryOptions({ queryKey: ["project", key, "agents"], queryFn: () => listAgentSessions({ data: { key } }) });
 export const timelineQuery = (key: string) => queryOptions({ queryKey: ["project", key, "timeline"], queryFn: () => getTimeline({ data: { key } }) });
 export const configQuery = (key: string) => queryOptions({ queryKey: ["project", key, "config"], queryFn: () => getConfig({ data: { key } }) });
-export const membersQuery = (key: string) => queryOptions({ queryKey: ["project", key, "members"], queryFn: () => listMembers({ data: { key } }) });
+export const membersQuery = queryOptions({ queryKey: ["workspace", "members"], queryFn: () => listMembers() });
 export const glossaryQuery = (key: string) => queryOptions({ queryKey: ["project", key, "glossary"], queryFn: () => getGlossary({ data: { key } }) });
 
 export type AgentSession = Awaited<ReturnType<typeof listAgentSessions>>[number];

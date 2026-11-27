@@ -2,7 +2,7 @@ import { activityTimeline, agentEventsService, auditService, membersService, pro
 import { projectConfigSchema } from "@lastro/shared";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireProject } from "./context.server";
+import { requireProject, requireWorkspace } from "./context.server";
 
 const keySchema = z.object({ key: z.string() });
 const role = z.enum(["owner", "admin", "member"]);
@@ -34,22 +34,21 @@ export const saveConfig = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-export const listMembers = createServerFn({ method: "GET" })
-  .validator((d: unknown) => keySchema.parse(d))
-  .handler(async ({ data }) => membersService.list((await requireProject(data.key)).workspace.id));
+/** Members belong to the workspace, not to a project: these work on the active workspace. */
+export const listMembers = createServerFn({ method: "GET" }).handler(async () => membersService.list((await requireWorkspace()).workspace.id));
 
 export const addMember = createServerFn({ method: "POST" })
-  .validator((d: unknown) => keySchema.extend({ email: z.string().email(), role }).parse(d))
+  .validator((d: unknown) => z.object({ email: z.string().email(), role }).parse(d))
   .handler(async ({ data }) => {
-    const { workspace, actor } = await requireProject(data.key);
+    const { workspace, actor } = await requireWorkspace();
     await membersService.add(workspace.id, actor, data.email, data.role);
     return { ok: true };
   });
 
 export const changeMember = createServerFn({ method: "POST" })
-  .validator((d: unknown) => keySchema.extend({ id: z.string(), role: role.nullable() }).parse(d))
+  .validator((d: unknown) => z.object({ id: z.string(), role: role.nullable() }).parse(d))
   .handler(async ({ data }) => {
-    const { workspace, actor } = await requireProject(data.key);
+    const { workspace, actor } = await requireWorkspace();
     if (data.role) await membersService.setRole(workspace.id, actor, data.id, data.role);
     else await membersService.remove(workspace.id, actor, data.id);
     return { ok: true };

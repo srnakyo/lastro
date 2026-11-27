@@ -3,9 +3,10 @@ import { projectRoutes } from "./handlers/projects";
 import { agentRoutes } from "./handlers/agent";
 import { docsRoutes } from "./handlers/docs";
 import { humanRoutes } from "./handlers/human";
+import { cliLoginRoutes } from "./handlers/cli-login";
 import { runRoutes } from "./handlers/runs";
 import { intakeRoutes, specRoutes } from "./handlers/spec";
-import { ApiRouter } from "./router";
+import { ApiRouter, type PublicContext } from "./router";
 
 export const apiRouter = new ApiRouter();
 projectRoutes(apiRouter);
@@ -16,11 +17,17 @@ docsRoutes(apiRouter);
 agentRoutes(apiRouter);
 humanRoutes(apiRouter);
 
+/** The only routes without a token: a CLI asking to be authorized, then collecting its token. */
+export const publicRouter = new ApiRouter<PublicContext>();
+cliLoginRoutes(publicRouter);
+
 /** Entry for /api/v1/*: token, route, JSON. */
 export async function handleApi(request: Request): Promise<Response> {
   try {
     const url = new URL(request.url);
     const path = url.pathname.replace(/^\/api\/v1/, "") || "/";
+    const open = publicRouter.match(request.method, path);
+    if (open) return json(await open.handler({ params: open.params, query: url.searchParams, request }));
     const route = apiRouter.match(request.method, path);
     if (!route) return json({ error: `no route for ${request.method} ${path}`, code: "NOT_FOUND" }, 404);
     const token = await authenticate(request);

@@ -6,6 +6,7 @@ export const GUIDE_SECTIONS: { id: string; title: MessageKey }[] = [
   { id: "path", title: "guide.path.title" },
   { id: "proofs", title: "guide.proofs.title" },
   { id: "roles", title: "guide.roles.title" },
+  { id: "connect", title: "guide.connect.title" },
   { id: "terms", title: "guide.terms.title" },
   { id: "map", title: "guide.map.title" },
 ];

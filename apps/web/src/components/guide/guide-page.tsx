@@ -3,6 +3,7 @@ import { Card } from "@/components/ui/card";
 import { useI18n, type MessageKey } from "@/lib/i18n";
 import type { Mover } from "@/lib/lifecycle";
 import { cn } from "@/lib/utils";
+import { GuideConnect } from "./guide-connect";
 import { GuideMap } from "./guide-map";
 import { GuidePath } from "./guide-path";
 import { GuideProofs } from "./guide-proofs";
@@ -78,6 +79,7 @@ export function GuidePage({ projectKey }: { projectKey?: string }) {
         <GuidePath />
         <GuideProofs />
         <GuideRoles />
+        <GuideConnect projectKey={projectKey} />
         <GuideTerms />
         <GuideMap projectKey={projectKey} />
       </div>

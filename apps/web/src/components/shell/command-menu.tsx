@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { FolderKanban, Search } from "lucide-react";
+import { FolderKanban, Search, SlidersHorizontal } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -58,6 +58,11 @@ export function CommandMenu({ projectKey }: { projectKey: string | null }) {
                   ))}
                 </CommandGroup>
               )}
+              <CommandGroup heading={t("command.workspace")}>
+                <CommandItem onSelect={() => go("/settings")}>
+                  <SlidersHorizontal className="text-muted-foreground" /> {t("nav.workspaceSettings")}
+                </CommandItem>
+              </CommandGroup>
               <CommandGroup heading={t("command.projects")}>
                 {(projects.data ?? []).map((p) => (
                   <CommandItem key={p.key} value={`${p.name} ${p.key}`} onSelect={() => go(`/projects/${p.key}`)}>

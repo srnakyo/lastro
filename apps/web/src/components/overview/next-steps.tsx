@@ -28,6 +28,8 @@ interface Step {
   search?: Record<string, string>;
   /** Shown last, tagged optional: it does not hold the work. */
   optional?: boolean;
+  /** A page outside the project, like the workspace settings. */
+  absolute?: boolean;
 }
 
 /** What waits, in the order it should be done: a person's steps first, since the agent waits on them. */
@@ -50,7 +52,7 @@ function stepsOf(o: NextStepsData): Step[] {
 }
 
 const START: Step[] = [
-  { who: "you", label: "start.connect", to: "/settings", search: { tab: "tokens" } },
+  { who: "you", label: "start.connect", to: "/settings", search: { tab: "tokens" }, absolute: true },
   { who: "you", label: "start.source", to: "/sources" },
   { who: "agent", label: "start.intake", to: "/requirements" },
   { who: "agent", label: "start.approve", to: "/requirements" },
@@ -73,7 +75,7 @@ function StepRow({ step, base }: { step: Step; base: string }) {
   const { t } = useI18n();
   return (
     <li>
-      <Link to={`${base}${step.to}` as never} search={step.search as never} className="group flex items-center gap-3 px-5 py-2.5 transition-colors hover:bg-accent/60">
+      <Link to={(step.absolute ? step.to : `${base}${step.to}`) as never} search={step.search as never} className="group flex items-center gap-3 px-5 py-2.5 transition-colors hover:bg-accent/60">
         <WhoChip who={step.who} />
         <span className="flex-1 text-[13.5px]">
           {t(step.label)}

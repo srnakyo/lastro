@@ -26,6 +26,15 @@ export async function activeWorkspace(userId: string) {
   return { workspaces, workspace: workspaces.find((w) => w.slug === slug) ?? workspaces[0] ?? null };
 }
 
+/** The active workspace of the signed-in person: what is the workspace's, not one project's (members, tokens). */
+export async function requireWorkspace() {
+  const { user, actor } = await requireUser();
+  const { workspace } = await activeWorkspace(user.id);
+  if (!workspace) throw new Error("NO_WORKSPACE");
+  await workspacesService.requireMember(workspace.id, user.id);
+  return { user, actor, workspace };
+}
+
 /**
  * A project by key, in the active workspace or, when it is not there, in another workspace the person
  * belongs to. Projects of workspaces they do not belong to are not found.

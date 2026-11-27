@@ -5,7 +5,8 @@ export type LastroErrorCode =
   | "HUMAN_ONLY"
   | "INVALID_TRANSITION"
   | "BLOCKED"
-  | "FORBIDDEN";
+  | "FORBIDDEN"
+  | "RATE_LIMITED";
 
 /** Domain error with a stable code that the API maps to an HTTP status. */
 export class LastroError extends Error {
