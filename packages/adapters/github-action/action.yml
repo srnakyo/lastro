@@ -37,7 +37,7 @@ runs:
       env:
         LASTRO_URL: ${{ inputs.server-url }}
         LASTRO_TOKEN: ${{ inputs.token }}
-        LASTRO_CLI: lastro@${{ inputs.version }}
+        LASTRO_CLI: @nakyo/lastro@${{ inputs.version }}
       run: npx -y "$LASTRO_CLI" verify || true
     - name: Gate
       id: gate
@@ -46,7 +46,7 @@ runs:
       env:
         LASTRO_URL: ${{ inputs.server-url }}
         LASTRO_TOKEN: ${{ inputs.token }}
-        LASTRO_CLI: lastro@${{ inputs.version }}
+        LASTRO_CLI: @nakyo/lastro@${{ inputs.version }}
       run: |
         set +e
         npx -y "$LASTRO_CLI" gate --markdown > "$RUNNER_TEMP/lastro-gate.md"

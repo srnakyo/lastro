@@ -5,7 +5,7 @@ The command line of [Lastro](https://github.com/srnakyo/lastro): requirements wi
 The CLI talks to your Lastro server with a token. It never touches the database.
 
 ```sh
-npm install -g lastro
+npm install -g @nakyo/lastro
 lastro login --url https://lastro.example.com --token <token>
 lastro init my-project            # or: lastro link my-project
 ```

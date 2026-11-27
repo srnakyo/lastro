@@ -14,7 +14,7 @@ It also starts the `lastro` MCP server (`lastro mcp`) and adds the skills `/last
 ## Install
 
 ```sh
-npm install -g lastro                       # the hooks and the MCP server call the lastro CLI
+npm install -g @nakyo/lastro                       # the hooks and the MCP server call the lastro CLI
 lastro login --url https://lastro.example.com --token <agent token>
 ```
 

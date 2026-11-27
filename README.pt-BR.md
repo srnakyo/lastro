@@ -90,7 +90,7 @@ Abra o `LASTRO_URL`, crie sua conta e o workspace, depois um projeto. Crie os to
 **2. CLI** no seu repositório:
 
 ```bash
-npm install -g lastro
+npm install -g @nakyo/lastro
 lastro login --url https://lastro.exemplo.com --token <token>
 lastro init meu-app           # ou: lastro link meu-app
 lastro intake "pedido v4.docx"
