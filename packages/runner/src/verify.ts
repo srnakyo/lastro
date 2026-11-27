@@ -2,7 +2,7 @@ import { existsSync, readFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { needsTestQuality, type ProjectConfig } from "@lastro/shared";
 import { runCommand } from "./exec";
-import { commitInfo, fileHashes, treeHash } from "./git";
+import { commitInfo, fileHashes, fileLines, treeHash } from "./git";
 import { mergeResults, parseJunit, type TestCaseResult } from "./junit";
 import { planStages } from "./plan";
 import { qualityStage, readCoverage } from "./quality";
@@ -46,6 +46,8 @@ export interface RunReport {
   stages: StageRun[];
   trees: Record<string, string>;
   testFiles: Record<string, string>;
+  /** Line fingerprints of the test files: a sealed file that only grew keeps its seal. */
+  testFileLines: Record<string, string[]>;
 }
 
 function readReport(cwd: string, path: string | undefined, parse: (text: string) => unknown[]): unknown[] {
@@ -110,5 +112,6 @@ export async function verify(cwd: string, config: ProjectConfig, requirements: R
     startedAt: new Date(started).toISOString(), durationMs: Date.now() - started, stages,
     trees: Object.fromEntries(requirements.map((r) => [r.code, treeHash(cwd, boundFiles(r))])),
     testFiles: fileHashes(cwd, requirements.flatMap((r) => r.testFiles ?? [])),
+    testFileLines: fileLines(cwd, requirements.flatMap((r) => r.testFiles ?? [])),
   };
 }

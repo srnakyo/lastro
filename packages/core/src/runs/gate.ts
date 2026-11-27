@@ -1,5 +1,7 @@
 import { needsTestQuality, TEST_QUALITY_STAGE, type ProjectConfig } from "@lastro/shared";
 import type { Tx } from "../db";
+import { auditService } from "../audit/service";
+import { systemActor } from "../scope/actor";
 import { blocksStep, computeBlockers } from "../lifecycle/blockers";
 import { loadGraph, toBlockerInput } from "../requirements/graph";
 import { gateText, NOT_RUN, type GateItem } from "./gate-items";
@@ -28,6 +30,7 @@ interface StageState {
 export interface GateContext {
   commit?: string | null;
   testFiles?: Record<string, string>;
+  testFileLines?: Record<string, string[]>;
 }
 
 function requiredStages(config: ProjectConfig, type: string) {
@@ -86,28 +89,50 @@ async function everPassed(tx: Tx, projectId: string, refs: string[]) {
   return new Set(rows.map((r) => r.test.ref));
 }
 
+/** Whether a sealed file only grew: every sealed line is still there, in the same order. */
+export function onlyGrew(sealed: string[], now: string[]): boolean {
+  let i = 0;
+  for (const line of now) if (i < sealed.length && line === sealed[i]) i += 1;
+  return i === sealed.length;
+}
+
+type Files = { hashes: Record<string, string>; lines: Record<string, string[]> };
+
 /**
- * Rule 4: a locked test's file is sealed once the test has proven itself, on its first pass; a different
- * hash afterwards fails the gate. Until that first pass the agent may still fix its own test, so a seal put
- * on a test that never passed is lifted.
+ * Rule 4: a locked test's file is sealed once the test has proven itself, on its first pass. Afterwards a
+ * changed or removed line fails the gate; a file that only grew (another test added to it) keeps the seal,
+ * renewed. Until that first pass the agent may still fix its own test, so a seal put on a test that never
+ * passed is lifted. A seal from before line fingerprints is renewed once, on a passing run.
  */
-async function lockedTests(tx: Tx, graph: Awaited<ReturnType<typeof loadGraph>>, testFiles: Record<string, string>, latest: Map<string, string>, out: GateItem[]) {
+async function lockedTests(tx: Tx, graph: Awaited<ReturnType<typeof loadGraph>>, files: Files, latest: Map<string, string>, out: GateItem[]) {
   const proven = await everPassed(tx, graph.projectId, graph.criteria.flatMap((c) => (c.lockedHash ? c.tests.map((t) => t.testRef) : [])));
+  const renewed: string[] = [];
   for (const c of graph.criteria) {
     if (!c.lockedHash) continue;
     for (const t of c.tests) {
       const file = t.testRef.split("::")[0] ?? t.testRef;
-      const now = testFiles[file];
-      const seal = (lockedHash: string | null) => tx.criterionTest.updateMany({ where: { criterionId: c.id, testRef: t.testRef }, data: { lockedHash } });
+      const now = files.hashes[file];
+      const lines = files.lines[file];
+      const seal = (lockedHash: string | null, sealedLines: string[] = []) => tx.criterionTest.updateMany({ where: { criterionId: c.id, testRef: t.testRef }, data: { lockedHash, sealedLines } });
       if (!proven.has(t.testRef)) {
         if (t.lockedHash) await seal(null);
         continue;
       }
       if (!now) continue;
+      const passing = latest.get(t.testRef) === "passed";
       if (!t.lockedHash) {
-        if (latest.get(t.testRef) === "passed") await seal(now);
-      } else if (t.lockedHash !== now) out.push({ kind: "locked_changed", file, criterion: c.code });
+        if (passing) await seal(now, lines);
+      } else if (t.lockedHash === now) {
+        if (t.sealedLines.length === 0 && lines) await seal(now, lines);
+      } else if (lines && (t.sealedLines.length ? onlyGrew(t.sealedLines, lines) : passing)) {
+        await seal(now, lines);
+        renewed.push(`${c.code} ${file}`);
+      } else out.push({ kind: "locked_changed", file, criterion: c.code });
     }
+  }
+  if (renewed.length) {
+    const project = await tx.project.findUniqueOrThrow({ where: { id: graph.projectId }, select: { workspaceId: true } });
+    await auditService.record(tx, { workspaceId: project.workspaceId, projectId: graph.projectId, actor: systemActor, action: "test.reseal", entity: "requirement", entityId: graph.code, data: { files: renewed } });
   }
 }
 
@@ -161,7 +186,7 @@ export async function evaluateGate(tx: Tx, config: ProjectConfig, requirementId:
     const status = latest.get(e.ref);
     if ((e.always || status) && status !== "passed") fix.push(e.kind === "regression" ? { kind: "regression", incident: e.code, test: e.ref, status: status ?? NOT_RUN } : { kind: "invariant", invariant: e.code, test: e.ref, status: status ?? NOT_RUN });
   }
-  await lockedTests(tx, graph, ctx.testFiles ?? {}, latest, fix);
+  await lockedTests(tx, graph, { hashes: ctx.testFiles ?? {}, lines: ctx.testFileLines ?? {} }, latest, fix);
   if (config.tests.red_first) {
     // Only tests locked after the rule was turned on must have failed first, and not those of a behavior that
     // already existed (recorded as a decision the person may overturn).

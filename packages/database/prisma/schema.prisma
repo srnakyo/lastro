@@ -397,8 +397,11 @@ model CriterionTest {
   criterion   Criterion @relation(fields: [criterionId], references: [id], onDelete: Cascade)
   /// "file::test name", as it appears in JUnit.
   testRef     String
-  /// Hash of the test body when the criterion was locked.
+  /// Hash of the test file when the test first passed (its seal).
   lockedHash  String?
+  /// A short hash of each line of the sealed file, in order: a file that only grew (new tests added) keeps
+  /// the seal; a changed or removed line breaks it.
+  sealedLines String[]  @default([])
 
   @@unique([criterionId, testRef])
   @@index([projectId])

@@ -1,6 +1,7 @@
 import type { Actor } from "@lastro/shared";
 import { auditService } from "../audit/service";
 import { db, transaction } from "../db";
+import { notFound } from "../errors";
 
 const normalize = (file: string) => file.replace(/\\/g, "/").replace(/^\.\//, "");
 const ignored = (file: string) => file.startsWith(".lastro/") || file.startsWith(".git/") || file.includes("node_modules/");
@@ -30,6 +31,23 @@ export async function addTouches(projectId: string, actor: Actor, files: string[
       await auditService.record(tx, { workspaceId: project.workspaceId, projectId, actor, action: "requirement.touches", entity: "requirement", entityId: updated.join(","), data: { files: clean } });
     }
     return { updated };
+  });
+}
+
+/**
+ * Replaces the touched files of one requirement, when they got files of other requirements: its coverage is
+ * measured on these. The audit keeps what was removed and added, for the person to see.
+ */
+export async function setTouches(projectId: string, actor: Actor, code: string, files: string[]) {
+  const clean = [...new Set(files.map(normalize).filter((f) => f && !ignored(f)))].sort();
+  return transaction(async (tx) => {
+    const requirement = await tx.requirement.findUnique({ where: { projectId_code: { projectId, code } }, select: { id: true, touches: true, project: { select: { workspaceId: true } } } });
+    if (!requirement) throw notFound(`requirement ${code}`);
+    const removed = requirement.touches.filter((f) => !clean.includes(f));
+    const added = clean.filter((f) => !requirement.touches.includes(f));
+    await tx.requirement.update({ where: { id: requirement.id }, data: { touches: clean } });
+    await auditService.record(tx, { workspaceId: requirement.project.workspaceId, projectId, actor, action: "requirement.touches.set", entity: "requirement", entityId: code, data: { removed, added } });
+    return { touches: clean, removed, added };
   });
 }
 

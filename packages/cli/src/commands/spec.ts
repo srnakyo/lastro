@@ -1,8 +1,7 @@
 import type { Command } from "commander";
 import { LastroClient } from "../api/client";
 import { findRoot, linkedProject } from "../config/project";
-import { HookState } from "../hooks/state";
-import { json, table } from "../output";
+import { table } from "../output";
 
 interface Pending {
   code: string;
@@ -38,42 +37,6 @@ export function specCommands(program: Command) {
         table(list.map((i) => [`  ${i.code}`, i.status, i.title, i.details.length ? `${reason === "missing_fields" ? "missing" : reason === "open_question" ? "questions" : "holding"}: ${i.details.join(", ")}` : ""]));
       }
     });
-
-  const req = program.command("req").description("requirements");
-  req.command("list").option("--status <status>").action(async (o: { status?: string }) => {
-    const items = await new LastroClient().get<{ code: string; status: string; type: string; title: string }[]>(`/projects/${project()}/requirements${o.status ? `?status=${o.status}` : ""}`);
-    table(items.map((r) => [r.code, r.status, r.type, r.title]));
-  });
-  req.command("show").argument("<code>").action(async (code: string) => json(await new LastroClient().get(`/projects/${project()}/requirements/${code}`)));
-  req.command("start").argument("<code>").option("--branch <branch>").action(async (code: string, o: { branch?: string }) => {
-    await new LastroClient().post(`/projects/${project()}/requirements/${code}/start`, { branch: o.branch ?? null });
-    new HookState(findRoot()).setCurrent(code);
-    console.log(`${code} is building; the files you change now count for it`);
-  });
-  req
-    .command("work")
-    .description("say which requirement you are working on: the files you change count for it")
-    .argument("<code>")
-    .action(async (code: string) => {
-      const r = await new LastroClient().get<{ status: string }>(`/projects/${project()}/requirements/${code}`);
-      if (!["building", "reopened"].includes(r.status)) throw new Error(`${code} is ${r.status}: start it with lastro req start ${code}`);
-      new HookState(findRoot()).setCurrent(code);
-      console.log(`working on ${code}: the files you change now count for it`);
-    });
-  req
-    .command("existing")
-    .description("say a criterion's tests check a behavior that already existed, so they cannot fail first")
-    .argument("<code>")
-    .argument("<criterion>")
-    .requiredOption("--reason <text>", "why: where the behavior already was")
-    .action(async (code: string, criterion: string, o: { reason: string }) => {
-      const res = await new LastroClient().post<{ decision: string }>(`/projects/${project()}/requirements/${code}/criteria/${criterion}/preexisting`, { reason: o.reason });
-      console.log(`${code} ${criterion}: recorded as an existing behavior in ${res.decision}; its tests are not asked to fail first`);
-    });
-  req.command("link-test").argument("<code>").argument("<criterion>").argument("<test>", "file::test name").action(async (code: string, criterion: string, test: string) => {
-    await new LastroClient().post(`/projects/${project()}/requirements/${code}/tests`, { criterion, test });
-    console.log(`${test} linked to ${code} ${criterion}`);
-  });
 
   program
     .command("ask")

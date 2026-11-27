@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "bun:test";
-import { addTouches, decisionsService, lifecycleService, lockedTestFiles, requirementsService, runsService, sourcesService, criteriaService } from "@lastro/core";
+import { addTouches, decisionsService, lifecycleService, lockedTestFiles, requirementsService, runsService, setTouches, sourcesService, criteriaService } from "@lastro/core";
 import { database } from "@lastro/database";
 import { projectConfigSchema, type RunReportInput } from "@lastro/shared";
 import { resetDatabase } from "../helpers/db";
@@ -28,9 +28,9 @@ async function building(code?: string) {
   return { ...ctx, code: req.code };
 }
 
-const run = (code: string, status: "passed" | "failed", fileHash: string): RunReportInput => ({
+const run = (code: string, status: "passed" | "failed", fileHash: string, lines: string[] = ["l1", "l2"]): RunReportInput => ({
   trigger: "agent", commit: "abc1234", branch: "main", dirty: false, environment: {}, startedAt: new Date().toISOString(), durationMs: 10,
-  trees: { [code]: "sha256:tree" }, testFiles: { "tests/discount.test.ts": fileHash },
+  trees: { [code]: "sha256:tree" }, testFiles: { "tests/discount.test.ts": fileHash }, testFileLines: { "tests/discount.test.ts": lines },
   stages: [{ requirement: code, stage: "unit", condition: null, command: "bun test", exitCode: status === "passed" ? 0 : 1, status, durationMs: 5, output: "", findings: [], results: [{ ref: TEST_REF, file: "tests/discount.test.ts", name: "60 seats", status, durationMs: 1, message: null }] }],
 });
 
@@ -54,6 +54,27 @@ describe("the agent fixes its own test until the test proves itself", () => {
     expect(await lockedTestFiles(project.id)).toHaveLength(1);
     await runsService.record(project.id, agent, run(code, "failed", "sha256:wrong"));
     expect(await lockedTestFiles(project.id)).toEqual([]);
+  });
+});
+
+describe("a sealed test file that gets another test", () => {
+  it("keeps the seal when the file only grew, renewed and audited, and breaks it when a line changed", async () => {
+    const { project, code } = await building();
+    await runsService.record(project.id, agent, run(code, "passed", "sha256:one", ["import", "test 60 seats", "expect 8%"]));
+    const grown = await runsService.record(project.id, agent, run(code, "passed", "sha256:two", ["import", "test 60 seats", "expect 8%", "test of another requirement"]));
+    expect(grown.gates[code]?.agentCanFix.join(" ")).not.toContain("locked test changed");
+    expect(await database().auditEvent.count({ where: { projectId: project.id, action: "test.reseal" } })).toBe(1);
+    const weakened = await runsService.gate(project.id, { [code]: "sha256:tree" }, { testFiles: { "tests/discount.test.ts": "sha256:three" }, testFileLines: { "tests/discount.test.ts": ["import", "test 60 seats", "expect anything", "test of another requirement"] } });
+    expect(weakened.requirements[code]?.agentCanFix.join(" ")).toContain("locked test changed: tests/discount.test.ts (AC-1)");
+  });
+
+  it("renews once a seal from before line fingerprints, on a passing run", async () => {
+    const { project, code } = await building();
+    await runsService.record(project.id, agent, run(code, "passed", "sha256:one"));
+    await database().criterionTest.updateMany({ where: { testRef: TEST_REF }, data: { sealedLines: [] } });
+    const renewed = await runsService.record(project.id, agent, run(code, "passed", "sha256:grown", ["l1", "l2", "l3"]));
+    expect(renewed.gates[code]?.agentCanFix.join(" ")).not.toContain("locked test changed");
+    expect((await database().criterionTest.findFirstOrThrow({ where: { testRef: TEST_REF } })).sealedLines).toEqual(["l1", "l2", "l3"]);
   });
 });
 
@@ -91,5 +112,14 @@ describe("the files of the requirement being worked on", () => {
     expect(await touches("REQ-BBBB2")).toEqual([]);
     await addTouches(first.project.id, agent, ["backend/shared.go"], "main", null);
     expect(await touches("REQ-BBBB2")).toEqual(["backend/shared.go"]);
+  });
+
+  it("can be replaced when a list got files of other requirements, and the audit keeps what changed", async () => {
+    const { project, code } = await building();
+    await addTouches(project.id, agent, ["backend/limite.go", "backend/wabas.go", "front/app.ts"], "main", null);
+    const res = await setTouches(project.id, agent, code, ["backend/limite.go", "./backend/limite_extra.go"]);
+    expect(res).toEqual({ touches: ["backend/limite.go", "backend/limite_extra.go"], removed: ["backend/wabas.go", "front/app.ts"], added: ["backend/limite_extra.go"] });
+    const audit = await database().auditEvent.findFirstOrThrow({ where: { projectId: project.id, action: "requirement.touches.set" } });
+    expect(audit).toMatchObject({ actorType: "agent", data: { removed: ["backend/wabas.go", "front/app.ts"], added: ["backend/limite_extra.go"] } });
   });
 });

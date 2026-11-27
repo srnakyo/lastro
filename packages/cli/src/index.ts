@@ -10,14 +10,16 @@ import { hookCommands } from "./commands/hook";
 import { humanCommands } from "./commands/human";
 import { intakeCommand } from "./commands/intake";
 import { mcpCommand } from "./commands/mcp";
+import { requirementCommands } from "./commands/requirement";
 import { specCommands } from "./commands/spec";
 import { verifyCommands } from "./commands/verify";
 
-const program = new Command("lastro").description("Requirements, evidence and quality gates for AI-driven development.").version("0.3.2");
+const program = new Command("lastro").description("Requirements, evidence and quality gates for AI-driven development.").version("0.3.3");
 
 accountCommands(program);
 snapshotCommands(program);
 specCommands(program);
+requirementCommands(program);
 verifyCommands(program);
 mcpCommand(program);
 intakeCommand(program);

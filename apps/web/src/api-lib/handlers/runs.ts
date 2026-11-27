@@ -8,6 +8,7 @@ const gateSchema = z.object({
   trees: z.record(z.string(), z.string()).default({}),
   commit: z.string().nullable().optional(),
   testFiles: z.record(z.string(), z.string()).default({}),
+  testFileLines: z.record(z.string(), z.array(z.string())).default({}),
 });
 
 export function runRoutes(router: ApiRouter) {
@@ -18,7 +19,7 @@ export function runRoutes(router: ApiRouter) {
     .on("GET", "/projects/:key/runs/:id", async ({ token, params }) => runsService.get((await tokenProject(token, params.key ?? "")).id, params.id ?? ""))
     .on("POST", "/projects/:key/gate", async ({ token, params, request }) => {
       const input = gateSchema.parse(await body(request));
-      return runsService.gate((await tokenProject(token, params.key ?? "")).id, input.trees, { commit: input.commit, testFiles: input.testFiles });
+      return runsService.gate((await tokenProject(token, params.key ?? "")).id, input.trees, { commit: input.commit, testFiles: input.testFiles, testFileLines: input.testFileLines });
     })
     .on("POST", "/projects/:key/requirements/:code/sign", async ({ token, params, request }) =>
       runsService.signManual((await tokenProject(token, params.key ?? "")).id, token.actor, params.code ?? "", (await body(request)) as never))

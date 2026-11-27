@@ -42,3 +42,13 @@ describe("the files a turn changed", () => {
     expect(second.seen["gone.go"]).toBe("deleted");
   });
 });
+
+describe("a sealed test file", () => {
+  it("only grew when every sealed line is still there, in order", async () => {
+    const { onlyGrew } = await import("../../packages/core/src/runs/gate");
+    expect(onlyGrew(["a", "b", "c"], ["a", "x", "b", "c", "y"])).toBe(true);
+    expect(onlyGrew(["a", "b", "c"], ["a", "c", "b"])).toBe(false);
+    expect(onlyGrew(["a", "b", "c"], ["a", "b"])).toBe(false);
+    expect(onlyGrew([], ["a"])).toBe(true);
+  });
+});

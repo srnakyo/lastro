@@ -1,5 +1,5 @@
 import { projectConfigSchema } from "@lastro/shared";
-import { boundFiles, commitInfo, fileHashes, treeHash, verify, type RunReport } from "@lastro/runner";
+import { boundFiles, commitInfo, fileHashes, fileLines, treeHash, verify, type RunReport } from "@lastro/runner";
 import type { LastroClient } from "../api/client";
 
 interface Plan {
@@ -38,8 +38,9 @@ export async function runVerify(client: LastroClient, root: string, project: str
 export async function runGate(client: LastroClient, root: string, project: string) {
   const plan = await client.get<Plan>(`/projects/${project}/verify-plan`);
   const trees = Object.fromEntries(plan.requirements.map((r) => [r.code, treeHash(root, boundFiles(r))]));
-  const testFiles = fileHashes(root, plan.requirements.flatMap((r) => r.testFiles));
-  return client.post<{ pass: boolean; requirements: Record<string, GateState> }>(`/projects/${project}/gate`, { trees, commit: commitInfo(root).commit, testFiles });
+  const files = plan.requirements.flatMap((r) => r.testFiles);
+  const body = { trees, commit: commitInfo(root).commit, testFiles: fileHashes(root, files), testFileLines: fileLines(root, files) };
+  return client.post<{ pass: boolean; requirements: Record<string, GateState> }>(`/projects/${project}/gate`, body);
 }
 
 export const triggerFromEnv = (): RunReport["trigger"] => (process.env.CI ? "ci" : "dev");

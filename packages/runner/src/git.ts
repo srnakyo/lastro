@@ -36,6 +36,18 @@ export function treeHash(cwd: string, touches: string[]): string {
   return `sha256:${hash.digest("hex")}`;
 }
 
+/** A short hash of each line of each file, in order, to tell a file that only grew from one that changed. */
+export function fileLines(cwd: string, files: string[]): Record<string, string[]> {
+  return Object.fromEntries(
+    [...new Set(files)].sort().flatMap((file) => {
+      const path = join(cwd, file);
+      if (!existsSync(path)) return [];
+      const lines = readFileSync(path, "utf8").split(/\r?\n/).map((line) => createHash("sha256").update(line.trimEnd()).digest("hex").slice(0, 12));
+      return [[file, lines]];
+    }),
+  );
+}
+
 /** SHA-256 of each file as it is on disk now ("missing" when it is not there). */
 export function fileHashes(cwd: string, files: string[]): Record<string, string> {
   return Object.fromEntries(

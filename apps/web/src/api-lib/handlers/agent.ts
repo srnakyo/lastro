@@ -1,4 +1,4 @@
-import { addTouches, agentEventsService, lockedTestFiles } from "@lastro/core";
+import { addTouches, agentEventsService, lockedTestFiles, setTouches } from "@lastro/core";
 import { z } from "zod";
 import { body } from "../http";
 import type { ApiRouter } from "../router";
@@ -13,6 +13,10 @@ export function agentRoutes(router: ApiRouter) {
     .on("POST", "/projects/:key/touches", async ({ token, params, request }) => {
       const input = touchesSchema.parse(await body(request));
       return addTouches((await tokenProject(token, params.key ?? "")).id, token.actor, input.files, input.branch, input.requirement);
+    })
+    .on("POST", "/projects/:key/requirements/:code/touches", async ({ token, params, request }) => {
+      const input = z.object({ files: z.array(z.string()).max(2000) }).parse(await body(request));
+      return setTouches((await tokenProject(token, params.key ?? "")).id, token.actor, params.code ?? "", input.files);
     })
     .on("GET", "/projects/:key/locked-tests", async ({ token, params }) => lockedTestFiles((await tokenProject(token, params.key ?? "")).id))
     .on("POST", "/projects/:key/agent-events", async ({ token, params, request }) => {
