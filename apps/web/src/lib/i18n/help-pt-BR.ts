@@ -66,6 +66,7 @@ export const helpPtBR: Record<keyof typeof helpEn, string> = {
   "verdict.done.body": "O Lastro verificou os {total} requisitos no código atual.",
   "verdict.guide": "Como o Lastro funciona",
 
+  "start.connect": "Conectar o repositório: token de agente em Configurações › Tokens de acesso, depois lastro login e lastro init",
   "start.source": "Enviar o material de quem pediu: documento, conversa, áudio ou vídeo",
   "start.intake": "Pedir ao agente que registre os requisitos a partir dele (/lastro:intake no Claude Code)",
   "start.approve": "O agente escreve e liga os testes: o Lastro aprova o que estiver pronto",

@@ -65,6 +65,7 @@ export const helpEn = {
   "verdict.done.body": "Lastro verified all {total} requirements on the current code.",
   "verdict.guide": "How Lastro works",
 
+  "start.connect": "Connect the repository: an agent token in Settings › Access tokens, then lastro login and lastro init",
   "start.source": "Send the requester's material: brief, chat, audio or video",
   "start.intake": "Ask the agent to register the requirements from it (/lastro:intake in Claude Code)",
   "start.approve": "The agent writes and links the tests: Lastro approves what is ready",

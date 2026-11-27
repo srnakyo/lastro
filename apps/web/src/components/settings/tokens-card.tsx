@@ -36,12 +36,38 @@ function NewToken({ projectKey, onCreated }: { projectKey: string; onCreated: (t
       <label className="grid gap-1.5 text-[13px] font-medium">{t("tokens.name")}<Input value={name} onChange={(e) => setName(e.target.value)} /></label>
       <label className="grid gap-1.5 text-[13px] font-medium">{t("tokens.kind")}
         <Select value={kind} onChange={(e) => setKind(e.target.value as typeof kind)}>
-          <option value="agent">{t("tokens.kind.agent")}</option>
-          <option value="person">{t("tokens.kind.person")}</option>
+          <option value="agent">{t("tokens.option.agent")}</option>
+          <option value="person">{t("tokens.option.person")}</option>
         </Select>
       </label>
       <label className="flex items-center gap-2 text-[13px]"><input type="checkbox" checked={projectOnly} onChange={(e) => setProjectOnly(e.target.checked)} className="size-4" />{t("tokens.projectOnly")}</label>
     </FormDialog>
+  );
+}
+
+/** What to run with a token just created: the login, then the link of the repository to this project. */
+function FreshToken({ token, projectKey }: { token: string; projectKey: string }) {
+  const { t } = useI18n();
+  const origin = typeof window === "undefined" ? "" : window.location.origin;
+  const commands = `lastro login --url ${origin} --token ${token}\nlastro init ${projectKey}`;
+  const copy = (text: string) => void navigator.clipboard.writeText(text).then(() => toast.success(t("tokens.copied")));
+  return (
+    <div className="rounded-md border border-warning/30 bg-warning/10 p-3" role="status">
+      <p className="text-[12.5px] font-medium">{t("tokens.created")}</p>
+      <div className="mt-2 flex items-center gap-2">
+        <code className="min-w-0 flex-1 truncate rounded bg-card px-2 py-1 font-mono text-[12px]">{token}</code>
+        <Button size="sm" variant="outline" onClick={() => copy(token)}>
+          <Copy /> {t("tokens.copy")}
+        </Button>
+      </div>
+      <p className="mt-3 text-[12.5px]">{t("tokens.next")}</p>
+      <div className="mt-2 flex items-start gap-2">
+        <pre aria-label={t("tokens.next")} className="min-w-0 flex-1 overflow-x-auto rounded bg-card px-2 py-1.5 font-mono text-[12px] leading-relaxed">{commands}</pre>
+        <Button size="sm" variant="outline" onClick={() => copy(commands)}>
+          <Copy /> {t("tokens.copy")}
+        </Button>
+      </div>
+    </div>
   );
 }
 
@@ -60,17 +86,7 @@ export function TokensCard({ projectKey }: { projectKey: string }) {
       <div className="grid gap-3 border-b px-5 py-4">
         <p className="text-[13px] text-muted-foreground">{t("tokens.lead")}</p>
         <p className="text-[12.5px]">{t("tokens.mcp")}: <code className="rounded bg-muted px-1.5 py-0.5 font-mono">{mcpUrl}</code></p>
-        {fresh && (
-          <div className="rounded-md border border-warning/30 bg-warning/10 p-3" role="status">
-            <p className="text-[12.5px] font-medium">{t("tokens.created")}</p>
-            <div className="mt-2 flex items-center gap-2">
-              <code className="min-w-0 flex-1 truncate rounded bg-card px-2 py-1 font-mono text-[12px]">{fresh}</code>
-              <Button size="sm" variant="outline" onClick={() => void navigator.clipboard.writeText(fresh).then(() => toast.success(t("tokens.copied")))}>
-                <Copy /> {t("tokens.copy")}
-              </Button>
-            </div>
-          </div>
-        )}
+        {fresh && <FreshToken token={fresh} projectKey={projectKey} />}
       </div>
       {(tokens.data ?? []).length === 0 ? (
         <p className="px-5 py-4 text-[13px] text-muted-foreground">{t("tokens.empty")}</p>

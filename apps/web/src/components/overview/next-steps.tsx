@@ -50,6 +50,7 @@ function stepsOf(o: NextStepsData): Step[] {
 }
 
 const START: Step[] = [
+  { who: "you", label: "start.connect", to: "/settings", search: { tab: "tokens" } },
   { who: "you", label: "start.source", to: "/sources" },
   { who: "agent", label: "start.intake", to: "/requirements" },
   { who: "agent", label: "start.approve", to: "/requirements" },
