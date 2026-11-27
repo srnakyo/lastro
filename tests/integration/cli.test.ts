@@ -114,8 +114,9 @@ describe("lastro pending and lastro gate", () => {
     const reqFile = join(repo, ".lastro", "requirements", `${req.code}.yml`);
     writeFileSync(reqFile, readFileSync(reqFile, "utf8").replace("8% at 60 seats", "7% at 60 seats"));
     const red = await run(["gate", "--ci"], "", { LASTRO_URL: "" });
+    // The output first: when this fails, it says what the gate saw.
+    expect(`${red.stdout}\n${red.stderr}`).toContain("locked criterion changed: AC-1");
     expect(red.code).toBe(1);
-    expect(red.stdout).toContain("locked criterion changed: AC-1");
   });
 });
 
