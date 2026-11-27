@@ -95,7 +95,7 @@ describe("agent limits and hooks endpoints", () => {
     expect(((await res.json()) as { refused: { kind: string }[] }).refused.map((r) => r.kind)).toEqual(["config"]);
   });
 
-  it("records touched files on requirements in building and lists the locked test files", async () => {
+  it("records touched files on requirements in building, and lists a locked test file once its test passed", async () => {
     const { agent, person, source, project, actor } = await setup();
     const input = { ...discountRequirement(source.code), criteria: [{ code: "AC-1", text: "8% at 60 seats", tests: ["tests/discount.test.ts::60 seats"] }] };
     const { code } = (await (await call(person, "POST", "/projects/billing/requirements", input)).json()) as { code: string };
@@ -104,6 +104,14 @@ describe("agent limits and hooks endpoints", () => {
     await call(agent, "POST", `/projects/billing/requirements/${code}/start`, { branch: "feat/discount" });
     const touched = (await (await call(agent, "POST", "/projects/billing/touches", { files: ["./src/discount.ts", ".lastro/x.yml"], branch: "feat/discount" })).json()) as { updated: string[] };
     expect(touched.updated).toEqual([code]);
+    // Before its first pass the agent may still fix its own test.
+    expect(await (await call(agent, "GET", "/projects/billing/locked-tests")).json()).toEqual([]);
+    const passed = {
+      trigger: "agent", commit: "abc1234", branch: "feat/discount", dirty: false, environment: {}, startedAt: new Date().toISOString(), durationMs: 10,
+      trees: { [code]: "sha256:a" }, testFiles: { "tests/discount.test.ts": "sha256:one" },
+      stages: [{ requirement: code, stage: "unit", condition: null, command: "bun test", exitCode: 0, status: "passed", durationMs: 5, output: "", findings: [], results: [{ ref: "tests/discount.test.ts::60 seats", file: "tests/discount.test.ts", name: "60 seats", status: "passed", durationMs: 1, message: null }] }],
+    };
+    expect((await call(agent, "POST", "/projects/billing/runs", passed)).status).toBe(200);
     const locked = await (await call(agent, "GET", "/projects/billing/locked-tests")).json();
     expect(locked).toEqual([{ file: "tests/discount.test.ts", criteria: [`${code} AC-1`] }]);
   });

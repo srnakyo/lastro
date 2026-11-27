@@ -32,6 +32,26 @@ export class HookState {
     if (!existsSync(f)) writeFileSync(f, JSON.stringify({ commit }));
   }
 
+  /** The requirement being worked on (`lastro req start` or `lastro req work`): changed files count for it. */
+  current(): string | null {
+    const f = this.file("current.json");
+    return existsSync(f) ? (JSON.parse(readFileSync(f, "utf8")) as { code: string }).code : null;
+  }
+
+  setCurrent(code: string) {
+    writeFileSync(this.file("current.json"), JSON.stringify({ code, at: new Date().toISOString() }));
+  }
+
+  /** The content fingerprint of each file the session already counted, so each turn counts only what it changed. */
+  seen(session: string): Record<string, string> {
+    const f = this.file(`seen-${session.replace(/[^\w-]/g, "")}.json`);
+    return existsSync(f) ? (JSON.parse(readFileSync(f, "utf8")) as Record<string, string>) : {};
+  }
+
+  setSeen(session: string, seen: Record<string, string>) {
+    writeFileSync(this.file(`seen-${session.replace(/[^\w-]/g, "")}.json`), JSON.stringify(seen));
+  }
+
   /** A pause recorded in the last 30 minutes, consumed once. */
   takePause(): string | null {
     const f = this.file("pause.json");

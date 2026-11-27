@@ -380,6 +380,9 @@ model Criterion {
   lockedHash    String?
   lockedAt      DateTime?
   lockedById    String?
+  /// The decision (DEC-…) where the agent said these tests check a behavior that already existed: the gate then
+  /// does not ask them to have failed first. A person overturning that decision clears it.
+  preexistingDecision String?
   tests         CriterionTest[]
 
   @@unique([requirementId, code])

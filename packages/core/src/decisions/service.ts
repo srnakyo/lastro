@@ -86,6 +86,8 @@ export const decisionsService = {
       const scope = await loadScope(tx, projectId);
       const decision = await findDecision(tx, projectId, code);
       await tx.decision.update({ where: { id: decision.id }, data: { status: "overturned" } });
+      // A behavior the person says did not exist yet: its tests must have failed first again.
+      await tx.criterion.updateMany({ where: { preexistingDecision: code, requirement: { projectId } }, data: { preexistingDecision: null } });
       for (const { requirement } of decision.requirements) {
         const target = { id: requirement.id, code: requirement.code, status: requirement.status };
         if (target.status === "verified") await recordTransition(tx, scope, target, "building", systemActor, "decision overturned");

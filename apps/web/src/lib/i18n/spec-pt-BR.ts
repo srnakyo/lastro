@@ -46,6 +46,8 @@ export const specPtBR: Record<keyof typeof specEn, string> = {
   "req.detail.criteria": "Critérios de aceite",
   "req.detail.noTest": "Nenhum teste ligado",
   "req.detail.locked": "Travado",
+  "req.detail.preexisting": "Comportamento que já existia · {decision}",
+  "req.detail.preexisting.help": "O agente disse que estes testes conferem um comportamento que já existia, então não precisam falhar antes. Derrube a decisão para voltar a exigir.",
   "req.detail.related": "Decisões e perguntas",
   "req.detail.noRelated": "Nenhuma decisão ou pergunta sobre ele.",
   "req.detail.history": "Histórico",

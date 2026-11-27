@@ -40,7 +40,7 @@ export function BlockersList({ blockers }: { blockers: Blocker[] }) {
   );
 }
 
-export function CriteriaList({ criteria }: { criteria: { code: string; text: string; lockedHash: string | null; tests: { testRef: string }[] }[] }) {
+export function CriteriaList({ criteria }: { criteria: { code: string; text: string; lockedHash: string | null; preexistingDecision?: string | null; tests: { testRef: string }[] }[] }) {
   const { t } = useI18n();
   return (
     <Card>
@@ -59,6 +59,11 @@ export function CriteriaList({ criteria }: { criteria: { code: string; text: str
                 {c.lockedHash && (
                   <Badge tone="primary">
                     <Lock className="size-3" /> {t("req.detail.locked")}
+                  </Badge>
+                )}
+                {c.preexistingDecision && (
+                  <Badge tone="warning" title={t("req.detail.preexisting.help")}>
+                    {t("req.detail.preexisting", { decision: c.preexistingDecision })}
                   </Badge>
                 )}
                 {c.tests.length === 0 ? <Badge tone="danger">{t("req.detail.noTest")}</Badge> : c.tests.map((test) => <code key={test.testRef} className="rounded bg-muted px-1.5 py-0.5 font-mono text-[11.5px]">{test.testRef}</code>)}

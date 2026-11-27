@@ -44,6 +44,8 @@ export const specEn = {
   "req.detail.criteria": "Acceptance criteria",
   "req.detail.noTest": "No test linked",
   "req.detail.locked": "Locked",
+  "req.detail.preexisting": "Existing behavior · {decision}",
+  "req.detail.preexisting.help": "The agent said these tests check a behavior that already existed, so they are not asked to fail first. Overturn the decision to ask it again.",
   "req.detail.related": "Decisions and questions",
   "req.detail.noRelated": "No decision or question about it.",
   "req.detail.history": "History",

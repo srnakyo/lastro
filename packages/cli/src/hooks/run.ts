@@ -3,7 +3,7 @@ import { LastroClient } from "../api/client";
 import { readCredentials } from "../config/credentials";
 import { findRoot, linkedProject, tryRoot } from "../config/project";
 import { runGate } from "../commands/verify-run";
-import { changedFiles, headCommit } from "./changed-files";
+import { changedFiles, changedThisTurn, headCommit } from "./changed-files";
 import { contextText, type AgentContext } from "./context-text";
 import { guardToolCall, touchedFile, type ToolCall } from "./guard";
 import { HookState } from "./state";
@@ -69,14 +69,18 @@ async function preToolUse(c: Ctx, input: HookInput) {
 async function postToolUse(c: Ctx, input: HookInput) {
   const file = touchedFile({ tool_name: input.tool_name ?? "", tool_input: input.tool_input ?? {}, cwd: input.cwd ?? process.cwd() }, c.root);
   if (!file) return;
-  await c.client.post(`/projects/${c.project}/touches`, { files: [file], branch: commitInfo(c.root).branch });
+  await c.client.post(`/projects/${c.project}/touches`, { files: [file], branch: commitInfo(c.root).branch, requirement: new HookState(c.root).current() });
   await event(c, "file.edit", { file, tool: input.tool_name });
 }
 
-/** Every file changed in the session, shell edits included: the edit hooks only see Edit and Write. */
+/**
+ * The files this turn changed, shell edits included (the edit hooks only see Edit and Write), for the
+ * requirement being worked on: `lastro req start` or `lastro req work` says which one.
+ */
 async function recordChangedFiles(c: Ctx, state: HookState) {
-  const files = changedFiles(c.root, state.base(c.session));
-  if (files.length) await c.client.post(`/projects/${c.project}/touches`, { files, branch: commitInfo(c.root).branch });
+  const { changed, seen } = changedThisTurn(c.root, changedFiles(c.root, state.base(c.session)), state.seen(c.session));
+  if (changed.length) await c.client.post(`/projects/${c.project}/touches`, { files: changed, branch: commitInfo(c.root).branch, requirement: state.current() });
+  state.setSeen(c.session, seen);
 }
 
 async function stop(c: Ctx) {

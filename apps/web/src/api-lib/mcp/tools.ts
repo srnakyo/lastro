@@ -42,6 +42,7 @@ const HANDLERS: Handlers = {
     await criteriaService.linkTest(s.projectId, s.token.actor, a.code, a.criterion, a.test);
     return { ok: true };
   },
+  lastro_mark_preexisting: async (a, s) => criteriaService.markPreexisting(s.projectId, s.token.actor, a.code, a.criterion, a.reason),
   lastro_start: async (a, s) => {
     await lifecycleService.start(s.projectId, s.token.actor, a.code, a.branch ?? null);
     return { ok: true };

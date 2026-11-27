@@ -14,6 +14,8 @@ export interface RequirementToVerify {
   touches: string[];
   /** Files of the tests linked to its criteria. */
   testFiles?: string[];
+  /** The tests linked to its criteria ("file::test name"): a shared suite is judged for it by these. */
+  tests?: string[];
   /** The requester's examples, checked against the test files when the project asks. */
   examples?: { given: string; expect: string }[];
 }
@@ -73,6 +75,18 @@ async function runStage(cwd: string, config: ProjectConfig, name: string, condit
   return { stage: name, condition, command: command.run, exitCode: run.exitCode, status: failed ? "failed" : "passed", durationMs: run.durationMs, output: run.output, results, findings, env: conditionEnv };
 }
 
+/**
+ * A suite several requirements share, judged for one of them: by its own linked tests when the suite reports
+ * test results, so a failing test of another requirement does not fail it; by the exit code otherwise (a lint,
+ * a build, a suite that wrote no report). Error findings fail it either way.
+ */
+export function stageFor(stage: Omit<StageRun, "requirement">, req: RequirementToVerify): Omit<StageRun, "requirement"> {
+  if (stage.results.length === 0 || !req.tests?.length) return stage;
+  const own = new Set(req.tests);
+  const failed = stage.results.some((r) => own.has(r.ref) && (r.status === "failed" || r.status === "error")) || stage.findings.some((f) => f.level === "error");
+  return { ...stage, status: failed ? "failed" : "passed" };
+}
+
 /** The files a requirement's evidence is bound to: what it touches, or its test files until it touches anything. */
 export const boundFiles = (r: RequirementToVerify) => (r.touches.length ? r.touches : (r.testFiles ?? []));
 
@@ -85,7 +99,7 @@ export async function verify(cwd: string, config: ProjectConfig, requirements: R
     for (const planned of planStages(config, req.type).filter((s) => s.kind === "command")) {
       const key = `${planned.stage}|${planned.condition ?? ""}`;
       if (!done.has(key)) done.set(key, await runStage(cwd, config, planned.stage, planned.condition));
-      stages.push({ requirement: req.code, ...(done.get(key) as Omit<StageRun, "requirement">) });
+      stages.push({ requirement: req.code, ...stageFor(done.get(key) as Omit<StageRun, "requirement">, req) });
     }
   }
   // After the commands, so the coverage report they write is there to read.

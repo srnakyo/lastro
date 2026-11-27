@@ -3,6 +3,7 @@ import { auditService } from "../audit/service";
 import { transaction, type Tx } from "../db";
 import { notFound } from "../errors";
 import { criterionHash } from "../lifecycle/lock";
+import { markPreexisting } from "./preexisting";
 import { recordTransition } from "../lifecycle/record";
 import { reevaluate } from "../requirements/evaluate";
 import { findRequirement } from "../requirements/service";
@@ -16,6 +17,8 @@ async function findCriterion(tx: Tx, requirementId: string, code: string) {
 }
 
 export const criteriaService = {
+  markPreexisting,
+
   /**
    * Links a test ("file::test name") to a criterion. On a locked criterion one more test only makes it stricter:
    * Lastro seals the lock again with it. Changing the text or removing a test still needs a person's unlock.

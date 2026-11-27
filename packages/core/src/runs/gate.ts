@@ -79,16 +79,34 @@ async function latestByRef(tx: Tx, projectId: string, refs: string[], commit?: s
   return latest;
 }
 
-/** Rule 4: a locked test file is sealed on its first run after approval; a different hash afterwards fails the gate. */
-async function lockedTests(tx: Tx, graph: Awaited<ReturnType<typeof loadGraph>>, testFiles: Record<string, string>, out: GateItem[]) {
+/** The tests among these that passed at least once, in any run. */
+async function everPassed(tx: Tx, projectId: string, refs: string[]) {
+  if (refs.length === 0) return new Set<string>();
+  const rows = await tx.testResult.findMany({ where: { status: "passed", test: { projectId, ref: { in: refs } } }, select: { test: { select: { ref: true } } }, distinct: ["testId"] });
+  return new Set(rows.map((r) => r.test.ref));
+}
+
+/**
+ * Rule 4: a locked test's file is sealed once the test has proven itself, on its first pass; a different
+ * hash afterwards fails the gate. Until that first pass the agent may still fix its own test, so a seal put
+ * on a test that never passed is lifted.
+ */
+async function lockedTests(tx: Tx, graph: Awaited<ReturnType<typeof loadGraph>>, testFiles: Record<string, string>, latest: Map<string, string>, out: GateItem[]) {
+  const proven = await everPassed(tx, graph.projectId, graph.criteria.flatMap((c) => (c.lockedHash ? c.tests.map((t) => t.testRef) : [])));
   for (const c of graph.criteria) {
     if (!c.lockedHash) continue;
     for (const t of c.tests) {
       const file = t.testRef.split("::")[0] ?? t.testRef;
       const now = testFiles[file];
+      const seal = (lockedHash: string | null) => tx.criterionTest.updateMany({ where: { criterionId: c.id, testRef: t.testRef }, data: { lockedHash } });
+      if (!proven.has(t.testRef)) {
+        if (t.lockedHash) await seal(null);
+        continue;
+      }
       if (!now) continue;
-      if (!t.lockedHash) await tx.criterionTest.updateMany({ where: { criterionId: c.id, testRef: t.testRef }, data: { lockedHash: now } });
-      else if (t.lockedHash !== now) out.push({ kind: "locked_changed", file, criterion: c.code });
+      if (!t.lockedHash) {
+        if (latest.get(t.testRef) === "passed") await seal(now);
+      } else if (t.lockedHash !== now) out.push({ kind: "locked_changed", file, criterion: c.code });
     }
   }
 }
@@ -143,11 +161,13 @@ export async function evaluateGate(tx: Tx, config: ProjectConfig, requirementId:
     const status = latest.get(e.ref);
     if ((e.always || status) && status !== "passed") fix.push(e.kind === "regression" ? { kind: "regression", incident: e.code, test: e.ref, status: status ?? NOT_RUN } : { kind: "invariant", invariant: e.code, test: e.ref, status: status ?? NOT_RUN });
   }
-  await lockedTests(tx, graph, ctx.testFiles ?? {}, fix);
+  await lockedTests(tx, graph, ctx.testFiles ?? {}, latest, fix);
   if (config.tests.red_first) {
-    // Only tests locked after the rule was turned on must have failed first.
+    // Only tests locked after the rule was turned on must have failed first, and not those of a behavior that
+    // already existed (recorded as a decision the person may overturn).
     const on = config.tests.red_first_since ? new Date(config.tests.red_first_since) : null;
-    const locked = graph.criteria.flatMap((c) => (c.lockedAt && (!on || c.lockedAt >= on) ? c.tests.map((t) => ({ ref: t.testRef, since: c.lockedAt as Date })) : []));
+    const asked = graph.criteria.filter((c) => !c.preexistingDecision && c.lockedAt && (!on || c.lockedAt >= on));
+    const locked = asked.flatMap((c) => c.tests.map((t) => ({ ref: t.testRef, since: c.lockedAt as Date })));
     for (const test of await neverRed(tx, graph.projectId, locked)) fix.push({ kind: "never_red", test });
   }
   const holding = blocksStep(computeBlockers({ ...toBlockerInput(graph), hasEvidence: true }, config), "verified").filter((b) => b.kind !== "criterion_without_test");

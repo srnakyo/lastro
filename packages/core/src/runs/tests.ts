@@ -43,6 +43,7 @@ export async function verifyPlan(projectId: string, code?: string) {
       ...r,
       examples: Array.isArray(examples) ? examples : [],
       testFiles: [...new Set(criteria.flatMap((c) => c.tests.map((t) => t.testRef.split("::")[0] ?? t.testRef)))].sort(),
+      tests: [...new Set(criteria.flatMap((c) => c.tests.map((t) => t.testRef)))].sort(),
     })),
   };
 }

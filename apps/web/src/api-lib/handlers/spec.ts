@@ -33,6 +33,10 @@ export function specRoutes(router: ApiRouter) {
       await criteriaService.linkTest((await tokenProject(token, params.key ?? "")).id, token.actor, params.code ?? "", input.criterion, input.test);
       return { ok: true };
     })
+    .on("POST", "/projects/:key/requirements/:code/criteria/:criterion/preexisting", async ({ token, params, request }) => {
+      const input = z.object({ reason: z.string().min(1) }).parse(await body(request));
+      return criteriaService.markPreexisting((await tokenProject(token, params.key ?? "")).id, token.actor, params.code ?? "", params.criterion ?? "", input.reason);
+    })
     .on("POST", "/projects/:key/decisions", async ({ token, params, request }) =>
       decisionsService.record((await tokenProject(token, params.key ?? "")).id, token.actor, decisionInputSchema.parse(await body(request))))
     .on("POST", "/projects/:key/questions", async ({ token, params, request }) =>
