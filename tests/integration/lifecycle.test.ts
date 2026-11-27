@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "bun:test";
 import { criteriaService, lifecycleService, requirementsService, sourcesService } from "@lastro/core";
+import { criterionHash } from "@lastro/shared";
 import { database } from "@lastro/database";
 import { resetDatabase } from "../helpers/db";
 import { agent, createBriefSource, createProject, discountRequirement } from "../helpers/fixtures";
@@ -32,12 +33,21 @@ describe("approval", () => {
 });
 
 describe("locks", () => {
-  it("refuses linking tests to locked criteria until a person unlocks, which needs a new approval", async () => {
+  it("lets the agent add one more test to a locked criterion, sealed into the lock; unlocking stays a person's and needs a new approval", async () => {
     const { project, actor, source, code } = await specified();
     await sourcesService.markFinal(project.id, actor, source.code);
     await lifecycleService.approve(project.id, actor, code);
     await lifecycleService.start(project.id, agent, code, "feat/discount");
-    await expect(criteriaService.linkTest(project.id, agent, code, "AC-1", "unit/discount.test.ts::60 seats")).rejects.toThrow("locked");
+    const before = await database().criterion.findFirstOrThrow({ where: { code: "AC-1", requirement: { projectId: project.id, code } } });
+    await criteriaService.linkTest(project.id, agent, code, "AC-1", "integration/discount.test.ts::60 seats on the invoice");
+    const after = await database().criterion.findFirstOrThrow({ where: { id: before.id }, include: { tests: true } });
+    expect(after.lockedHash).not.toBe(before.lockedHash);
+    expect(after.lockedHash).toBe(await criterionHash(after.text, after.tests.map((t) => t.testRef)));
+    expect(after.lockedAt?.toISOString()).toBe(before.lockedAt?.toISOString());
+    expect((await requirementsService.get(project.id, code)).status).toBe("building");
+    const audit = await database().auditEvent.findFirstOrThrow({ where: { projectId: project.id, action: "criterion.link_test" }, orderBy: { createdAt: "desc" } });
+    expect(audit.data).toMatchObject({ criterion: "AC-1", resealed: true });
+
     await expect(criteriaService.unlock(project.id, agent, code)).rejects.toThrow("needs a person");
     await criteriaService.unlock(project.id, actor, code);
     await criteriaService.linkTest(project.id, agent, code, "AC-1", "unit/discount.test.ts::60 seats");

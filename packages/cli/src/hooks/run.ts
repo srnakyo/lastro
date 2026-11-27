@@ -3,6 +3,7 @@ import { LastroClient } from "../api/client";
 import { readCredentials } from "../config/credentials";
 import { findRoot, linkedProject, tryRoot } from "../config/project";
 import { runGate } from "../commands/verify-run";
+import { changedFiles, headCommit } from "./changed-files";
 import { contextText, type AgentContext } from "./context-text";
 import { guardToolCall, touchedFile, type ToolCall } from "./guard";
 import { HookState } from "./state";
@@ -49,6 +50,7 @@ const event = (c: Ctx, kind: string, payload: Record<string, unknown> = {}) =>
   c.client.post(`/projects/${c.project}/agent-events`, { agent: "claude-code", session: c.session, kind, payload }).catch(() => undefined);
 
 async function sessionStart(c: Ctx, input: HookInput) {
+  new HookState(c.root).keepBase(c.session, headCommit(c.root));
   const ctx = await c.client.get<AgentContext>(`/projects/${c.project}/context`);
   await event(c, "session.start", { source: input.source ?? "startup" });
   print({ hookSpecificOutput: { hookEventName: "SessionStart", additionalContext: contextText(ctx) } });
@@ -71,8 +73,15 @@ async function postToolUse(c: Ctx, input: HookInput) {
   await event(c, "file.edit", { file, tool: input.tool_name });
 }
 
+/** Every file changed in the session, shell edits included: the edit hooks only see Edit and Write. */
+async function recordChangedFiles(c: Ctx, state: HookState) {
+  const files = changedFiles(c.root, state.base(c.session));
+  if (files.length) await c.client.post(`/projects/${c.project}/touches`, { files, branch: commitInfo(c.root).branch });
+}
+
 async function stop(c: Ctx) {
   const state = new HookState(c.root);
+  await recordChangedFiles(c, state);
   const plan = await c.client.get<{ config: { gate?: { block_agent_stop?: boolean; max_stop_blocks?: number } } }>(`/projects/${c.project}/verify-plan`);
   if (plan.config.gate?.block_agent_stop === false) return;
   const gate = await runGate(c.client, c.root, c.project);
