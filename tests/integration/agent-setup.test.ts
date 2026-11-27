@@ -37,6 +37,31 @@ describe("the agent sets a project up by itself, and only a person loosens it", 
     await projectsService.updateConfig(project.id, { type: "user", id: "someone" }, off);
   });
 
+  it("lets the agent say which test files are at which level and which files coverage cannot measure, and audits each change", async () => {
+    const { project } = await createProject();
+    const initial = projectConfigSchema.parse(project.config);
+    const levels: Record<string, string[]> = { ...initial.tests.levels, unit: ["backend/**/*_test.go", ...(initial.tests.levels.unit ?? [])] };
+    const withGo = { ...initial, tests: { ...initial.tests, levels } };
+    await projectsService.updateConfig(project.id, agent, withGo);
+    const current = withGo;
+    const described = {
+      ...current,
+      tests: {
+        ...current.tests,
+        levels: { ...current.tests.levels, unit: (current.tests.levels.unit ?? []).filter((g) => !g.includes("_test.go")), integration: ["backend/**/*_test.go", ...(current.tests.levels.integration ?? [])] },
+        coverage_exclude: ["backend/cmd/**", "front/**/*.config.*", "scripts/**"],
+      },
+    };
+    await projectsService.updateConfig(project.id, agent, described);
+    const audit = await database().auditEvent.findFirstOrThrow({ where: { projectId: project.id, action: "project.config" }, orderBy: { createdAt: "desc" } });
+    expect(audit.actorType).toBe("agent");
+    const changes = (audit.data as { changes: string[] }).changes;
+    expect(changes).toContain("tests.levels.integration +backend/**/*_test.go");
+    expect(changes).toContain("tests.coverage_exclude +backend/cmd/**");
+    expect(changes).toContain("tests.coverage_exclude +scripts/**");
+    expect(changes).toContain("tests.levels.unit -backend/**/*_test.go");
+  });
+
   it("applies the commands an agent's import brings, and names what it would loosen", async () => {
     const { project } = await createProject();
     const snapshot = await exportSnapshot(project.id);

@@ -35,6 +35,7 @@ export const auditEn = {
   "audit.action.design.contract": "Changed the layout contract",
   "audit.action.docs.build": "Generated the documents",
   "audit.field.to": "to",
+  "audit.field.changes": "changes",
   "audit.field.from": "from",
   "audit.field.reason": "why",
   "audit.field.status": "result",

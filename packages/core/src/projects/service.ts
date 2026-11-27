@@ -4,6 +4,7 @@ import { projectConfigSchema, projectInputSchema, starterProjectConfig, type Act
 import { auditService } from "../audit/service";
 import { db, transaction } from "../db";
 import { LastroError, notFound } from "../errors";
+import { configChanges } from "./config-changes";
 import { loosenings } from "./loosening";
 import { stampTestRules } from "./test-rules";
 
@@ -62,7 +63,7 @@ export const projectsService = {
       if (loose.length) throw new LastroError("HUMAN_ONLY", `only a person can loosen the QA rules: ${loose.join("; ")}`, { loosenings: loose });
       const config = stampTestRules(previous, parsed);
       const project = await tx.project.update({ where: { id: projectId }, data: { config, language: config.language } });
-      await auditService.record(tx, { workspaceId: project.workspaceId, projectId, actor, action: "project.config", entity: "project", entityId: projectId });
+      await auditService.record(tx, { workspaceId: project.workspaceId, projectId, actor, action: "project.config", entity: "project", entityId: projectId, data: { changes: configChanges(previous, config) } });
       const scope = await loadScope(tx, projectId);
       const open = await tx.requirement.findMany({ where: { projectId, status: { in: ["captured", "specified"] } }, select: { id: true } });
       for (const r of open) await reevaluate(tx, scope, r.id);

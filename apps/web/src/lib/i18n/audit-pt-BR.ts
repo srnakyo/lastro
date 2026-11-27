@@ -36,6 +36,7 @@ export const auditPtBR: Record<keyof typeof auditEn, string> = {
   "audit.action.design.contract": "Mudou o contrato de layout",
   "audit.action.docs.build": "Gerou os documentos",
   "audit.field.to": "para",
+  "audit.field.changes": "mudanças",
   "audit.field.from": "de",
   "audit.field.reason": "motivo",
   "audit.field.status": "resultado",

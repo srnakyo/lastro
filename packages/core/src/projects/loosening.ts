@@ -14,10 +14,6 @@ function testRules(prev: ProjectConfig, next: ProjectConfig): string[] {
   if (prev.tests.red_first && !next.tests.red_first) out.push("tests.red_first off");
   if (prev.tests.examples_in_tests && !next.tests.examples_in_tests) out.push("tests.examples_in_tests off");
   if (prev.tests.coverage_report && !next.tests.coverage_report) out.push("tests.coverage_report removed");
-  for (const glob of missing(next.tests.coverage_exclude, prev.tests.coverage_exclude)) out.push(`tests.coverage_exclude adds ${glob}`);
-  for (const [level, globs] of Object.entries(prev.tests.levels)) {
-    for (const glob of missing(globs, next.tests.levels[level] ?? [])) out.push(`tests.levels.${level} drops ${glob}`);
-  }
   return out;
 }
 
@@ -57,7 +53,9 @@ function flowsAndGate(prev: ProjectConfig, next: ProjectConfig): string[] {
 
 /**
  * What a configuration change would loosen. An agent may set up and tighten the QA configuration (commands,
- * conditions, flows, test levels, stricter rules), but only a person may loosen it.
+ * conditions, flows, which test files are at which level, the files coverage cannot measure, stricter rules),
+ * but only a person may loosen it. What describes the repository is the agent's to set: every change is in the
+ * audit, item by item (configChanges).
  */
 export function loosenings(prev: ProjectConfig, next: ProjectConfig): string[] {
   return [...testRules(prev, next), ...types(prev, next), ...flowsAndGate(prev, next)];
