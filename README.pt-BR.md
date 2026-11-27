@@ -55,11 +55,11 @@ flowchart LR
 | | |
 |---|---|
 | ![Um requisito: a citação ao lado da fonte, critérios, fluxo de QA e gate](docs/screenshots/requirement.png) | ![Catálogo de testes com histórico, instáveis e órfãos](docs/screenshots/tests.png) |
-| **Requisitos:** a citação ao lado do trecho da fonte, campos, critérios travados, o fluxo de QA ao vivo e o que ainda trava | **Testes:** todo teste visto numa execução, histórico, instáveis, órfãos e critérios sem teste |
+| **Requisitos:** a citação ao lado do trecho da fonte, campos, critérios travados, testes por nível, o fluxo de QA ao vivo e o que ainda trava | **Testes:** todo teste visto numa execução, histórico, instáveis, órfãos e critérios sem teste |
 | ![Uma execução com as etapas por condição e o teste que falhou](docs/screenshots/run.png) | ![Diagramas: fluxo de QA, rastreabilidade, mapa de módulos e ciclo de vida](docs/screenshots/diagrams.png) |
 | **Execuções:** etapas por condição, resultados dos testes, apontamentos SARIF, saída e comparação com a execução anterior | **Diagramas:** fluxos de QA por tipo, rastreabilidade da fonte ao teste, mapa de módulos e ciclo de vida, gerados dos dados |
 | ![Editor visual dos fluxos de QA](docs/screenshots/flow-editor.png) | ![Sessões de agente com ações recusadas e paradas seguradas](docs/screenshots/agents.png) |
-| **Configurações:** editor visual de fluxos de QA, condições, comandos e gate; tokens de acesso; membros | **Agentes:** o que cada agente fez em cada sessão, ações recusadas e paradas seguradas pelo gate |
+| **Configurações:** modo automático ou com revisão, as regras dos testes (vermelho antes do verde, os números de quem pediu, cobertura), níveis de teste por tipo, editor visual de fluxos de QA, condições, comandos e gate; tokens de acesso; membros | **Agentes:** o que cada agente fez em cada sessão, ações recusadas e paradas seguradas pelo gate |
 
 E mais: uma página Como funciona e ajuda em linguagem simples em cada termo, fontes com versões e trechos ancorados, pacotes, decisões e perguntas, bugs com triagem e cobrança, glossário, invariantes e contrato de layout, auditoria só de inclusão, tema claro e escuro, inglês e português.
 

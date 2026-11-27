@@ -18,7 +18,7 @@ function TestList({ title, refs, tone }: { title: string; refs: string[]; tone: 
 export function RunChanges({ projectKey, run }: { projectKey: string; run: RunDetail }) {
   const { t } = useI18n();
   return (
-    <Card>
+    <Card role="region" aria-label={t("run.changes")}>
       <CardHeader><CardTitle className="min-w-0">{t("run.changes")}</CardTitle></CardHeader>
       {run.comparisons.length === 0 ? (
         <p className="px-5 py-4 text-[13px] text-muted-foreground">{t("run.changes.first")}</p>

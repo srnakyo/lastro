@@ -145,7 +145,9 @@ export async function evaluateGate(tx: Tx, config: ProjectConfig, requirementId:
   }
   await lockedTests(tx, graph, ctx.testFiles ?? {}, fix);
   if (config.tests.red_first) {
-    const locked = graph.criteria.flatMap((c) => (c.lockedAt ? c.tests.map((t) => ({ ref: t.testRef, since: c.lockedAt as Date })) : []));
+    // Only tests locked after the rule was turned on must have failed first.
+    const on = config.tests.red_first_since ? new Date(config.tests.red_first_since) : null;
+    const locked = graph.criteria.flatMap((c) => (c.lockedAt && (!on || c.lockedAt >= on) ? c.tests.map((t) => ({ ref: t.testRef, since: c.lockedAt as Date })) : []));
     for (const test of await neverRed(tx, graph.projectId, locked)) fix.push({ kind: "never_red", test });
   }
   const holding = blocksStep(computeBlockers({ ...toBlockerInput(graph), hasEvidence: true }, config), "verified").filter((b) => b.kind !== "criterion_without_test");

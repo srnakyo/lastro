@@ -55,11 +55,11 @@ flowchart LR
 | | |
 |---|---|
 | ![A requirement: the quote next to its source, criteria, QA flow and gate](docs/screenshots/requirement.png) | ![Test catalog with history, flaky and orphan tests](docs/screenshots/tests.png) |
-| **Requirements:** the quote next to the source passage, fields, locked criteria, the live QA flow and what still holds it back | **Tests:** every test seen in a run, its history, flaky and orphan tests, criteria without a test |
+| **Requirements:** the quote next to the source passage, fields, locked criteria, tests by level, the live QA flow and what still holds it back | **Tests:** every test seen in a run, its history, flaky and orphan tests, criteria without a test |
 | ![A run with its stages per condition and the failing test](docs/screenshots/run.png) | ![Diagrams: QA flow, traceability, module map and lifecycle](docs/screenshots/diagrams.png) |
 | **Runs:** stages per condition, test results, SARIF findings, output and the comparison with the previous run | **Diagrams:** QA flows per type, traceability from source to test, module map and lifecycle, generated from the data |
 | ![Visual editor of the QA flows](docs/screenshots/flow-editor.png) | ![Agent sessions with refused actions and held stops](docs/screenshots/agents.png) |
-| **Settings:** visual editor of QA flows, conditions, commands and gate; access tokens; members | **Agents:** what each agent did in each session, refused actions and stops held by the gate |
+| **Settings:** automatic or review mode, the test rules (red first, the requester's numbers, coverage), test levels per type, visual editor of QA flows, conditions, commands and gate; access tokens; members | **Agents:** what each agent did in each session, refused actions and stops held by the gate |
 
 Also: a How it works page and plain-language help on every term, sources with versions and anchored passages, packages, decisions and questions, bugs with triage and billing, glossary, invariants and layout contract, an append-only audit log, light and dark themes, English and Portuguese.
 

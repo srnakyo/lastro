@@ -29,7 +29,7 @@ export const stable = (value: unknown): string =>
 /** The spec fields of a snapshot requirement, as an update. */
 export function specOf(r: Snapshot["requirements"][number]) {
   const { status: _s, code: _c, touches: _t, decisions: _d, questions: _q, criteria, ...fields } = r;
-  return requirementUpdateSchema.parse({ ...fields, criteria: criteria.map(({ locked: _l, ...c }) => c) });
+  return requirementUpdateSchema.parse({ ...fields, criteria: criteria.map(({ locked: _l, lockedAt: _a, ...c }) => c) });
 }
 
 async function planRequirements(projectId: string, snapshot: Snapshot, plan: ImportPlan) {

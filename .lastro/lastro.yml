@@ -15,8 +15,15 @@ tests:
     integration:
       - tests/integration/**
       - "**/*.integration.*"
-  red_first: false
-  examples_in_tests: false
+  red_first: true
+  red_first_since: 2026-11-27T04:32:52.000Z
+  examples_in_tests: true
+  coverage_report: coverage/lcov.info
+  coverage_exclude:
+    - packages/cli/src/commands/**
+    - packages/cli/src/config/**
+    - packages/cli/src/confirm.ts
+    - packages/database/prisma.config.ts
 approval:
   spec:
     - dev
@@ -34,7 +41,7 @@ commands:
     report:
       sarif: .lastro/.out/eslint.sarif
   unit:
-    run: bun test --preload ./tests/setup/preload.ts tests/unit tests/integration --reporter=junit --reporter-outfile=.lastro/.out/unit.xml
+    run: bun test --preload ./tests/setup/preload.ts tests/unit tests/integration --reporter=junit --reporter-outfile=.lastro/.out/unit.xml --coverage --coverage-reporter=lcov --coverage-dir=coverage
     report:
       junit: .lastro/.out/unit.xml
   typecheck:
@@ -72,7 +79,8 @@ types:
         manual: true
         by: dev
     tests:
-      levels: []
+      levels:
+        - e2e
   format:
     required:
       - examples
@@ -81,7 +89,11 @@ types:
       - unit
       - check: examples
     tests:
-      levels: []
+      levels:
+        - unit
+      coverage:
+        functions: 100
+        lines: 90
   storage:
     required:
       - where
@@ -92,7 +104,11 @@ types:
         conditions:
           - postgres
     tests:
-      levels: []
+      levels:
+        - integration
+      coverage:
+        functions: 100
+        lines: 90
   behavior:
     required:
       - where
@@ -101,7 +117,11 @@ types:
       - typecheck
       - unit
     tests:
-      levels: []
+      levels:
+        - integration
+      coverage:
+        functions: 100
+        lines: 90
 global_flow:
   - typecheck
   - lint

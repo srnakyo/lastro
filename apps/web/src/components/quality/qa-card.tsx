@@ -50,7 +50,7 @@ export function QaCard({ projectKey, code, status }: { projectKey: string; code:
   const active = ACTIVE.includes(status);
   const pendingManual = manualStages(qa).filter((m) => qa.states[`${m.stage}|${m.condition ?? ""}`] !== "passed");
   return (
-    <Card>
+    <Card role="region" aria-label={t("qa.title")}>
       <CardHeader>
         <div>
           <CardTitle>{t("qa.title")}</CardTitle>

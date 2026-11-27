@@ -21,7 +21,13 @@ acceptance:
     tests:
       - tests/integration/decisions.test.ts::records agent assumptions as proposed and reopens what was built on an overturned one
     locked: sha256:a441149a632568b4819126c99b1c9239b12863ca86e37587a643bf27dc160082
+    locked_at: 2026-11-27T04:23:24.885Z
 decisions: []
 questions: []
 depends_on: []
-touches: []
+touches:
+  - packages/cli/src/commands/human.ts
+  - packages/cli/src/commands/spec.ts
+  - packages/core/src/decisions/service.ts
+  - packages/core/src/lifecycle/blockers.ts
+  - packages/core/src/scope/actor.ts

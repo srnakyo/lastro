@@ -17,10 +17,15 @@ acceptance:
   - id: AC-1
     text: Given a requirement whose e2e stage failed only under dark-theme and whose preview is unsigned, when its QA flow diagram renders, then e2e · dark-theme is red, the other e2e nodes are green and preview is orange.
     tests:
+      - tests/e2e/diagrams.spec.ts::the QA flow of a requirement colors each stage by its latest result (REQ-R6Y9A)
       - tests/unit/diagrams.test.ts::colors each stage and condition by its latest result (REQ-R6Y9A)
-    locked: sha256:beb10b2e5056a460b38b42ab8777e9132c17d7d5b72adfe164cba30fbedcbab4
+    locked: sha256:95c0017d3ae67f71fedbc884e2764245e5c967d0167de485869201145d2db648
+    locked_at: 2026-11-27T04:23:38.367Z
 decisions:
   - DEC-YAFQS
 questions: []
 depends_on: []
-touches: []
+touches:
+  - packages/core/src/runs/qa.ts
+  - packages/docs/src/diagrams/qa-flow.ts
+  - packages/docs/src/values.ts

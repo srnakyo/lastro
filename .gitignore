@@ -13,3 +13,4 @@ playwright-report/
 .tanstack/
 .vinxi/
 .lastro-storage/
+coverage/

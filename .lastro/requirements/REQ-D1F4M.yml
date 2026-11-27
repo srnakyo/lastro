@@ -21,7 +21,13 @@ acceptance:
     tests:
       - tests/integration/docs.test.ts::lists a package's items in the requester's order, and an item with an open question only under 'Awaiting answer' (REQ-D1F4M)
     locked: sha256:a8c021193df65d4e0ab5aa8f47788007bc86a77800596dc681472f4a72c5e4f8
+    locked_at: 2026-11-27T04:23:24.934Z
 decisions: []
 questions: []
 depends_on: []
-touches: []
+touches:
+  - apps/web/src/server/docs.ts
+  - packages/cli/src/commands/docs.ts
+  - packages/core/src/docs/data.ts
+  - packages/docs/src/documents/package-report.ts
+  - packages/docs/src/i18n.ts

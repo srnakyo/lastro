@@ -27,6 +27,7 @@ acceptance:
       - tests/integration/cli.test.ts::accepts --yes only from a person listed in gate.human_identities
       - tests/integration/cli.test.ts::refuses with exit code 2 and changes nothing when there is no terminal and no --yes
     locked: sha256:885adfe8492e59a7a9b522f38e58f1e584f42760e59746041c2473a2e90caa05
+    locked_at: 2026-11-27T04:23:38.227Z
   - id: AC-2
     text: Given an agent actor, when any human-only operation is requested through the API, the CLI or the MCP, then the core refuses it and nothing changes.
     tests:
@@ -35,7 +36,16 @@ acceptance:
       - "tests/integration/lifecycle.test.ts::is a human command: agents can neither approve nor mark sources final"
       - tests/unit/hooks.test.ts::refuses human commands in Bash and lets the rest through
     locked: sha256:e4ea1a51af697207229dd62cee27a8b42a43ed456f85b6ce6d47f77da3d70d2b
+    locked_at: 2026-11-27T04:23:38.228Z
 decisions: []
 questions: []
 depends_on: []
-touches: []
+touches:
+  - apps/web/src/api-lib/mcp/catalog.ts
+  - packages/cli/src/commands/human.ts
+  - packages/cli/src/config/project.ts
+  - packages/cli/src/confirm.ts
+  - packages/cli/src/hooks/guard.ts
+  - packages/core/src/lifecycle/service.ts
+  - packages/core/src/scope/actor.ts
+  - packages/core/src/sources/service.ts

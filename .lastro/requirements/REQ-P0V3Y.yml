@@ -19,7 +19,16 @@ acceptance:
     tests:
       - tests/integration/docs.test.ts::starts every document with the commit and the date, and groups requirements by package (REQ-P0V3Y)
     locked: sha256:46d3e4934a4b4297db6214a17cf52d10d6b27a3a88d89938d299a962c5ee45ea
+    locked_at: 2026-11-27T04:23:24.987Z
 decisions: []
 questions: []
 depends_on: []
-touches: []
+touches:
+  - apps/web/src/server/docs.ts
+  - packages/cli/src/commands/docs.ts
+  - packages/core/src/docs/data.ts
+  - packages/core/src/docs/service.ts
+  - packages/docs/src/documents/header.ts
+  - packages/docs/src/documents/index.ts
+  - packages/docs/src/documents/requirements.ts
+  - packages/docs/src/i18n.ts

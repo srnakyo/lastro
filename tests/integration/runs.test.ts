@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "bun:test";
-import { criteriaService, glossaryService, incidentsService, lifecycleService, requirementsService, runsService, sourcesService, testCatalog } from "@lastro/core";
+import { criteriaService, decisionsService, glossaryService, incidentsService, lifecycleService, requirementsService, runsService, sourcesService, testCatalog } from "@lastro/core";
 import { database } from "@lastro/database";
 import { projectConfigSchema, type RunReportInput } from "@lastro/shared";
 import { resetDatabase } from "../helpers/db";
@@ -207,5 +207,26 @@ describe("tests under several conditions", () => {
       stages: [{ ...stage, condition: "desktop" }, { ...stage, condition: "phone", results: [{ ...passed, status: "skipped" }] }],
     });
     expect(result.gates[code]?.pass).toBe(true);
+  });
+});
+
+describe("what holds the gate besides tests", () => {
+  it("hands an overturned decision of the requirement to a person", async () => {
+    const { project, actor, code } = await building();
+    const decision = await decisionsService.record(project.id, actor, { kind: "decision", text: "M-2 only", decidedBy: "dev", requirements: [code] });
+    await decisionsService.overturn(project.id, actor, decision.code, "client changed their mind");
+    const held = await runsService.record(project.id, agent, report(code, "passed"));
+    expect(held.gates[code]?.needsPerson).toEqual([`decision_overturned ${decision.code}`]);
+  });
+
+  it("names each finding of a failing stage with its file, line and rule", async () => {
+    const { project, code } = await building();
+    const run = report(code, "failed");
+    const stage = run.stages[0];
+    if (!stage) throw new Error("the report has a stage");
+    stage.findings = [{ tool: "eslint", level: "error", file: "src/discount.ts", line: 12, ruleId: "no-var", message: "Unexpected var" }, { tool: "eslint", level: "error", file: null, line: null, ruleId: "custom", message: "Something else" }];
+    const result = await runsService.record(project.id, agent, run);
+    expect(result.gates[code]?.agentCanFix).toContain("unit: src/discount.ts:12 no-var Unexpected var");
+    expect(result.gates[code]?.agentCanFix).toContain("unit: ? custom Something else");
   });
 });

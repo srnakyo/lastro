@@ -20,13 +20,21 @@ acceptance:
     tests:
       - tests/integration/cli.test.ts::names the file, the field and the allowed values of an invalid status, and exits 1
     locked: sha256:38d67760b62929054a2b6e79d2f81e7f15d4119265af95ae0a2230604e9ee061
+    locked_at: 2026-11-27T04:23:38.039Z
   - id: AC-2
     text: Given packages/shared, when it is built, then there is one JSON Schema per exported entity and each example file in the PRD validates against it.
     tests:
       - tests/unit/export-schemas.test.ts::accept every example file of the PRD
       - tests/unit/export-schemas.test.ts::are one per export file and match the contracts
     locked: sha256:bd6869e2e1c991a93cb8dac6f24667eeb52544fddcb1aa9d13edacd63306f5f0
+    locked_at: 2026-11-27T04:23:38.040Z
 decisions: []
 questions: []
 depends_on: []
-touches: []
+touches:
+  - packages/cli/src/commands/doctor.ts
+  - packages/shared/scripts/schemas.ts
+  - packages/shared/src/config.ts
+  - packages/shared/src/export/files.ts
+  - packages/snapshot/src/read.ts
+  - packages/snapshot/src/validate.ts

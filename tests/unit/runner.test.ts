@@ -89,6 +89,18 @@ describe("JUnit from each tool (REQ-9Z4NG)", () => {
     expect(result.stages[0]?.findings[0]).toMatchObject({ file: "src/a.ts", line: 3, ruleId: "no-unused-vars" });
   });
 
+  it("fails a stage on 2 SARIF errors and still counts its 5 warnings (REQ-9Z4NG)", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "lastro-sarif-"));
+    const result = (level: "error" | "warning", line: number) => ({ ruleId: level === "error" ? "no-undef" : "prefer-const", level, message: { text: `${level} at ${line}` }, locations: [{ physicalLocation: { artifactLocation: { uri: "src/b.ts" }, region: { startLine: line } } }] });
+    const sarif = { runs: [{ tool: { driver: { name: "ESLint" } }, results: [result("error", 1), result("error", 2), ...[3, 4, 5, 6, 7].map((l) => result("warning", l))] }] };
+    writeFileSync(join(dir, "eslint-output.json"), JSON.stringify(sarif));
+    const config = projectConfigSchema.parse({ project: "p", commands: { lint: { run: "cp eslint-output.json lint.sarif", report: { sarif: "lint.sarif" } } }, global_flow: ["lint"] });
+    const [stage] = (await verify(dir, config, [{ code: "REQ-A", type: "none", touches: [] }], "dev")).stages;
+    expect(stage?.status).toBe("failed");
+    expect(stage?.findings.filter((f) => f.level === "error")).toHaveLength(2);
+    expect(stage?.findings.filter((f) => f.level === "warning")).toHaveLength(5);
+  });
+
   it("fails a condition whose setup fails, keeps its output, and still runs the other condition (REQ-8X1MF)", async () => {
     const dir = mkdtempSync(join(tmpdir(), "lastro-setup-"));
     const config = projectConfigSchema.parse({

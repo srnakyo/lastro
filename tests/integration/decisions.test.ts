@@ -107,3 +107,39 @@ describe("answers and overturned decisions (REQ-5R2HC, REQ-6T3JD)", () => {
     expect(closed.answer).toBe("Yes, annual too.");
   });
 });
+
+describe("listing", () => {
+  it("lists the questions of a project oldest first with the codes of their requirements", async () => {
+    const { project, code } = await withRequirement();
+    const first = await questionsService.ask(project.id, agent, { text: "First?", blocks: false, askedTo: "client", requirements: [code] });
+    const second = await questionsService.ask(project.id, agent, { text: "Second?", blocks: false, askedTo: "client" });
+    const rows = await questionsService.list(project.id);
+    expect(rows.map((q) => q.code)).toEqual([first.code, second.code]);
+    expect(rows[0]?.requirements.map((r) => r.requirement.code)).toEqual([code]);
+  });
+
+  it("lists the decisions of a project oldest first with the requirements they touch", async () => {
+    const { project, actor, code } = await withRequirement();
+    const a = await decisionsService.record(project.id, actor, { kind: "decision", text: "First", decidedBy: "dev", requirements: [code] });
+    const b = await decisionsService.record(project.id, actor, { kind: "decision", text: "Second", decidedBy: "dev" });
+    const rows = await decisionsService.list(project.id);
+    expect(rows.map((d) => d.code)).toEqual([a.code, b.code]);
+    expect(rows[0]?.requirements.map((r) => r.requirement.code)).toEqual([code]);
+  });
+
+  it("overturning a decision of an accepted requirement reopens it", async () => {
+    const { project, actor, code } = await withRequirement();
+    const d = await decisionsService.record(project.id, actor, { kind: "decision", text: "M-2 only", decidedBy: "dev", requirements: [code] });
+    await database().requirement.updateMany({ where: { code }, data: { status: "accepted" } });
+    await decisionsService.overturn(project.id, actor, d.code, "client changed their mind");
+    expect((await requirementsService.get(project.id, code)).status).toBe("reopened");
+  });
+
+  it("merging a repeat that points at a requirement the original already has does not link it twice", async () => {
+    const { project, actor, code } = await withRequirement();
+    const original = await decisionsService.record(project.id, actor, { kind: "decision", text: "MIT", decidedBy: "dev", requirements: [code] });
+    const repeat = await decisionsService.record(project.id, actor, { kind: "decision", text: "Lastro is MIT.", decidedBy: "dev", requirements: [code] });
+    await decisionsService.merge(project.id, actor, repeat.code, original.code);
+    expect(await database().decisionRequirement.count({ where: { decisionId: original.id } })).toBe(1);
+  });
+});

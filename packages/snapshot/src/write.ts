@@ -19,7 +19,7 @@ function requirementFile(r: Snapshot["requirements"][number]) {
     sources: r.citations.map((c) => clean({ ref: c.source, anchor: c.anchor, label: c.label, quote: c.quote })),
     statement: r.statement, where: r.where, who: r.who, data_source: r.dataSource, period: r.period, reach: r.reach,
     when_missing: r.whenMissing, visual_ref: r.visualRefs.length ? r.visualRefs : undefined, examples: r.examples,
-    acceptance: r.criteria.map((c) => clean({ id: c.code, text: c.text, tests: c.tests, locked: c.locked })),
+    acceptance: r.criteria.map((c) => clean({ id: c.code, text: c.text, tests: c.tests, locked: c.locked, locked_at: c.lockedAt })),
     decisions: r.decisions,
     questions: r.questions,
     depends_on: r.dependsOn,

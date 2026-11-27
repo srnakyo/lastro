@@ -59,10 +59,17 @@ const testsSchema = z.object({
   levels: z.record(z.string(), z.array(z.string())).default(DEFAULT_TEST_LEVELS),
   /** A linked test must be seen failing on a Lastro run before it passes: written before the code. */
   red_first: z.boolean().default(false),
+  /** When red_first was turned on: tests locked before it are not asked to have failed first. Lastro sets it. */
+  red_first_since: z.string().datetime().optional(),
   /** Every requester example with a number must have that number in one of its requirement's test files. */
   examples_in_tests: z.boolean().default(false),
   /** Where the unit or integration command writes its LCOV report, read for the coverage of the touched files. */
   coverage_report: z.string().optional(),
+  /**
+   * Source files whose coverage the report cannot measure, as globs: code that only runs in a child process
+   * (a CLI tested end to end, a tool's config file). They still bind evidence; only their coverage is not asked.
+   */
+  coverage_exclude: z.array(z.string()).default([]),
 });
 
 /** The project configuration, the content of lastro.yml. */
@@ -75,7 +82,7 @@ export const projectConfigSchema = z.object({
    * their tests, and the latest version of a source counts. review: a person approves each one.
    */
   autonomy: z.enum(["auto", "review"]).default("auto"),
-  tests: testsSchema.default({ levels: DEFAULT_TEST_LEVELS, red_first: false, examples_in_tests: false }),
+  tests: testsSchema.default({ levels: DEFAULT_TEST_LEVELS, red_first: false, examples_in_tests: false, coverage_exclude: [] }),
   approval: z
     .object({ spec: z.array(z.string()).default(["dev"]), require_final_source: z.boolean().default(false) })
     .default({ spec: ["dev"], require_final_source: false }),

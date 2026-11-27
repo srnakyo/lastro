@@ -40,7 +40,7 @@ export const requirementFileSchema = z.object({
   visual_ref: z.array(z.string()).optional(),
   when_missing: z.string().optional(),
   examples: z.array(z.object({ given: z.string(), expect: z.string() })).default([]),
-  acceptance: z.array(z.object({ id: z.string().regex(/^AC-\d+$/), text: z.string().min(1), tests: z.array(z.string()).default([]), locked: z.string().nullable().optional() })).min(1),
+  acceptance: z.array(z.object({ id: z.string().regex(/^AC-\d+$/), text: z.string().min(1), tests: z.array(z.string()).default([]), locked: z.string().nullable().optional(), locked_at: z.string().datetime().nullable().optional() })).min(1),
   decisions: codes("DEC"),
   questions: codes("Q"),
   depends_on: codes("REQ"),

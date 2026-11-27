@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "bun:test";
 import { requirementsService, sourcesService, markdownPassages } from "@lastro/core";
 import { resetDatabase } from "../helpers/db";
-import { BRIEF, createBriefSource, createProject, discountRequirement } from "../helpers/fixtures";
+import { agent, BRIEF, createBriefSource, createProject, discountRequirement } from "../helpers/fixtures";
 
 beforeEach(resetDatabase);
 
@@ -42,6 +42,19 @@ describe("requirements", () => {
     const after = await requirementsService.get(project.id, created.code);
     expect(after.status).toBe("captured");
     expect(after.history.map((h) => h.toStatus)).toEqual(["captured", "specified", "captured"]);
+  });
+
+  it("keeps the approval and the lock when the same tests come back in another order", async () => {
+    const { project, actor } = await createProject({ autonomy: "auto" });
+    const source = await createBriefSource(project.id, actor);
+    const input = discountRequirement(source.code);
+    const tests = ["tests/unit/discount.test.ts::60 seats", "tests/integration/invoice.test.ts::discount line"];
+    const req = await requirementsService.create(project.id, actor, { ...input, criteria: [{ code: "AC-1", text: "8% at 60 seats", tests }] });
+    const locked = (await requirementsService.get(project.id, req.code)).criteria[0];
+    expect(locked?.lockedHash).toBeTruthy();
+    const after = await requirementsService.update(project.id, agent, req.code, { criteria: [{ code: "AC-1", text: "8% at 60 seats", tests: [...tests].reverse() }] });
+    expect(after.status).toBe("approved");
+    expect(after.criteria[0]?.lockedAt).toEqual(locked?.lockedAt);
   });
 
   it("lists with filters and keeps the creation order", async () => {

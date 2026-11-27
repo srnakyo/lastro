@@ -26,20 +26,31 @@ acceptance:
     tests:
       - tests/integration/export.test.ts::writes byte-identical files when nothing changed, and this repository's .lastro/ survives import and export unchanged
     locked: sha256:8862301547f67b8c231cda703fa540bf59211debf350b0559392ae4149b67c72
+    locked_at: 2026-11-27T04:23:24.963Z
   - id: AC-2
     text: Given this repository's .lastro/ imported into an empty project, when it is exported again, then every file matches the original.
     tests:
       - tests/integration/export.test.ts::writes byte-identical files when nothing changed, and this repository's .lastro/ survives import and export unchanged
     locked: sha256:c280b78eb2cf31b70c2bc4ef0498a355b7e2a07aa5f8553eb7bffb8b8b169b98
+    locked_at: 2026-11-27T04:23:24.963Z
   - id: AC-3
     text: Given a snapshot whose only change is a hand-made approval, when `lastro import` runs with an agent token, then the requirement is not approved and the output names the refused human action.
     tests:
       - tests/integration/snapshot.test.ts::refuses a hand-made approval in an agent's import and names it; a person's import applies it
     locked: sha256:5eff803226745570a162a349c5c252d70655c551f41a602788f96e6c317ed612
+    locked_at: 2026-11-27T04:23:24.964Z
 decisions:
   - DEC-F2H5P
 questions:
   - Q-R9T2Z
 depends_on:
   - REQ-F7H2Q
-touches: []
+touches:
+  - packages/cli/src/commands/snapshot.ts
+  - packages/core/src/snapshot/apply-human.ts
+  - packages/core/src/snapshot/apply-spec.ts
+  - packages/core/src/snapshot/export.ts
+  - packages/core/src/snapshot/plan.ts
+  - packages/core/src/snapshot/service.ts
+  - packages/snapshot/src/read.ts
+  - packages/snapshot/src/write.ts

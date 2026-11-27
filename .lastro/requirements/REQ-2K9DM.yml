@@ -18,11 +18,15 @@ acceptance:
   - id: AC-1
     text: Given 10,000 generated requirement IDs, then every ID matches ^REQ-[0-9A-HJKMNP-TV-Z]{5}$ and no ID collides with an existing requirement of the project.
     tests:
+      - tests/integration/ids.test.ts::gives a requirement taken from 'item 14' a random ID and keeps 'item 14' as its source label
       - tests/unit/codes.test.ts::are INV-XXXXX like every other entity, and older INV-1 codes stay valid
       - tests/unit/codes.test.ts::generates Crockford base32 codes that the schema accepts
       - tests/unit/codes.test.ts::gives up after repeated collisions
-    locked: sha256:d64112e1602a06911e656ca15b10e4dfbbbc3d90e502bcd47fc0c7099bb41697
+    locked: sha256:dd01b4a973446ed0a70ef08a4d88585108b95cbea027c4a817bb63e31a3c7b26
+    locked_at: 2026-11-27T04:23:38.060Z
 decisions: []
 questions: []
 depends_on: []
-touches: []
+touches:
+  - packages/core/src/codes/generate.ts
+  - packages/shared/src/codes.ts

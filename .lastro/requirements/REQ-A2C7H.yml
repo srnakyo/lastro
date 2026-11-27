@@ -22,20 +22,33 @@ acceptance:
   - id: AC-1
     text: Given a requirement whose criterion AC-2 has no linked test, when `lastro gate` runs, then it exits with code 1 and lists AC-2 under what the agent can fix.
     tests:
-      - tests/integration/cli.test.ts::exits 1 and lists a criterion without a test under what the agent can fix (REQ-A2C7H)
-    locked: sha256:17024a431a1dc2ec5c449615803f781ebe58be503f25f67868469cdcf4012d2d
+      - tests/integration/cli.test.ts::exits 1 and lists a linked test that has not run under what the agent can fix (REQ-A2C7H)
+    locked: sha256:17e37949f24c1965573c2996c0faf52394f632a4d802675a94c7ebf4fb879c91
+    locked_at: 2026-11-27T04:32:37.969Z
   - id: AC-2
     text: Given a requirement whose only missing stage is a manual preview, then the gate exits with code 1 and lists the preview under what needs a person.
     tests:
       - tests/integration/runs.test.ts::holds a manual stage until a person signs it, and refuses an agent's signature
     locked: sha256:5dfeadce2b605e4efaf776ff9f7fe98553d6f79183e3c494fc96b2df3c1f771e
+    locked_at: 2026-11-27T04:32:37.970Z
   - id: AC-3
     text: Given a repository with a .lastro/ export and no server configured, when `lastro gate --ci` runs, then it evaluates the locked criteria from the export with runs it performs itself and exits 0 only if they pass.
     tests:
-      - tests/integration/cli.test.ts::runs offline from the export with --ci and checks the locked criteria (REQ-A2C7H AC-3)
-    locked: sha256:b73474152155440e8e8d36a8a7821b3d4bf0243066baa613b5d1aef459fe8d61
+      - tests/integration/cli.test.ts::runs offline from the export with --ci and checks the locked criteria and the test levels (REQ-A2C7H AC-3)
+    locked: sha256:76b9647c0adf3cb559ab021fc9c192997aedab6f9228dabbf6205e65590d9e2b
+    locked_at: 2026-11-27T04:32:37.970Z
 decisions:
   - DEC-Q0MW8
 questions: []
 depends_on: []
-touches: []
+touches:
+  - packages/cli/src/commands/gate-ci.ts
+  - packages/cli/src/commands/verify-run.ts
+  - packages/cli/src/commands/verify.ts
+  - packages/core/src/runs/gate-items.ts
+  - packages/core/src/runs/gate.ts
+  - packages/core/src/runs/red-first.ts
+  - packages/core/src/runs/service.ts
+  - packages/runner/src/lcov.ts
+  - packages/runner/src/quality/coverage.ts
+  - packages/runner/src/quality/examples.ts

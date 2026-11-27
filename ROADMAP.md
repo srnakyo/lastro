@@ -75,11 +75,20 @@ bun workspaces and Turborepo: `apps/`, `packages/`, `tooling/`.
 | 7 | Enforcement: Claude Code plugin, `pre-push`, GitHub Action, Claude Ship templates | done |
 | 8 | Advanced dashboard: Agents, Audit, module map, timelines, visual flow editor | done |
 | 9 | Distribution: Docker image and production compose, npm package, README in English and Portuguese with real screenshots | done |
-| 10 | Dogfood: Lastro tracks itself on its own server, tests linked to criteria, gate in CI | done: every criterion of Lastro's 26 requirements is linked to tests, `lastro gate --ci` runs in CI and a dry run of the full flow passes; approving them (PRD final, then approve) is a person's action |
+| 10 | Dogfood: Lastro tracks itself on its own server, tests linked to criteria, gate in CI | done: every criterion of Lastro's 26 requirements is linked to tests, `lastro gate --ci` runs in CI and a dry run of the full flow passes; Lastro approved them by itself once every criterion had its tests (phase 11) |
+| 11 | Automatic by default and test quality: Lastro approves and locks what is ready (review mode keeps a person's approval); test levels per type (unit, integration, Playwright), red before green, the requester's numbers in the tests, coverage of the touched files from LCOV; Settings, requirement page and `lastro init` template | done: Lastro's own project runs these rules (see below) |
 
 ## What the dogfood found
 
 Auditing Lastro's own 26 requirements against the code found that none was built exactly as specified (23 partial, 3 missing). Every gap was fixed or, where the build reads the spec differently, recorded as a proposed decision in `.lastro/decisions/` for a person to confirm or overturn. A dry run of `lastro gate --ci` on this repository then found two gate bugs (suppressed SARIF results counted as errors; a test skipped under one condition hid its pass under another), also fixed.
+
+## Lastro under its own test rules
+
+- **Levels:** formats need a unit test, storage and behaviour an integration test (through the services, on a real Postgres), screens a Playwright test in light theme, dark theme and phone width. The diagrams and the run comparison got the Playwright tests they lacked, and the quote check an integration test.
+- **The requester's numbers:** every number in the examples of the 26 requirements is in their tests. Writing them found three cases no test used (item 14, 5 warnings, 15 specified), now tested.
+- **Coverage:** every function and at least 90% of the lines of the files each behaviour, format and storage requirement touches (`scripts/dogfood/touches.ts`) run in the unit and integration suite. The CLI commands are left out of the coverage only: the CLI tests run the real CLI in a child process, which the coverage tool does not follow.
+- **Red before green:** on from this phase. Tests locked before it are not asked to have failed first; the export keeps each lock's date so an import does not reset it.
+- **What it found:** Bun's LCOV has no function names, so the function rule read every file as fully covered (now it reads the totals and names the lines not run); two criteria were linked to tests that had been renamed, so they never ran (the dogfood now refuses a link to a test name its file does not have); and re-sending the same tests in another order reset the lock (a criterion's tests now compare as a set, as its lock hash does).
 
 ## Verification in every phase
 

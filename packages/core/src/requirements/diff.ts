@@ -18,7 +18,7 @@ function current(graph: RequirementGraph & { dependsOn?: { dependsOn: { code: st
     visualRefs: graph.visualRefs,
     dependsOn: graph.dependsOn?.map((d) => d.dependsOn.code).sort(),
     citations: graph.citations.map((c) => ({ source: c.source.code, anchor: c.anchor, label: c.label ?? undefined, quote: c.quote })),
-    criteria: graph.criteria.map((c) => ({ code: c.code, text: c.text, tests: c.tests.map((t) => t.testRef) })),
+    criteria: graph.criteria.map((c) => ({ code: c.code, text: c.text, tests: testSet(c.tests.map((t) => t.testRef)) })),
   };
 }
 
@@ -29,10 +29,20 @@ function stable(value: unknown): string {
   );
 }
 
+/** A criterion's tests as the lock sees them: a set, so their order is not a change (criterionHash sorts too). */
+const testSet = (tests: string[]) => [...new Set(tests)].sort();
+
+/** An update's value in the same shape as the stored one: dependencies and each criterion's tests as sets. */
+function comparable(key: string, value: unknown): unknown {
+  if (key === "dependsOn") return [...(value as string[])].sort();
+  if (key === "criteria") return (value as { code: string; text: string; tests?: string[] }[]).map((c) => ({ ...c, tests: testSet(c.tests ?? []) }));
+  return value;
+}
+
 /** The fields of an update that differ from what is stored. An empty list means the update changes nothing. */
 export function changedFields(graph: RequirementGraph, input: RequirementUpdateData): string[] {
   const now = current(graph) as Record<string, unknown>;
   return Object.entries(input)
-    .filter(([key, value]) => value !== undefined && stable(key === "dependsOn" ? [...(value as string[])].sort() : value) !== stable(now[key]))
+    .filter(([key, value]) => value !== undefined && stable(comparable(key, value)) !== stable(now[key]))
     .map(([key]) => key);
 }

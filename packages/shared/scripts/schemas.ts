@@ -17,9 +17,15 @@ export function exportSchemas(): Record<string, string> {
   );
 }
 
+/** Writes one file per export kind into `dir` (created when missing) and returns the file names. */
+export function writeSchemas(dir: string): string[] {
+  mkdirSync(dir, { recursive: true });
+  const files = exportSchemas();
+  for (const [name, content] of Object.entries(files)) writeFileSync(join(dir, name), content);
+  return Object.keys(files);
+}
+
 if (import.meta.main) {
   const dir = join(fileURLToPath(new URL("..", import.meta.url)), "schemas");
-  mkdirSync(dir, { recursive: true });
-  for (const [name, content] of Object.entries(exportSchemas())) writeFileSync(join(dir, name), content);
-  console.log(`wrote ${Object.keys(exportSchemas()).length} schemas to ${dir}`);
+  console.log(`wrote ${writeSchemas(dir).length} schemas to ${dir}`);
 }

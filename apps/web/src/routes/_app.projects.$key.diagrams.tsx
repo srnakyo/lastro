@@ -17,7 +17,7 @@ export const Route = createFileRoute("/_app/projects/$key/diagrams")({
 
 function DiagramCard({ title, lead, action, source, minHeight, children }: { title: string; lead?: string; action?: React.ReactNode; source?: string; minHeight?: number; children?: React.ReactNode }) {
   return (
-    <Card className="min-w-0">
+    <Card className="min-w-0" role="region" aria-label={title}>
       <CardHeader>
         <div className="min-w-0">
           <CardTitle>{title}</CardTitle>

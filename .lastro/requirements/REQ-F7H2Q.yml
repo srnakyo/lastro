@@ -25,14 +25,19 @@ acceptance:
       - tests/integration/projects.test.ts::has a projectId on every project-scoped table, filled on rows created through nested writes
       - tests/integration/projects.test.ts::reports no pending migration
     locked: sha256:da537046b9b07ac749f066108dad6dc22f2fd40f04899259045622cff6818de2
+    locked_at: 2026-11-27T04:23:24.948Z
   - id: AC-2
     text: Given an existing AuditEvent row, when an UPDATE or a DELETE targets it, then the database refuses the statement and the row is unchanged.
     tests:
       - tests/integration/projects.test.ts::never lets the audit log be edited or deleted
     locked: sha256:c54dc0608fc56a5608501c7266e61e8f3f4bdbdad4e6cf807597fae94ce34a45
+    locked_at: 2026-11-27T04:23:24.949Z
 decisions:
   - DEC-EPP25
   - DEC-F2H5P
 questions: []
 depends_on: []
-touches: []
+touches:
+  - packages/database/prisma.config.ts
+  - packages/database/prisma/schema.prisma
+  - packages/database/src/client.ts

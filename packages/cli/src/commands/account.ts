@@ -24,7 +24,8 @@ const STARTER_CONFIG = (project: string) => ({
   types: {
     behavior: { required: ["where"], flow: [], tests: { levels: ["unit", "integration"], coverage: { functions: 100, lines: 90 } } },
     calculation: { required: ["examples"], flow: [], tests: { levels: ["unit"], coverage: { functions: 100, lines: 100 } } },
-    ui: { required: ["where"], flow: [], tests: { levels: ["unit", "e2e"], coverage: { functions: 90 } } },
+    // Screens are proven on screen, in every condition: unit coverage does not measure them.
+    ui: { required: ["where"], flow: [], tests: { levels: ["unit", "e2e"] } },
   },
   global_flow: [],
   server: { project },

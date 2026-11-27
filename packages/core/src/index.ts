@@ -13,6 +13,7 @@ export { systemActor } from "./scope/actor";
 export { auditService } from "./audit/service";
 export { workspacesService } from "./workspaces/service";
 export { projectsService } from "./projects/service";
+export { stampTestRules } from "./projects/test-rules";
 export { sourcesService } from "./sources/service";
 export { packagesService } from "./packages/service";
 export { requirementsService } from "./requirements/service";

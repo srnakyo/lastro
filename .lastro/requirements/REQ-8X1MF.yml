@@ -22,12 +22,19 @@ acceptance:
       - tests/integration/runs.test.ts::stores each condition's run with its env and result
       - tests/unit/runner.test.ts::runs each command once per condition, with the condition's env, and reads its report
     locked: sha256:5bbe31b626e49e4c8ee463c5b9525179e39ffc740882bf80f8898638e043f584
+    locked_at: 2026-11-27T04:23:24.897Z
   - id: AC-2
     text: Given a condition whose setup exits with a non-zero code, then its evidence is failed with the setup output and the other condition still runs.
     tests:
       - tests/unit/runner.test.ts::fails a condition whose setup fails, keeps its output, and still runs the other condition (REQ-8X1MF)
     locked: sha256:b755a432ffab79b7b2c6f40a6c8ef3a92ccdc5026f16f45b4a1aab45952caa87
+    locked_at: 2026-11-27T04:23:24.898Z
 decisions: []
 questions: []
 depends_on: []
-touches: []
+touches:
+  - packages/core/src/runs/record.ts
+  - packages/runner/src/exec.ts
+  - packages/runner/src/plan.ts
+  - packages/runner/src/verify.ts
+  - packages/shared/src/run.ts

@@ -19,6 +19,14 @@ describe("diagrams", () => {
     expect(source).toContain("specified --> approved: blocked: source not final");
   });
 
+  it("shows 15 specified requirements of a package and the move to approved blocked by a source not final (REQ-N7T0X)", () => {
+    const edges = [{ from: "captured", to: "specified", actors: ["system"] }, { from: "specified", to: "approved", actors: ["user", "system"] }];
+    const source = lifecycleDiagram(edges, { captured: 0, specified: 15 }, { "specified>approved": ["source not final"] });
+    expect(source).toContain("specified: specified (15)");
+    expect(source).toContain("specified --> approved: blocked: source not final");
+    expect(source).not.toContain("captured --> specified: blocked");
+  });
+
   it("colors each stage and condition by its latest result (REQ-R6Y9A)", () => {
     const config = projectConfigSchema.parse({
       project: "p",

@@ -35,7 +35,7 @@ export const snapshotSchema = z.object({
       /** Decisions and questions about this requirement: written for the reader, rebuilt from the decision and question files. */
       decisions: z.array(codeSchema("DEC")).default([]),
       questions: z.array(codeSchema("Q")).default([]),
-      criteria: z.array(criterionInputSchema.extend({ locked: z.string().nullable().default(null) })).min(1),
+      criteria: z.array(criterionInputSchema.extend({ locked: z.string().nullable().default(null), lockedAt: z.string().datetime().nullable().default(null) })).min(1),
     }),
   ),
   design: designContractInputSchema.default({ components: {}, forbidden: [], palette: {}, referenceScreens: [] }),

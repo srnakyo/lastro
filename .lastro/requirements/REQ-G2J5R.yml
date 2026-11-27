@@ -26,17 +26,27 @@ acceptance:
     tests:
       - tests/integration/cli.test.ts::fails on a literal token or database URL with credentials in lastro.yml
     locked: sha256:7aa17f128c646f113ea04b666bbde20b974ebeeb95de167fa6135621ef1baa1d
+    locked_at: 2026-11-27T04:23:24.954Z
   - id: AC-2
     text: Given a connection error, when any command or the server reports it, then the message contains no password.
     tests:
       - tests/unit/text.test.ts::removes the password of a connection URL, tokens and password settings from a message
     locked: sha256:3a59c42d80f5a2860d2de084043f7f1bd9438a1cbde4a170e6d53bc12d16f84a
+    locked_at: 2026-11-27T04:23:24.954Z
   - id: AC-3
     text: Given a newly created API token, then the database stores only its visible prefix and its SHA-256 hash, and a request with that token authenticates while a request with any other value does not.
     tests:
       - tests/integration/api.test.ts::stores only the visible prefix and a SHA-256 hash; the token authenticates and any other value does not
     locked: sha256:1c447912b3dfd30888cfa82fdf1aac91e3a0a2e9132583bf4b54edf1c2337d8e
+    locked_at: 2026-11-27T04:23:24.955Z
 decisions: []
 questions: []
 depends_on: []
-touches: []
+touches:
+  - apps/web/src/api-lib/http.ts
+  - packages/cli/src/commands/doctor.ts
+  - packages/cli/src/config/credentials.ts
+  - packages/core/src/tokens/service.ts
+  - packages/database/src/client.ts
+  - packages/shared/src/redact.ts
+  - packages/snapshot/src/validate.ts

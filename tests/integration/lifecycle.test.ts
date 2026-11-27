@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "bun:test";
 import { criteriaService, lifecycleService, requirementsService, sourcesService } from "@lastro/core";
+import { database } from "@lastro/database";
 import { resetDatabase } from "../helpers/db";
 import { agent, createBriefSource, createProject, discountRequirement } from "../helpers/fixtures";
 
@@ -68,5 +69,64 @@ describe("transitions", () => {
     await expect(lifecycleService.drop(project.id, actor, code, " ")).rejects.toThrow("needs a reason");
     await lifecycleService.drop(project.id, actor, code, "client removed it");
     expect((await requirementsService.get(project.id, code)).status).toBe("dropped");
+  });
+});
+
+describe("accepting a delivery", () => {
+  async function delivered() {
+    const ctx = await specified(false);
+    await database().requirement.updateMany({ where: { code: ctx.code }, data: { status: "delivered" } });
+    return ctx;
+  }
+
+  it("records the reference where the requester accepted it", async () => {
+    const { project, actor, code } = await delivered();
+    await lifecycleService.accept(project.id, actor, code, "e-mail from the client, 2026-11-20");
+    const view = await requirementsService.get(project.id, code);
+    expect(view.status).toBe("accepted");
+    expect(view.history.at(-1)?.reason).toBe("e-mail from the client, 2026-11-20");
+  });
+
+  it("needs a reference", async () => {
+    const { project, actor, code } = await delivered();
+    await expect(lifecycleService.accept(project.id, actor, code, "  ")).rejects.toThrow("needs a reference");
+  });
+
+  it("is refused to an agent", async () => {
+    const { project, code } = await delivered();
+    await expect(lifecycleService.accept(project.id, agent, code, "my own say")).rejects.toThrow("needs a person");
+  });
+});
+
+describe("confirming a transcribed quote", () => {
+  async function transcribed() {
+    const ctx = await createProject();
+    const source = await sourcesService.create(ctx.project.id, ctx.actor, {
+      kind: "audio", title: "call.m4a", from: "client", hash: "sha256:call", final: false, machineTranscript: true,
+      passages: [{ anchor: "@call.m4a#t=0:10", text: "The volume discount has to show on the invoice, including the annual plan." }],
+    });
+    const input = discountRequirement(source.code);
+    const citations = input.citations.map((c) => ({ ...c, anchor: "@call.m4a#t=0:10" }));
+    const req = await requirementsService.create(ctx.project.id, ctx.actor, { ...input, citations });
+    return { ...ctx, code: req.code };
+  }
+
+  it("holds the requirement in captured until a person confirms the quote", async () => {
+    const { project, actor, code } = await transcribed();
+    expect((await requirementsService.get(project.id, code)).blockers.map((b) => b.kind)).toContain("unconfirmed_transcript");
+    await criteriaService.confirmQuote(project.id, actor, code, 0);
+    const view = await requirementsService.get(project.id, code);
+    expect(view.blockers.map((b) => b.kind)).not.toContain("unconfirmed_transcript");
+    expect(view.status).toBe("specified");
+  });
+
+  it("refuses a citation position the requirement does not have", async () => {
+    const { project, actor, code } = await transcribed();
+    await expect(criteriaService.confirmQuote(project.id, actor, code, 9)).rejects.toThrow("not found");
+  });
+
+  it("is refused to an agent", async () => {
+    const { project, code } = await transcribed();
+    await expect(criteriaService.confirmQuote(project.id, agent, code, 0)).rejects.toThrow("needs a person");
   });
 });

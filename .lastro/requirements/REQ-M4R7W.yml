@@ -17,9 +17,15 @@ acceptance:
   - id: AC-1
     text: Given a requirement whose AC-2 has no linked test, when its traceability diagram renders, then AC-2 is drawn with the gap style and the label 'no test'.
     tests:
+      - tests/e2e/diagrams.spec.ts::the traceability diagram draws a criterion without a test in red, labelled 'no test' (REQ-M4R7W)
       - tests/unit/diagrams.test.ts::draws a criterion without a test as a gap labelled 'no test' (REQ-M4R7W)
-    locked: sha256:12dd694fad7c793605b2967a38c8106d05d349978de22692a25227b006590c49
+    locked: sha256:8550a41fecc3a5ee4bff1a205a94f30c14b499bf886f11daeab2c363796132b2
+    locked_at: 2026-11-27T04:23:38.301Z
 decisions: []
 questions: []
 depends_on: []
-touches: []
+touches:
+  - packages/core/src/runs/qa.ts
+  - packages/docs/src/diagrams/mermaid.ts
+  - packages/docs/src/diagrams/traceability.ts
+  - packages/docs/src/values.ts

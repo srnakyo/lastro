@@ -53,6 +53,23 @@ describe("import and human actions", () => {
     return { ...ctx, source, code: req.code };
   }
 
+  it("keeps the date each criterion was locked through export and import, and only a person's import restores it", async () => {
+    const { project, actor, code } = await approvedProject();
+    await lifecycleService.approve(project.id, actor, code);
+    const first = new Date("2026-01-15T10:00:00.000Z");
+    const criteria = { requirement: { projectId: project.id, code } };
+    await database().criterion.updateMany({ where: criteria, data: { lockedAt: first } });
+    const snapshot = await exportSnapshot(project.id);
+    expect(snapshot.requirements[0]?.criteria[0]?.lockedAt).toBe(first.toISOString());
+
+    const relocked = new Date("2026-11-27T09:00:00.000Z");
+    await database().criterion.updateMany({ where: criteria, data: { lockedAt: relocked } });
+    await snapshotService.import(project.id, agent, snapshot);
+    expect((await database().criterion.findFirstOrThrow({ where: criteria })).lockedAt).toEqual(relocked);
+    await snapshotService.import(project.id, actor, snapshot);
+    expect((await database().criterion.findFirstOrThrow({ where: criteria })).lockedAt).toEqual(first);
+  });
+
   it("re-importing an unchanged export keeps approvals and locks", async () => {
     const { project, actor, code } = await approvedProject();
     await lifecycleService.approve(project.id, actor, code);

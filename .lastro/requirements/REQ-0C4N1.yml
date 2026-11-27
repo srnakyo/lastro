@@ -21,12 +21,19 @@ acceptance:
     tests:
       - tests/integration/cli.test.ts::creates the project and the whole .lastro/ export, then says it is already initialized without changing anything
     locked: sha256:f614fa403ce680018d1c4f6249bf15df2acc8cc34329104f29a8a9e7ba2c026b
+    locked_at: 2026-11-27T04:23:24.848Z
   - id: AC-2
     text: Given a repository with an existing .lastro/lastro.yml linked to a project, when `lastro init` runs, then no existing file changes and the server has no new project.
     tests:
       - tests/integration/cli.test.ts::creates the project and the whole .lastro/ export, then says it is already initialized without changing anything
     locked: sha256:adeeb97d1d8e4053a2721b8e448efad3b4ed6037a45ba5f2271e96d47b7d55ea
+    locked_at: 2026-11-27T04:23:24.849Z
 decisions: []
 questions: []
 depends_on: []
-touches: []
+touches:
+  - packages/cli/src/commands/account.ts
+  - packages/cli/src/config/project.ts
+  - packages/core/src/projects/service.ts
+  - packages/core/src/snapshot/export.ts
+  - packages/snapshot/src/write.ts

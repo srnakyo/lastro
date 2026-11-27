@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "bun:test";
-import { criteriaService, lifecycleService, requirementsService, runsService } from "@lastro/core";
+import { criteriaService, lifecycleService, projectsService, requirementsService, runsService } from "@lastro/core";
 import { database } from "@lastro/database";
 import { projectConfigSchema, type RunReportInput } from "@lastro/shared";
 import { resetDatabase } from "../helpers/db";
@@ -86,6 +86,21 @@ describe("test rules at the gate", () => {
     await runsService.record(project.id, agent, run(other.code, "failed"));
     const after = await runsService.record(project.id, agent, run(other.code, "passed"));
     expect(after.gates[other.code]?.fixItems.some((i) => i.kind === "never_red")).toBe(false);
+  });
+
+  it("red first turned on later holds only the tests locked after it", async () => {
+    const { project, actor, source } = await auto();
+    const before = await requirementsService.create(project.id, actor, withTests(source.code, [UNIT]));
+    const { config } = await database().project.findUniqueOrThrow({ where: { id: project.id }, select: { config: true } });
+    await projectsService.updateConfig(project.id, actor, { ...projectConfigSchema.parse(config), tests: { ...projectConfigSchema.parse(config).tests, red_first: true } });
+    await lifecycleService.start(project.id, agent, before.code, "feat/discount");
+    const old = await runsService.record(project.id, agent, run(before.code, "passed"));
+    expect(old.gates[before.code]?.pass).toBe(true);
+
+    const after = await requirementsService.create(project.id, actor, { ...withTests(source.code, [UNIT]), title: "Locked after the rule" });
+    await lifecycleService.start(project.id, agent, after.code, "feat/discount");
+    const fresh = await runsService.record(project.id, agent, run(after.code, "passed"));
+    expect(fresh.gates[after.code]?.fixItems).toContainEqual({ kind: "never_red", test: UNIT });
   });
 
   it("asks for the test-quality stage when the type has coverage rules", async () => {

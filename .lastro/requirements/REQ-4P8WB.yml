@@ -22,19 +22,32 @@ acceptance:
   - id: AC-1
     text: Given a quote that differs from the source by one word, when the requirement is evaluated, then it stays captured and the report shows the closest passage at that anchor.
     tests:
+      - tests/integration/requirements.test.ts::stays captured with an invented quote or a missing field, and says why
       - tests/unit/text.test.ts::rejects a quote with one word changed and points at the closest passage
-    locked: sha256:fbca74c712ab4e0c1feda63aad9e28f301e5719c6f3865fa6f986332bc89a3a1
+    locked: sha256:693cf7fdb9d7c454dfb1170aac82449caef2737342ea16a444c5c5296f83f967
+    locked_at: 2026-11-27T04:23:38.091Z
   - id: AC-2
     text: Given a quote that differs only by line breaks or ** markers, when the requirement is evaluated, then the quote is accepted.
     tests:
+      - tests/integration/requirements.test.ts::becomes specified when every required field and quote is in place
       - tests/unit/text.test.ts::finds a quote under a section anchor, ignoring emphasis, code marks and line breaks
-    locked: sha256:cc5633609e52e8882bf1c2e0eb9ca48f48b09a36ed6064d96847cac589c03d20
+    locked: sha256:678c08e9c3c427e36a466ded2009f50e12952c75ffef3696e5aeae7ecc2752e9
+    locked_at: 2026-11-27T04:23:38.092Z
   - id: AC-3
     text: Given a quote anchored to a section (@file#slug) that appears in its third paragraph, when the requirement is evaluated, then the quote is accepted and the Citation points to the passage @file#slug/p3.
     tests:
+      - tests/integration/requirements.test.ts::goes back to captured when a new source version drops the quoted text
       - tests/unit/text.test.ts::accepts a quote in the third paragraph of a section anchor and points at /p3
-    locked: sha256:4f7734454ef9e82ba75d869625b9bd4dbcd06cecb2119e2afd33dbf5ffab7916
+    locked: sha256:c3b7df9e2c012bd08511f6be6a1222134036981f127172e43e15e6f87d12e087
+    locked_at: 2026-11-27T04:23:38.092Z
 decisions: []
 questions: []
 depends_on: []
-touches: []
+touches:
+  - packages/core/src/lifecycle/blockers.ts
+  - packages/core/src/requirements/citations.ts
+  - packages/core/src/sources/recheck.ts
+  - packages/core/src/text/markdown.ts
+  - packages/core/src/text/normalize.ts
+  - packages/core/src/text/passages.ts
+  - packages/core/src/text/quote.ts

@@ -20,6 +20,7 @@ acceptance:
       - tests/e2e/spec.spec.ts::a requirement shows its quote next to the source and what holds it back
       - tests/unit/highlight.test.ts::marks the quote inside the passage, across emphasis and line breaks
     locked: sha256:ae1fcdd65a111f17a195ca077f685e77a734bca837ff8c74b3a12a32fbfbec68
+    locked_at: 2026-11-27T04:23:38.283Z
 decisions: []
 questions: []
 depends_on: []

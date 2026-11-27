@@ -1,5 +1,13 @@
 import type { ProjectConfig, Stage } from "@lastro/shared";
 
+/** The project's test rules as the form edits them: the excluded globs as one text, one per line. */
+export interface DraftTestRules {
+  red_first: boolean;
+  examples_in_tests: boolean;
+  coverage_report?: string;
+  exclude: string;
+}
+
 export interface DraftStage {
   kind: "run" | "check";
   name: string;
@@ -38,7 +46,7 @@ export interface Draft {
   gate: ProjectConfig["gate"];
   requireFinal: boolean;
   autonomy: ProjectConfig["autonomy"];
-  tests: Omit<ProjectConfig["tests"], "levels">;
+  tests: DraftTestRules;
 }
 
 export const FIELDS = ["where", "who", "data_source", "period", "reach", "when_missing", "examples", "visual_ref"];
@@ -94,7 +102,7 @@ export function toDraft(config: ProjectConfig): Draft {
     gate: config.gate,
     requireFinal: config.approval.require_final_source,
     autonomy: config.autonomy,
-    tests: { red_first: config.tests.red_first, examples_in_tests: config.tests.examples_in_tests, coverage_report: config.tests.coverage_report },
+    tests: { red_first: config.tests.red_first, examples_in_tests: config.tests.examples_in_tests, coverage_report: config.tests.coverage_report, exclude: config.tests.coverage_exclude.join("\n") },
   };
 }
 
@@ -110,7 +118,13 @@ export function fromDraft(d: Draft): ProjectConfig {
     commands: Object.fromEntries(named(d.commands).map((c) => [c.name.trim(), { run: c.run, ...(c.junit || c.sarif ? { report: { ...(c.junit ? { junit: c.junit } : {}), ...(c.sarif ? { sarif: c.sarif } : {}) } } : {}) }])),
     gate: d.gate,
     autonomy: d.autonomy,
-    tests: { ...d.base.tests, red_first: d.tests.red_first, examples_in_tests: d.tests.examples_in_tests, ...(d.tests.coverage_report?.trim() ? { coverage_report: d.tests.coverage_report.trim() } : { coverage_report: undefined }) },
+    tests: {
+      ...d.base.tests,
+      red_first: d.tests.red_first,
+      examples_in_tests: d.tests.examples_in_tests,
+      coverage_report: d.tests.coverage_report?.trim() || undefined,
+      coverage_exclude: d.tests.exclude.split("\n").map((g) => g.trim()).filter(Boolean),
+    },
   };
 }
 

@@ -17,7 +17,7 @@ function requirement(r: RequirementView): Snapshot["requirements"][number] {
     decisions: sorted(r.decisions.map((d) => d.decision.code)),
     questions: sorted(r.questions.map((q) => q.question.code)),
     citations: r.citations.map((c) => ({ source: c.source.code, anchor: c.anchor, ...(c.label ? { label: c.label } : {}), quote: c.quote })),
-    criteria: r.criteria.map((c) => ({ code: c.code, text: c.text, tests: c.tests.map((t) => t.testRef), locked: c.lockedHash })),
+    criteria: r.criteria.map((c) => ({ code: c.code, text: c.text, tests: c.tests.map((t) => t.testRef), locked: c.lockedHash, lockedAt: c.lockedAt?.toISOString() ?? null })),
   };
 }
 

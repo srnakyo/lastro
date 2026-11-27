@@ -17,9 +17,17 @@ acceptance:
   - id: AC-1
     text: Given a package whose source is not final, when its lifecycle diagram renders, then the specified state shows the count and the transition to approved is marked blocked with the reason.
     tests:
+      - tests/e2e/diagrams.spec.ts::the lifecycle diagram counts the requirements in each state and marks a blocked move with its reasons (REQ-N7T0X)
       - tests/unit/diagrams.test.ts::marks the transition to approved as blocked with the reason, and shows the counts (REQ-N7T0X)
-    locked: sha256:eabfd418cb64aa24345b47edf385fb09903a0b886155029e37ffe505d15600c3
+      - tests/unit/diagrams.test.ts::shows 15 specified requirements of a package and the move to approved blocked by a source not final (REQ-N7T0X)
+    locked: sha256:eb36b655a879dbd629805b2406a82cfb026b9a9a52d475606dcc10b4c4f9659e
+    locked_at: 2026-11-27T04:23:38.319Z
 decisions: []
 questions: []
 depends_on: []
-touches: []
+touches:
+  - packages/core/src/lifecycle/blockers.ts
+  - packages/core/src/lifecycle/transitions.ts
+  - packages/core/src/runs/qa.ts
+  - packages/docs/src/diagrams/lifecycle.ts
+  - packages/docs/src/values.ts

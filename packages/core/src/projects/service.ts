@@ -5,6 +5,7 @@ import { projectConfigSchema, projectInputSchema, type Actor, type ProjectConfig
 import { auditService } from "../audit/service";
 import { db, transaction } from "../db";
 import { LastroError, notFound } from "../errors";
+import { stampTestRules } from "./test-rules";
 
 export const projectsService = {
   async create(workspaceId: string, actor: Actor, raw: ProjectInput) {
@@ -21,7 +22,7 @@ export const projectsService = {
           description: input.description ?? null,
           repositoryUrl: input.repositoryUrl ?? null,
           language: input.config.language,
-          config: input.config,
+          config: stampTestRules(null, input.config),
         },
       });
       await auditService.record(tx, { workspaceId, projectId: project.id, actor, action: "project.create", entity: "project", entityId: project.id });
@@ -42,8 +43,10 @@ export const projectsService = {
   /** A person changes the QA flows, conditions, commands or gate; requirements are re-checked against the new required fields. */
   async updateConfig(projectId: string, actor: Actor, raw: ProjectConfigInput) {
     requireHuman(actor, "changing the QA configuration");
-    const config = projectConfigSchema.parse(raw);
+    const parsed = projectConfigSchema.parse(raw);
     return transaction(async (tx) => {
+      const current = await tx.project.findUniqueOrThrow({ where: { id: projectId }, select: { config: true } });
+      const config = stampTestRules(projectConfigSchema.parse(current.config), parsed);
       const project = await tx.project.update({ where: { id: projectId }, data: { config, language: config.language } });
       await auditService.record(tx, { workspaceId: project.workspaceId, projectId, actor, action: "project.config", entity: "project", entityId: projectId });
       const scope = await loadScope(tx, projectId);

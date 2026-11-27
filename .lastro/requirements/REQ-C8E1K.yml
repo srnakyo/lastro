@@ -19,10 +19,18 @@ acceptance:
   - id: AC-1
     text: Given an approved requirement, when a linked test is edited, then the gate fails naming the test until `lastro unlock` and a new lock are recorded.
     tests:
-      - tests/integration/cli.test.ts::runs offline from the export with --ci and checks the locked criteria (REQ-A2C7H AC-3)
+      - tests/integration/cli.test.ts::runs offline from the export with --ci and checks the locked criteria and the test levels (REQ-A2C7H AC-3)
       - tests/integration/runs.test.ts::fails naming a locked test whose file changed after it was sealed, until a person unlocks
-    locked: sha256:ecf37360ca2815291f9ca5a2f3b175f40f417092e3d2000603c69636b7034fbb
+    locked: sha256:85573b31fcf3db10aaa4765aedd7e511dab13a86e1dfd9392dba5a211ac0b6c8
+    locked_at: 2026-11-27T04:32:38.002Z
 decisions: []
 questions: []
 depends_on: []
-touches: []
+touches:
+  - packages/cli/src/commands/gate-ci.ts
+  - packages/cli/src/commands/human.ts
+  - packages/core/src/criteria/service.ts
+  - packages/core/src/lifecycle/approve.ts
+  - packages/core/src/runs/gate-items.ts
+  - packages/core/src/runs/gate.ts
+  - packages/shared/src/lock.ts

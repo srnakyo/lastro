@@ -1,4 +1,4 @@
-import { criterionHash, type ProjectConfig, type Snapshot, type Stage } from "@lastro/shared";
+import { criterionHash, levelsCovered, type ProjectConfig, type Snapshot, type Stage } from "@lastro/shared";
 import { readSnapshot } from "@lastro/snapshot";
 import { mergeResults, verify, type RunReport } from "@lastro/runner";
 import type { GateState } from "./verify-run";
@@ -12,8 +12,14 @@ function manualStages(config: ProjectConfig, type: string): string[] {
   return flow.flatMap((s) => (typeof s === "object" && s.manual ? [s.check ?? s.run ?? "stage"] : []));
 }
 
-async function judge(r: Snapshot["requirements"][number], report: RunReport): Promise<GateState> {
-  const agentCanFix: string[] = [];
+/** The levels its type asks for that none of its tests is at. */
+function missingLevels(config: ProjectConfig, r: Snapshot["requirements"][number]): string[] {
+  const covered = levelsCovered(r.criteria.flatMap((c) => c.tests), config.tests.levels);
+  return (config.types[r.type]?.tests.levels ?? []).filter((level) => !covered.has(level));
+}
+
+async function judge(config: ProjectConfig, r: Snapshot["requirements"][number], report: RunReport): Promise<GateState> {
+  const agentCanFix: string[] = missingLevels(config, r).map((level) => `no ${level} test linked to ${r.code}`);
   const stages = report.stages.filter((s) => s.requirement === r.code);
   for (const s of stages) {
     if (s.status === "passed") continue;
@@ -41,7 +47,7 @@ export async function offlineGate(root: string, trigger: RunReport["trigger"]) {
   if (selected.length === 0) return { pass: true, requirements: {} as Record<string, GateState>, manual: [] as string[] };
   const report = await verify(root, snapshot.config, selected.map((r) => ({ code: r.code, type: r.type, touches: r.touches, testFiles: testFilesOf(r), examples: r.examples })), trigger);
   const requirements: Record<string, GateState> = {};
-  for (const r of selected) requirements[r.code] = await judge(r, report);
+  for (const r of selected) requirements[r.code] = await judge(snapshot.config, r, report);
   const manual = selected.flatMap((r) => manualStages(snapshot.config, r.type).map((s) => `${r.code} ${s}`));
   return { pass: Object.values(requirements).every((g) => g.pass), requirements, manual };
 }

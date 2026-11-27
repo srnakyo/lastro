@@ -22,12 +22,18 @@ acceptance:
       - tests/integration/runs.test.ts::names the stale evidence with exactly that reason
       - tests/integration/verify-flow.test.ts::runs the project's command, records the evidence and makes it stale when a touched file changes
     locked: sha256:d17e892095ee1ff04f140a0e49955c4c5d1b38b4b945ff22c961edb53666295a
+    locked_at: 2026-11-27T04:23:24.917Z
   - id: AC-2
     text: Given a change only in files outside touches, then the requirement stays verified.
     tests:
       - tests/unit/runner.test.ts::keeps the fingerprint when only files outside the touched ones change
     locked: sha256:c7360ce644a269e049bb00b683623187f694c81ae61f933bf3e5b07e316dc8d6
+    locked_at: 2026-11-27T04:23:24.918Z
 decisions: []
 questions: []
 depends_on: []
-touches: []
+touches:
+  - packages/cli/src/commands/verify-run.ts
+  - packages/core/src/runs/service.ts
+  - packages/runner/src/git.ts
+  - packages/runner/src/verify.ts

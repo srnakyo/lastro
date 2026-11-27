@@ -50,9 +50,9 @@ export const SHOP_CONFIG = {
     dark: { env: { THEME: "dark" }, note: "dark theme" },
   },
   types: {
-    calculation: { required: ["data_source", "examples"], flow: ["unit"] },
+    calculation: { required: ["data_source", "examples"], flow: ["unit"], tests: { levels: ["unit"] } },
     behavior: { required: ["where"], flow: ["unit", { run: "e2e", conditions: ["desktop", "mobile"] }] },
-    ui: { required: ["where"], flow: [{ run: "e2e", conditions: ["desktop", "mobile", "dark"] }, { check: "preview", manual: true, by: "client" }] },
+    ui: { required: ["where"], flow: [{ run: "e2e", conditions: ["desktop", "mobile", "dark"] }, { check: "preview", manual: true, by: "client" }], tests: { levels: ["e2e"] } },
   },
   global_flow: ["lint"],
 };

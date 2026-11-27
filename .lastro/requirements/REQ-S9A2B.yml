@@ -17,8 +17,10 @@ acceptance:
   - id: AC-1
     text: Given two consecutive runs of a requirement, when the second is opened, then tests that changed from pass to fail and from fail to pass are listed separately.
     tests:
+      - tests/e2e/runs.spec.ts::a run says which tests passed again since the previous run, and links to it (REQ-S9A2B)
       - tests/integration/runs.test.ts::lists the tests that started failing and those passing again in separate lists (REQ-S9A2B)
-    locked: sha256:50785da1ec44ed28ca841e39fc5ead8bb03701d06f5d69784e9bba8e742ee686
+    locked: sha256:5c92225248e79c1d7795b4809b53315a554eeb73a5cc24e36b1b3cd7357b52ec
+    locked_at: 2026-11-27T04:23:38.388Z
 decisions: []
 questions: []
 depends_on: []

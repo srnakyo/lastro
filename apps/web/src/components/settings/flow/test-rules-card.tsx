@@ -1,6 +1,7 @@
 import type { ProjectConfig } from "@lastro/shared";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { formatDateTime } from "@/lib/format";
 import { useI18n, type MessageKey } from "@/lib/i18n";
 import { levelLabel, orderedLevels } from "@/lib/type-label";
 import { cn } from "@/lib/utils";
@@ -13,7 +14,7 @@ const MODES: { value: ProjectConfig["autonomy"]; title: MessageKey; body: Messag
 
 /** Autonomy and the project-wide test rules: red first, the requester's numbers, the coverage report. */
 export function TestRulesCard({ draft, dispatch }: { draft: Draft; dispatch: (a: Action) => void }) {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const check = (label: string, on: boolean, change: (v: boolean) => void) => (
     <label className="flex items-start gap-2.5 text-[13px]">
       <input type="checkbox" checked={on} onChange={(e) => change(e.target.checked)} className="mt-0.5 size-4 shrink-0 accent-[hsl(var(--primary))]" />
@@ -45,12 +46,20 @@ export function TestRulesCard({ draft, dispatch }: { draft: Draft; dispatch: (a:
         </div>
         <div className="grid gap-3">
           {check(t("qrules.redFirst"), draft.tests.red_first, (v) => dispatch({ type: "tests.set", value: { red_first: v } }))}
+          {draft.tests.red_first && draft.base.tests.red_first_since && (
+            <p className="-mt-1.5 pl-6 text-[12px] text-muted-foreground">{t("qrules.redFirst.since", { date: formatDateTime(draft.base.tests.red_first_since, lang) })}</p>
+          )}
           {check(t("qrules.examples"), draft.tests.examples_in_tests, (v) => dispatch({ type: "tests.set", value: { examples_in_tests: v } }))}
         </div>
         <label className="grid max-w-xl gap-1.5 text-[13px] font-medium">
           {t("qrules.coverageReport")}
           <Input value={draft.tests.coverage_report ?? ""} onChange={(e) => dispatch({ type: "tests.set", value: { coverage_report: e.target.value } })} placeholder="coverage/lcov.info" className="h-8 font-mono text-[12px]" />
           <span className="text-[12px] font-normal text-muted-foreground">{t("qrules.coverageReport.help")}</span>
+        </label>
+        <label className="grid max-w-xl gap-1.5 text-[13px] font-medium">
+          {t("qrules.exclude")}
+          <textarea value={draft.tests.exclude} onChange={(e) => dispatch({ type: "tests.set", value: { exclude: e.target.value } })} rows={3} placeholder="packages/cli/src/commands/**" className="rounded-md border bg-transparent px-3 py-2 font-mono text-[12px] outline-none focus-visible:ring-2 focus-visible:ring-ring" />
+          <span className="text-[12px] font-normal text-muted-foreground">{t("qrules.exclude.help")}</span>
         </label>
         <div>
           <p className="mb-1.5 text-[12px] font-medium text-muted-foreground">{t("qrules.levels")}</p>

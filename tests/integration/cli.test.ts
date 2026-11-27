@@ -91,7 +91,7 @@ describe("lastro pending and lastro gate", () => {
     expect(res.stdout).toContain("fix: AC-1 tests/discount.test.ts::shows the 8% line for 60 seats not run");
   });
 
-  it("runs offline from the export with --ci and checks the locked criteria (REQ-A2C7H AC-3)", async () => {
+  it("runs offline from the export with --ci and checks the locked criteria and the test levels (REQ-A2C7H AC-3)", async () => {
     const { run, project, actor, repo } = await setup();
     const source = await createBriefSource(project.id, actor, true);
     const input = discountRequirement(source.code);
@@ -106,6 +106,11 @@ describe("lastro pending and lastro gate", () => {
     const green = await run(["gate", "--ci"], "", { LASTRO_URL: "" });
     expect(green.stdout).toContain("gate: green");
     expect(green.code).toBe(0);
+    writeFileSync(yml, readFileSync(yml, "utf8").replace("flow: [unit]", "flow: [unit]\n    tests:\n      levels: [unit, e2e]"));
+    const noE2e = await run(["gate", "--ci"], "", { LASTRO_URL: "" });
+    expect(noE2e.code).toBe(1);
+    expect(noE2e.stdout).toContain(`no e2e test linked to ${req.code}`);
+    writeFileSync(yml, readFileSync(yml, "utf8").replace("\n    tests:\n      levels: [unit, e2e]", ""));
     const reqFile = join(repo, ".lastro", "requirements", `${req.code}.yml`);
     writeFileSync(reqFile, readFileSync(reqFile, "utf8").replace("8% at 60 seats", "7% at 60 seats"));
     const red = await run(["gate", "--ci"], "", { LASTRO_URL: "" });

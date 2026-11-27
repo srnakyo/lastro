@@ -20,12 +20,19 @@ acceptance:
     tests:
       - tests/unit/runner.test.ts::reads Vitest, Jest, Playwright, pytest and PHPUnit reports as file::test name
     locked: sha256:eb4a2e44363105ee4ae9f497b13b711153c481fd69bf12b1226f763a6044002c
+    locked_at: 2026-11-27T04:23:38.153Z
   - id: AC-2
     text: Given a SARIF 2.1.0 report with errors, when the stage is evaluated, then it fails and lists file, line and rule for each error.
     tests:
+      - tests/unit/runner.test.ts::fails a stage on 2 SARIF errors and still counts its 5 warnings (REQ-9Z4NG)
       - tests/unit/runner.test.ts::fails a stage with SARIF errors and keeps file, line and rule of each
-    locked: sha256:d10f870db5a72b76305c8bd7c3caa0b1a254a56cc41360ec0c35f29f6502e806
+    locked: sha256:109e6c6d25eb970409bfa39fe939ae0acdd113a5203d71deeec1a8668ef83e06
+    locked_at: 2026-11-27T04:23:38.153Z
 decisions: []
 questions: []
 depends_on: []
-touches: []
+touches:
+  - packages/core/src/runs/record.ts
+  - packages/runner/src/junit.ts
+  - packages/runner/src/sarif.ts
+  - packages/runner/src/verify.ts

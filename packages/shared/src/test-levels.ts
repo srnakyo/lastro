@@ -1,7 +1,7 @@
 import type { ProjectConfig } from "./config";
 
 /** A path glob (`**`, `*`, `?`) as a regular expression over a forward-slash path. */
-function globToRegExp(glob: string): RegExp {
+export function globToRegExp(glob: string): RegExp {
   let out = "";
   for (let i = 0; i < glob.length; i++) {
     const c = glob[i] as string;

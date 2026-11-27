@@ -1,4 +1,4 @@
-import { db, type Tx } from "../db";
+import type { Tx } from "../db";
 import { reevaluate } from "../requirements/evaluate";
 import type { ProjectScope } from "../scope/project-scope";
 import { matchQuote } from "../text/quote";
@@ -23,5 +23,3 @@ export async function recheckCitations(tx: Tx, scope: ProjectScope, sourceId: st
   }
   for (const requirementId of new Set(citations.map((c) => c.requirementId))) await reevaluate(tx, scope, requirementId);
 }
-
-export const sourceReads = { latestPassages: (sourceId: string) => latestPassages(db(), sourceId) };

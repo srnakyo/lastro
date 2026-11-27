@@ -41,7 +41,7 @@ function readRequirement(raw: Raw) {
     decisions: raw.decisions ?? [],
     questions: raw.questions ?? [],
     citations: asList(raw.sources).map((c: Raw) => ({ source: c.ref, anchor: c.anchor, label: c.label, quote: c.quote })),
-    criteria: asList(raw.acceptance).map((a: Raw) => ({ code: a.id, text: a.text, tests: a.tests ?? [], locked: a.locked ?? null })),
+    criteria: asList(raw.acceptance).map((a: Raw) => ({ code: a.id, text: a.text, tests: a.tests ?? [], locked: a.locked ?? null, lockedAt: a.locked_at ?? null })),
   };
 }
 

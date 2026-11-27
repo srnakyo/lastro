@@ -21,12 +21,14 @@ acceptance:
     tests:
       - tests/integration/runs.test.ts::flags a test that failed and passed on two commits when its files did not change, and not when they did
     locked: sha256:16515ad9f973856f24c954826b95b73bfaff9afc67397bb10f4dc15dee9fe5e8
+    locked_at: 2026-11-27T04:23:38.347Z
   - id: AC-2
     text: Given a test referenced by no criterion, then the Tests page flags it as orphan.
     tests:
       - tests/e2e/quality.spec.ts::the test catalog shows flaky and orphan tests and the criteria without a test
       - tests/integration/runs.test.ts::builds the test catalog with flaky and orphan tests and compares a run with the previous one
     locked: sha256:671331f03ca7b7f39fb030808236d1bcb5b5320f606d944886cbe5003b6956fe
+    locked_at: 2026-11-27T04:23:38.348Z
 decisions:
   - DEC-ADZDA
 questions: []
