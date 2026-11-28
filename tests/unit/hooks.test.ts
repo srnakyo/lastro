@@ -40,6 +40,18 @@ describe("stop decision", () => {
     expect(verdict).toMatchObject({ stop: false });
     expect(verdict.stop ? "" : verdict.reason).toContain("REQ-A: unit failed");
   });
+  it("lists an item many requirements share once, with how many it holds, and caps each requirement's own items", () => {
+    const lint = ["lint failed", "lint: erros_test.go:37 staticcheck QF1001: could apply De Morgan's law"];
+    const gates = Object.fromEntries(Array.from({ length: 30 }, (_, i) => [`REQ-${String(i).padStart(5, "0")}`, { pass: false, status: "building", needsPerson: [], agentCanFix: [...lint, `own item ${i}`, "a", "b", "c", "d"].slice(0, i === 0 ? 7 : 3) }]));
+    const verdict = stopDecision(gates, 0, 3, null);
+    const reason = verdict.stop ? "" : verdict.reason;
+    expect(reason).toContain("Lastro gate is red for 30 requirements you are building:");
+    expect(reason).toContain("- lint failed (30: REQ-00000, REQ-00001, REQ-00002, …)");
+    expect(reason.match(/De Morgan/g)).toHaveLength(1);
+    expect(reason).toContain("- REQ-00000: own item 0; a; b; c; and 1 more");
+    expect(reason).toContain("- and 18 more requirements");
+    expect(reason.split("\n").length).toBeLessThan(25);
+  });
   it("lets the agent stop when only a person can move things, when paused, or after the block limit", () => {
     expect(stopDecision({ "REQ-A": { pass: false, status: "building", agentCanFix: [], needsPerson: ["manual stage preview not signed"] } }, 0, 3, null)).toEqual({ stop: true });
     expect(stopDecision(red, 0, 3, "waiting for the client")).toMatchObject({ stop: true });

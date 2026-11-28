@@ -14,7 +14,7 @@ import { requirementCommands } from "./commands/requirement";
 import { specCommands } from "./commands/spec";
 import { verifyCommands } from "./commands/verify";
 
-const program = new Command("lastro").description("Requirements, evidence and quality gates for AI-driven development.").version("0.4.0");
+const program = new Command("lastro").description("Requirements, evidence and quality gates for AI-driven development.").version("0.4.1");
 
 accountCommands(program);
 snapshotCommands(program);
