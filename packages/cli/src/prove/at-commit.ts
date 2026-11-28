@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { copyFileSync, existsSync, mkdirSync, mkdtempSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { projectConfigSchema, testFile, type ProjectConfig } from "@lastro/shared";
@@ -31,17 +31,43 @@ export interface Proof {
   runId: string | null;
 }
 
+/** Where to prove: an earlier commit, or this one with the files of the behavior taken out (back to `at`, or deleted). */
+export interface ProofTarget {
+  at?: string;
+  without?: string[];
+}
+
+/** Takes the behavior out of the worktree: each file back to its version at `at`, or deleted when it was not there. */
+function takeOut(root: string, dir: string, files: string[], at: string | undefined) {
+  for (const file of files) {
+    const path = join(dir, file);
+    let before: string | null = null;
+    if (at) {
+      try {
+        before = execFileSync("git", ["show", `${at}:${file}`], { cwd: root, stdio: ["ignore", "pipe", "ignore"] }).toString();
+      } catch {
+        before = null;
+      }
+    }
+    if (before === null) rmSync(path, { force: true, recursive: true });
+    else writeFileSync(path, before);
+  }
+}
+
 /**
- * Runs a criterion's tests, as they are now, on an earlier commit where the code they test did not exist yet:
- * in a throwaway git worktree with only the test files copied in. Failing there is the red those tests could
- * not show first, recorded as a proof run; passing there means they do not check that code.
+ * Runs a criterion's tests, as they are now, without the code they test, in a throwaway git worktree: on an
+ * earlier commit where that code did not exist yet, or on this commit with the files of that behavior taken
+ * out (`without`), when the code and its tests came in together. Failing there is the red those tests could not
+ * show first, recorded as a proof run; passing there means they do not check that code.
  */
-export async function proveAtCommit(client: LastroClient, root: string, project: string, code: string, criterion: string, at: string): Promise<Proof> {
+export async function proveAtCommit(client: LastroClient, root: string, project: string, code: string, criterion: string, target: ProofTarget): Promise<Proof> {
+  const without = target.without ?? [];
+  if (!target.at && without.length === 0) throw new Error("say where to prove: --at <commit before the code>, or --without <files of the behavior>");
   const plan = await client.get<Plan>(`/projects/${project}/verify-plan?code=${encodeURIComponent(code)}`);
   const view = await client.get<{ type: string; criteria: { code: string; tests: { testRef: string }[] }[] }>(`/projects/${project}/requirements/${code}`);
   const tests = view.criteria.find((c) => c.code === criterion)?.tests.map((t) => t.testRef) ?? [];
   if (tests.length === 0) throw new Error(`${code} ${criterion} has no linked test to prove`);
-  const commit = git(root, ["rev-parse", "--short", at]);
+  const commit = git(root, ["rev-parse", "--short", without.length ? "HEAD" : (target.at ?? "HEAD")]);
   const dir = mkdtempSync(join(tmpdir(), "lastro-proof-"));
   git(root, ["worktree", "add", "--detach", dir, commit]);
   try {
@@ -51,6 +77,7 @@ export async function proveAtCommit(client: LastroClient, root: string, project:
       mkdirSync(dirname(join(dir, file)), { recursive: true });
       copyFileSync(join(root, file), join(dir, file));
     }
+    takeOut(root, dir, without, target.at);
     const config = testStagesOnly(projectConfigSchema.parse(plan.config), view.type);
     const report = await verify(dir, config, [{ code, type: view.type, touches: [], testFiles: files, tests }], "agent");
     const stages = report.stages.filter((s) => s.results.length > 0 || s.status !== "passed");
@@ -64,7 +91,7 @@ export async function proveAtCommit(client: LastroClient, root: string, project:
     if (red.length) {
       const saved = await client.post<{ runId: string }>(`/projects/${project}/runs`, {
         ...report, commit, branch: null, dirty: true, trees: {}, stages: stages.map((s) => ({ ...s, results: broken && s.results.length === 0 ? notRun.map((ref) => ({ ref, file: testFile(ref), name: ref.split("::").slice(1).join("::"), status: "failed" as const, durationMs: 0, message: `did not build at ${commit}` })) : s.results })),
-        proof: { requirement: code, criterion, at: commit },
+        proof: { requirement: code, criterion, at: commit, without },
       });
       runId = saved.runId;
     }

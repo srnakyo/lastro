@@ -18,7 +18,7 @@ lastro init my-project            # creates the project when it does not exist, 
 | `lastro req list`, `req show <code>`, `req start <code>`, `req link-test <code> <criterion> <file::test>` | Requirements |
 | `lastro req work <code>` | Say which requirement you are working on: the files you change count for it |
 | `lastro req touches <code> [--set <files...>]` | The files a requirement touches (its coverage is measured on these), or replace them when they got files of other requirements; the audit keeps what changed |
-| `lastro req prove <code> <criterion> --at <commit>` | Run a criterion's tests, as they are now, on a commit from before the code they check: failing there is their red; passing there means they do not check it |
+| `lastro req prove <code> <criterion> --at <commit>` or `--without <files...>` | Run a criterion's tests, as they are now, without the code they check: on a commit from before it, or on this one with the behavior's files taken out. Failing there is their red; passing there means they do not check it |
 | `lastro req existing <code> <criterion> --reason <text>` | A criterion whose tests check a behavior that already existed: recorded as a decision, and its tests are not asked to fail first |
 | `lastro intake <file>` | Send a DOCX, PDF, chat export, audio, video, image or Markdown as a source |
 | `lastro ask`, `lastro decide` | Open a question, record a decision or assumption |

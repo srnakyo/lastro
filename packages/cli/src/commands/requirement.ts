@@ -43,18 +43,20 @@ export function requirementCommands(program: Command) {
     });
   req
     .command("prove")
-    .description("run a criterion's tests on an earlier commit, before the code existed: failing there is their red")
+    .description("run a criterion's tests without the code they check (an earlier commit, or this one without some files): failing there is their red")
     .argument("<code>")
     .argument("<criterion>")
-    .requiredOption("--at <commit>", "a commit from before the code those tests check")
-    .action(async (code: string, criterion: string, o: { at: string }) => {
-      const proof = await proveAtCommit(new LastroClient(), findRoot(), project(), code, criterion, o.at);
-      if (proof.failed.length) console.log(`${code} ${criterion}: ${proof.failed.length} test(s) fail at ${proof.commit}, before the code: their red is recorded (run ${proof.runId})`);
+    .option("--at <commit>", "a commit from before that code (with --without: where the taken-out files come back from)")
+    .option("--without <files...>", "on this commit, take these files of the behavior out (back to --at, or deleted)")
+    .action(async (code: string, criterion: string, o: { at?: string; without?: string[] }) => {
+      const proof = await proveAtCommit(new LastroClient(), findRoot(), project(), code, criterion, { at: o.at, without: o.without });
+      const where = o.without?.length ? `${proof.commit} without ${o.without.join(", ")}` : proof.commit;
+      if (proof.failed.length) console.log(`${code} ${criterion}: ${proof.failed.length} test(s) fail at ${where}: their red is recorded (run ${proof.runId})`);
       if (proof.passed.length) {
-        console.log(`these pass at ${proof.commit} too, so they may not check that code; make them stronger:\n${proof.passed.map((t) => `  ${t}`).join("\n")}`);
+        console.log(`these pass at ${where} too, so they may not check that code; make them stronger:\n${proof.passed.map((t) => `  ${t}`).join("\n")}`);
         process.exitCode = 1;
       }
-      if (proof.notRun.length) console.log(`not run at ${proof.commit}:\n${proof.notRun.map((t) => `  ${t}`).join("\n")}`);
+      if (proof.notRun.length) console.log(`not run at ${where} (did it build?):\n${proof.notRun.map((t) => `  ${t}`).join("\n")}`);
     });
   req
     .command("existing")

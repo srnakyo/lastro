@@ -1,6 +1,6 @@
 {
   "name": "@nakyo/lastro",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Requirements, evidence and quality gates for AI-driven development.",
   "keywords": [
     "requirements",

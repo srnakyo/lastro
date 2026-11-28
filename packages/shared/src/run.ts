@@ -48,10 +48,11 @@ export const runReportSchema = z.object({
   testFiles: z.record(z.string(), z.string()).default({}),
   testFileLines: z.record(z.string(), z.array(z.string())).default({}),
   /**
-   * A run that shows a criterion's tests fail on an earlier commit, before the code they test existed: its
-   * results count as the red of those tests, and it settles no gate.
+   * A run that shows a criterion's tests fail without the code they test: on an earlier commit, or on this one
+   * with the files of that behavior taken out (`without`). Its results count as the red of those tests, and it
+   * settles no gate.
    */
-  proof: z.object({ requirement: z.string(), criterion: z.string(), at: z.string() }).optional(),
+  proof: z.object({ requirement: z.string(), criterion: z.string(), at: z.string(), without: z.array(z.string()).default([]) }).optional(),
 });
 
 export type RunReportInput = z.input<typeof runReportSchema>;

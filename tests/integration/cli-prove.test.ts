@@ -52,7 +52,7 @@ describe("lastro req prove", () => {
   it("records the red of tests written with their code, by running them on the commit before the code", async () => {
     const { project, code, before, run } = await setup();
     const res = await run(["req", "prove", code, "AC-1", "--at", before]);
-    expect(res.stdout).toContain(`${code} AC-1: 1 test(s) fail at ${before}, before the code: their red is recorded`);
+    expect(res.stdout).toContain(`${code} AC-1: 1 test(s) fail at ${before}: their red is recorded`);
     expect(res.code).toBe(0);
     const proof = await database().run.findFirstOrThrow({ where: { projectId: project.id, commit: before } });
     expect(proof.status).toBe("failed");
@@ -62,6 +62,15 @@ describe("lastro req prove", () => {
       stages: [{ requirement: code, stage: "unit", condition: null, command: "sh check.sh", exitCode: 0, status: "passed", durationMs: 1, output: "", findings: [], results: [{ ref: REF, file: "check.sh", name: "calc works", status: "passed", durationMs: 1, message: null }] }],
     });
     expect(green.gates[code]?.agentCanFix.join(" ")).not.toContain("never failed");
+  });
+
+  it("proves on this commit with the behavior's file taken out, when the code and its tests came in together", async () => {
+    const { project, code, run } = await setup();
+    const res = await run(["req", "prove", code, "AC-1", "--without", "calc.txt"]);
+    expect(res.stdout).toContain("1 test(s) fail at");
+    expect(res.stdout).toContain("without calc.txt: their red is recorded");
+    const audit = await database().auditEvent.findFirstOrThrow({ where: { projectId: project.id, action: "run.proof" } });
+    expect(audit.data).toMatchObject({ requirement: code, criterion: "AC-1", without: ["calc.txt"] });
   });
 
   it("says when the tests pass even before the code, so they do not check it", async () => {
