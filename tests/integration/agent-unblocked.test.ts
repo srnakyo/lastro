@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "bun:test";
 import { addTouches, decisionsService, exportSnapshot, lifecycleService, lockedTestFiles, packagesService, requirementsService, runsService, setTouches, sourcesService, criteriaService } from "@lastro/core";
 import { planImport } from "../../packages/core/src/snapshot/plan";
+import { criterionHash } from "@lastro/shared";
 import { database } from "@lastro/database";
 import { projectConfigSchema, type RunReportInput } from "@lastro/shared";
 import { resetDatabase } from "../helpers/db";
@@ -256,5 +257,24 @@ describe("a proof run", () => {
     // The passing run is still the evidence: the proof's red does not fail the gate.
     const gate = await runsService.gate(project.id, { [code]: "sha256:tree" }, { commit: "abc1234" });
     expect(gate.requirements[code]?.agentCanFix.join(" ")).not.toContain(`${TEST_REF} failed`);
+  });
+});
+
+describe("taking a test off a criterion", () => {
+  const MERGED = "tests/discount.test.ts::60 seats and 61 seats in one";
+  it("lets the agent take off a test that never passed once another covers the criterion, sealed again, and refuses one that passed", async () => {
+    const { project, actor, code } = await building();
+    await expect(criteriaService.unlinkTest(project.id, agent, code, "AC-1", TEST_REF)).rejects.toThrow("would have no test left");
+    await criteriaService.linkTest(project.id, agent, code, "AC-1", MERGED);
+    await criteriaService.unlinkTest(project.id, agent, code, "AC-1", TEST_REF);
+    const criterion = await database().criterion.findFirstOrThrow({ where: { code: "AC-1", requirement: { projectId: project.id, code } }, include: { tests: true } });
+    expect(criterion.tests.map((t) => t.testRef)).toEqual([MERGED]);
+    expect(criterion.lockedHash).toBe(await criterionHash(criterion.text, [MERGED]));
+    expect(await database().auditEvent.count({ where: { projectId: project.id, action: "criterion.unlink_test" } })).toBe(1);
+
+    await criteriaService.linkTest(project.id, agent, code, "AC-1", TEST_REF);
+    await runsService.record(project.id, agent, run(code, "passed", "sha256:one"));
+    await expect(criteriaService.unlinkTest(project.id, agent, code, "AC-1", TEST_REF)).rejects.toThrow("passed already");
+    await criteriaService.unlinkTest(project.id, actor, code, "AC-1", TEST_REF);
   });
 });

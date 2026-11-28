@@ -1,7 +1,7 @@
 import type { Actor } from "@lastro/shared";
 import { auditService } from "../audit/service";
 import { transaction, type Tx } from "../db";
-import { notFound } from "../errors";
+import { LastroError, notFound } from "../errors";
 import { criterionHash } from "../lifecycle/lock";
 import { markPreexisting } from "./preexisting";
 import { recordTransition } from "../lifecycle/record";
@@ -37,7 +37,33 @@ export async function linkTestTx(tx: Tx, scope: ProjectScope, actor: Actor, requ
   return true;
 }
 
+/**
+ * Takes a test off a criterion. The agent may take off a test that never passed, as it may fix its own test
+ * before it proved itself, as long as the criterion keeps a test; a test that passed is a person's to take off.
+ * A locked criterion is sealed again with the tests that stay.
+ */
+export async function unlinkTestTx(tx: Tx, scope: ProjectScope, actor: Actor, requirementCode: string, criterionCode: string, testRef: string) {
+  const requirement = await findRequirement(tx, scope.id, requirementCode);
+  const criterion = await findCriterion(tx, requirement.id, criterionCode);
+  const links = await tx.criterionTest.findMany({ where: { criterionId: criterion.id }, select: { testRef: true } });
+  if (!links.some((l) => l.testRef === testRef)) throw notFound(`${testRef} on ${requirementCode} ${criterionCode}`);
+  if (actor.type !== "user") {
+    const passed = await tx.testResult.count({ where: { status: "passed", test: { projectId: scope.id, ref: testRef } } });
+    if (passed > 0) throw new LastroError("HUMAN_ONLY", `${testRef} passed already: taking it off ${requirementCode} ${criterionCode} needs a person (lastro unlock)`);
+    if (links.length === 1) throw new LastroError("CONFLICT", `${requirementCode} ${criterionCode} would have no test left: link the new one first`);
+  }
+  await tx.criterionTest.delete({ where: { criterionId_testRef: { criterionId: criterion.id, testRef } } });
+  const resealed = criterion.lockedHash !== null;
+  if (resealed) await tx.criterion.update({ where: { id: criterion.id }, data: { lockedHash: await criterionHash(criterion.text, links.map((l) => l.testRef).filter((r) => r !== testRef)) } });
+  await auditService.record(tx, { workspaceId: scope.workspaceId, projectId: scope.id, actor, action: "criterion.unlink_test", entity: "requirement", entityId: requirementCode, data: { criterion: criterionCode, testRef, ...(resealed ? { resealed: true } : {}) } });
+  await reevaluate(tx, scope, requirement.id);
+}
+
 export const criteriaService = {
+  async unlinkTest(projectId: string, actor: Actor, requirementCode: string, criterionCode: string, testRef: string) {
+    return transaction(async (tx) => unlinkTestTx(tx, await loadScope(tx, projectId), actor, requirementCode, criterionCode, testRef));
+  },
+
   markPreexisting,
 
   /**

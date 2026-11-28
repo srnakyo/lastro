@@ -16,6 +16,7 @@ lastro init my-project            # creates the project when it does not exist, 
 |---|---|
 | `lastro pending` | What is not verified yet, grouped by what holds it |
 | `lastro req list`, `req show <code>`, `req start <code>`, `req link-test <code> <criterion> <file::test>` | Requirements |
+| `lastro req unlink-test <code> <criterion> <file::test>` | Take a test that never passed off a criterion, once another test covers it (a test that passed is a person's to take off) |
 | `lastro req work <code>` | Say which requirement you are working on: the files you change count for it |
 | `lastro req touches <code> [--set <files...>]` | The files a requirement touches (its coverage is measured on these), or replace them when they got files of other requirements; the audit keeps what changed |
 | `lastro req prove <code> <criterion> --at <commit>` or `--without <files...>` | Run a criterion's tests, as they are now, without the code they check: on a commit from before it, or on this one with the behavior's files taken out. Failing there is their red; passing there means they do not check it |

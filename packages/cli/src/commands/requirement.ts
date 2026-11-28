@@ -31,6 +31,16 @@ export function requirementCommands(program: Command) {
       console.log(`working on ${code}: the files you change now count for it`);
     });
   req
+    .command("unlink-test")
+    .description("take a test off a criterion: one that never passed, replaced by another (a test that passed is a person's)")
+    .argument("<code>")
+    .argument("<criterion>")
+    .argument("<test>", "file::test name")
+    .action(async (code: string, criterion: string, test: string) => {
+      await new LastroClient().post(`/projects/${project()}/requirements/${code}/tests/unlink`, { criterion, test });
+      console.log(`${test} taken off ${code} ${criterion}`);
+    });
+  req
     .command("touches")
     .description("list the files a requirement touches, or replace them with --set (its coverage is measured on these)")
     .argument("<code>")
