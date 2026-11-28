@@ -7,7 +7,7 @@ export async function writeRun(tx: Tx, projectId: string, report: RunReportData)
   const run = await tx.run.create({
     data: {
       projectId, trigger: report.trigger, commit: report.commit, branch: report.branch, dirty: report.dirty, environment: report.environment,
-      status: failed ? "failed" : "passed", startedAt: report.startedAt, finishedAt: new Date(report.startedAt.getTime() + report.durationMs), durationMs: report.durationMs,
+      status: failed ? "failed" : "passed", proof: !!report.proof, startedAt: report.startedAt, finishedAt: new Date(report.startedAt.getTime() + report.durationMs), durationMs: report.durationMs,
     },
   });
   const requirements = await tx.requirement.findMany({ where: { projectId, code: { in: report.stages.map((s) => s.requirement).filter((c): c is string => !!c) } }, select: { id: true, code: true } });

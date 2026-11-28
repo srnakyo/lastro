@@ -10,7 +10,7 @@ export interface TestTotals {
 /** The latest result of every test of a project. */
 export async function latestTestResults(projectId: string) {
   const results = await db().testResult.findMany({
-    where: { test: { projectId } },
+    where: { test: { projectId }, runStage: { run: { proof: false } } },
     orderBy: [{ runStage: { run: { startedAt: "desc" } } }, { runStage: { startedAt: "desc" } }],
     select: { testId: true, status: true, test: { select: { ref: true } } },
   });

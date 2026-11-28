@@ -9,7 +9,7 @@ export async function testCatalog(projectId: string) {
     db().test.findMany({
       where: { projectId },
       orderBy: { ref: "asc" },
-      include: { results: { orderBy: [{ runStage: { run: { startedAt: "desc" } } }, { runStage: { startedAt: "desc" } }], take: 20, select: { status: true, durationMs: true, runStage: { select: { condition: true, startedAt: true, treeHash: true, run: { select: { id: true, commit: true } } } } } } },
+      include: { results: { where: { runStage: { run: { proof: false } } }, orderBy: [{ runStage: { run: { startedAt: "desc" } } }, { runStage: { startedAt: "desc" } }], take: 20, select: { status: true, durationMs: true, runStage: { select: { condition: true, startedAt: true, treeHash: true, run: { select: { id: true, commit: true } } } } } } },
     }),
     db().criterionTest.findMany({ where: { criterion: { requirement: { projectId } } }, select: { testRef: true, criterion: { select: { code: true, requirement: { select: { code: true } } } } } }),
   ]);

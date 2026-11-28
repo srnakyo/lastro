@@ -80,17 +80,19 @@ export async function proveAtCommit(client: LastroClient, root: string, project:
     takeOut(root, dir, without, target.at);
     const config = testStagesOnly(projectConfigSchema.parse(plan.config), view.type);
     const report = await verify(dir, config, [{ code, type: view.type, touches: [], testFiles: files, tests }], "agent");
-    const stages = report.stages.filter((s) => s.results.length > 0 || s.status !== "passed");
+    const ran = report.stages.filter((s) => s.results.length > 0 || s.status !== "passed");
+    // A suite that could not even build fails every test it holds: that is the code missing, which is the point.
+    const broken = ran.some((s) => s.status !== "passed" && s.results.length === 0);
+    // Only the criterion's tests: the suite may run others (a script that adds packages), which are nobody's red.
+    const stages = ran.map((s) => ({ ...s, results: s.results.filter((r) => tests.includes(r.ref)) }));
     const results = new Map(mergeResults(stages.flatMap((s) => s.results)).map((r) => [r.ref, r.status] as const));
     const failed = tests.filter((t) => results.get(t) === "failed" || results.get(t) === "error");
-    // A suite that could not even build fails every test it holds: that is the code missing, which is the point.
-    const broken = stages.some((s) => s.status !== "passed" && s.results.length === 0);
     const notRun = tests.filter((t) => !results.has(t));
     const red = broken ? [...failed, ...notRun] : failed;
     let runId: string | null = null;
     if (red.length) {
       const saved = await client.post<{ runId: string }>(`/projects/${project}/runs`, {
-        ...report, commit, branch: null, dirty: true, trees: {}, stages: stages.map((s) => ({ ...s, results: broken && s.results.length === 0 ? notRun.map((ref) => ({ ref, file: testFile(ref), name: ref.split("::").slice(1).join("::"), status: "failed" as const, durationMs: 0, message: `did not build at ${commit}` })) : s.results })),
+        ...report, commit, branch: null, dirty: true, trees: {}, stages: stages.map((s) => ({ ...s, results: broken && s.results.length === 0 && s.status !== "passed" ? notRun.map((ref) => ({ ref, file: testFile(ref), name: ref.split("::").slice(1).join("::"), status: "failed" as const, durationMs: 0, message: `did not build at ${commit}` })) : s.results })),
         proof: { requirement: code, criterion, at: commit, without },
       });
       runId = saved.runId;

@@ -1,4 +1,4 @@
-import { manualCheckSchema, runReportSchema, type Actor, type ManualCheckInput, type RunReportInput } from "@lastro/shared";
+import { manualCheckSchema, runReportSchema, type Actor, type ManualCheckInput, type RunReportData, type RunReportInput } from "@lastro/shared";
 import { auditService } from "../audit/service";
 import { db, transaction, type Tx } from "../db";
 import { recordTransition } from "../lifecycle/record";
@@ -25,12 +25,22 @@ async function settle(tx: Tx, scope: ProjectScope, requirement: { id: string; co
   return result;
 }
 
+/** A proof keeps only the results of the criterion it proves: the suite may run other tests, nobody's red. */
+async function onlyProvedTests(tx: Tx, projectId: string, report: RunReportData): Promise<RunReportData> {
+  if (!report.proof) return report;
+  const { requirement, criterion } = report.proof;
+  const links = await tx.criterionTest.findMany({ where: { criterion: { code: criterion, requirement: { projectId, code: requirement } } }, select: { testRef: true } });
+  const refs = new Set(links.map((l) => l.testRef));
+  return { ...report, stages: report.stages.map((s) => ({ ...s, results: s.results.filter((r) => refs.has(r.ref)) })) };
+}
+
 export const runsService = {
   /** Records a run sent by `lastro verify` and settles the gate of every requirement it covered. */
   async record(projectId: string, actor: Actor, raw: RunReportInput) {
-    const report = runReportSchema.parse(raw);
+    const parsed = runReportSchema.parse(raw);
     return transaction(async (tx) => {
       const scope = await loadScope(tx, projectId);
+      const report = await onlyProvedTests(tx, projectId, parsed);
       const run = await writeRun(tx, projectId, report);
       // Tests named after their criterion link themselves before the gate looks at the criteria.
       const linked = await linkByName(tx, scope, actor, report);

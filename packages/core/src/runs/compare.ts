@@ -16,7 +16,7 @@ export async function compareWithPrevious(projectId: string, run: { startedAt: D
     ids.map(async (requirementId) => {
       const code = run.stages.find((s) => s.requirementId === requirementId)?.requirement?.code ?? "";
       const previous = await db().run.findFirst({
-        where: { projectId, startedAt: { lt: run.startedAt }, stages: { some: { requirementId } } },
+        where: { projectId, proof: false, startedAt: { lt: run.startedAt }, stages: { some: { requirementId } } },
         orderBy: { startedAt: "desc" },
         select: { id: true, commit: true, stages: { where: { requirementId }, select: { results: { select: { status: true, test: { select: { ref: true } } } } } } },
       });

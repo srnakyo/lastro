@@ -68,7 +68,8 @@ const RANK: Record<string, number> = { error: 3, failed: 2, passed: 1, skipped: 
  */
 async function latestByRef(tx: Tx, projectId: string, refs: string[], commit?: string | null) {
   const results = await tx.testResult.findMany({
-    where: { test: { projectId, ref: { in: refs } }, ...(commit ? { runStage: { run: { commit } } } : {}) },
+    // A proof run is the red of a criterion's tests, never anyone's evidence.
+    where: { test: { projectId, ref: { in: refs } }, runStage: { run: { proof: false, ...(commit ? { commit } : {}) } } },
     orderBy: [{ runStage: { run: { startedAt: "desc" } } }, { runStage: { startedAt: "desc" } }],
     select: { status: true, test: { select: { ref: true } }, runStage: { select: { runId: true } } },
   });

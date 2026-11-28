@@ -35,7 +35,7 @@ const label = (b: { kind: string; detail: string }) => b.kind;
 /** Latest result of each test with the run it came from. */
 async function latestTests(projectId: string) {
   const results = await db().testResult.findMany({
-    where: { test: { projectId } },
+    where: { test: { projectId }, runStage: { run: { proof: false } } },
     orderBy: [{ runStage: { run: { startedAt: "desc" } } }, { runStage: { startedAt: "desc" } }],
     select: { status: true, test: { select: { ref: true } }, runStage: { select: { run: { select: { id: true, commit: true } } } } },
   });

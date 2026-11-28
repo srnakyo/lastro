@@ -242,3 +242,19 @@ describe("a seal on each test's own lines", () => {
     expect((await database().criterionTest.findFirstOrThrow({ where: { testRef: TEST_REF } })).lockedHash).toStartWith("block:");
   });
 });
+
+describe("a proof run", () => {
+  it("keeps only its criterion's tests and is never anyone's evidence", async () => {
+    const { project, code } = await building();
+    await runsService.record(project.id, agent, run(code, "passed", "sha256:one"));
+    const proof = run(code, "failed", "sha256:one");
+    const stage = proof.stages[0];
+    if (stage) stage.results = [...stage.results, { ref: "tests/other.test.ts::a test of another requirement", file: "tests/other.test.ts", name: "x", status: "failed", durationMs: 1, message: null }];
+    await runsService.record(project.id, agent, { ...proof, proof: { requirement: code, criterion: "AC-1", at: "abc1234", without: ["calc.sql"] } });
+    const stored = await database().testResult.findMany({ where: { runStage: { run: { projectId: project.id, proof: true } } }, select: { test: { select: { ref: true } } } });
+    expect(stored.map((r) => r.test.ref)).toEqual([TEST_REF]);
+    // The passing run is still the evidence: the proof's red does not fail the gate.
+    const gate = await runsService.gate(project.id, { [code]: "sha256:tree" }, { commit: "abc1234" });
+    expect(gate.requirements[code]?.agentCanFix.join(" ")).not.toContain(`${TEST_REF} failed`);
+  });
+});

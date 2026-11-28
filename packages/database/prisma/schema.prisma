@@ -610,6 +610,9 @@ model Run {
   startedAt   DateTime   @default(now())
   finishedAt  DateTime?
   durationMs  Int?
+  /// A run that only proves a criterion's tests fail without the code they test (lastro req prove): its results
+  /// are the red of those tests and never anyone's evidence.
+  proof       Boolean    @default(false)
   stages      RunStage[]
   evidence    Evidence[]
 
