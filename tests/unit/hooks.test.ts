@@ -1,6 +1,7 @@
 import { describe, expect, it } from "bun:test";
 import { contextText, type AgentContext } from "../../packages/cli/src/hooks/context-text";
 import { guardToolCall, touchedFile } from "../../packages/cli/src/hooks/guard";
+import { lineHash } from "../../packages/runner/src/test-blocks";
 import { stopDecision } from "../../packages/cli/src/hooks/stop";
 
 const ROOT = "/repo";
@@ -25,6 +26,21 @@ describe("pre-tool-use guard", () => {
     expect(verdict).toMatchObject({ allow: false });
     expect(verdict.allow ? "" : verdict.reason).toContain("REQ-K7Q2M AC-1");
     expect(guardToolCall(call("Edit", { file_path: "/repo/src/discount.ts" }), ROOT, LOCKED)).toEqual({ allow: true });
+  });
+
+  it("lets a file with tests sealed on their own lines take a new test, and refuses an edit to a sealed test's lines", () => {
+    const file = 'describe("discount", () => {\n  it("60 seats", () => {\n    expect(price(60)).toBe(8);\n  });\n});\n';
+    const sealed = ['  it("60 seats", () => {', "    expect(price(60)).toBe(8);", "  });"].map(lineHash);
+    const locked = [{ file: "tests/discount.test.ts", criteria: ["REQ-K7Q2M AC-1"], tests: [{ ref: "tests/discount.test.ts::60 seats", block: true, lines: sealed }] }];
+    const read = () => file;
+    const added = call("Edit", { file_path: "/repo/tests/discount.test.ts", old_string: "});\n", new_string: '  it("61 seats", () => {\n    expect(price(61)).toBe(8);\n  });\n});\n' });
+    expect(guardToolCall(added, ROOT, locked, read)).toEqual({ allow: true });
+    const weakened = guardToolCall(call("Edit", { file_path: "/repo/tests/discount.test.ts", old_string: "toBe(8)", new_string: "toBeDefined()" }), ROOT, locked, read);
+    expect(weakened).toMatchObject({ allow: false });
+    expect(weakened.allow ? "" : weakened.reason).toContain("the sealed tests 60 seats");
+    // A whole-file seal from before still refuses any edit, until a verify turns it into a seal of the test's lines.
+    const fileSeal = [{ file: "tests/discount.test.ts", criteria: ["REQ-K7Q2M AC-1"], tests: [{ ref: "tests/discount.test.ts::60 seats", block: false, lines: sealed }] }];
+    expect(guardToolCall(added, ROOT, fileSeal, read)).toMatchObject({ allow: false });
   });
 
   it("reports the touched file relative to the repository", () => {

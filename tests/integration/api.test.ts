@@ -113,7 +113,7 @@ describe("agent limits and hooks endpoints", () => {
     };
     expect((await call(agent, "POST", "/projects/billing/runs", passed)).status).toBe(200);
     const locked = await (await call(agent, "GET", "/projects/billing/locked-tests")).json();
-    expect(locked).toEqual([{ file: "tests/discount.test.ts", criteria: [`${code} AC-1`] }]);
+    expect(locked).toMatchObject([{ file: "tests/discount.test.ts", criteria: [`${code} AC-1`] }]);
   });
 });
 

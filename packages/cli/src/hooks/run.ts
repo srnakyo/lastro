@@ -5,7 +5,7 @@ import { findRoot, linkedProject, tryRoot } from "../config/project";
 import { runGate } from "../commands/verify-run";
 import { changedFiles, changedThisTurn, headCommit } from "./changed-files";
 import { contextText, type AgentContext } from "./context-text";
-import { guardToolCall, touchedFile, type ToolCall } from "./guard";
+import { guardToolCall, touchedFile, type LockedFile, type ToolCall } from "./guard";
 import { HookState } from "./state";
 import { stopDecision } from "./stop";
 
@@ -59,7 +59,7 @@ async function sessionStart(c: Ctx, input: HookInput) {
 async function preToolUse(c: Ctx, input: HookInput) {
   const call = { tool_name: input.tool_name ?? "", tool_input: input.tool_input ?? {}, cwd: input.cwd ?? process.cwd() };
   const needsLocks = call.tool_name !== "Bash";
-  const locked = needsLocks ? await c.client.get<{ file: string; criteria: string[] }[]>(`/projects/${c.project}/locked-tests`) : [];
+  const locked = needsLocks ? await c.client.get<LockedFile[]>(`/projects/${c.project}/locked-tests`) : [];
   const verdict = guardToolCall(call, c.root, locked);
   if (verdict.allow) return;
   await event(c, "tool.denied", { tool: call.tool_name, reason: verdict.reason });

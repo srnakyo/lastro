@@ -7,6 +7,7 @@ import { mergeResults, parseJunit, type TestCaseResult } from "./junit";
 import { planStages } from "./plan";
 import { qualityStage, readCoverage } from "./quality";
 import { fillCommand, selectionFor, selects } from "./selection";
+import { testBlocks } from "./test-blocks";
 import { parseSarif, type Finding } from "./sarif";
 
 export interface RequirementToVerify {
@@ -49,6 +50,8 @@ export interface RunReport {
   testFiles: Record<string, string>;
   /** Line fingerprints of the test files: a sealed file that only grew keeps its seal. */
   testFileLines: Record<string, string[]>;
+  /** Line fingerprints of each linked test's own block: its seal covers that test, not the whole file. */
+  testBlocks: Record<string, string[]>;
 }
 
 function readReport(cwd: string, path: string | undefined, parse: (text: string) => unknown[]): unknown[] {
@@ -133,5 +136,6 @@ export async function verify(cwd: string, config: ProjectConfig, requirements: R
     trees: Object.fromEntries(requirements.map((r) => [r.code, treeHash(cwd, boundFiles(r))])),
     testFiles: fileHashes(cwd, requirements.flatMap((r) => r.testFiles ?? [])),
     testFileLines: fileLines(cwd, requirements.flatMap((r) => r.testFiles ?? [])),
+    testBlocks: testBlocks(cwd, requirements.flatMap((r) => r.tests ?? [])),
   };
 }

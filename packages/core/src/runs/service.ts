@@ -39,7 +39,7 @@ export const runsService = {
       // A proof on an earlier commit only records the red of the tests; the requirement's evidence is on its own commit.
       for (const code of report.proof ? [] : codes) {
         const requirement = await findRequirement(tx, projectId, code);
-        gates[code] = await settle(tx, scope, requirement, run.id, report.trees[code], { commit: report.commit, testFiles: report.testFiles, testFileLines: report.testFileLines });
+        gates[code] = await settle(tx, scope, requirement, run.id, report.trees[code], { commit: report.commit, testFiles: report.testFiles, testFileLines: report.testFileLines, testBlocks: report.testBlocks });
       }
       await auditService.record(tx, { workspaceId: scope.workspaceId, projectId, actor, action: report.proof ? "run.proof" : "run.record", entity: "run", entityId: run.id, data: { status: run.status, ...(report.proof ?? {}) } });
       return { runId: run.id, status: run.status, gates, linked };
@@ -83,7 +83,7 @@ export const runsService = {
         }
         // Verified evidence is bound to the tree of the touched files; what is still building must pass on this commit.
         const commit = item.status === "verified" ? undefined : ctx.commit;
-        const result = await evaluateGate(tx, scope.config, item.id, await latestStages(tx, item.id, commit), { commit, testFiles: ctx.testFiles, testFileLines: ctx.testFileLines });
+        const result = await evaluateGate(tx, scope.config, item.id, await latestStages(tx, item.id, commit), { commit, testFiles: ctx.testFiles, testFileLines: ctx.testFileLines, testBlocks: ctx.testBlocks });
         results[item.code] = { ...result, pass: item.status === "verified" && result.pass, status: item.status };
       }
       return { pass: Object.values(results).every((r) => r.pass), requirements: results };

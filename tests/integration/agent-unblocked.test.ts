@@ -44,7 +44,7 @@ describe("the agent fixes its own test until the test proves itself", () => {
     const fixed = await runsService.record(project.id, agent, run(code, "passed", "sha256:fixed"));
     expect(fixed.gates[code]?.agentCanFix.join(" ")).not.toContain("locked test changed");
     expect(fixed.gates[code]?.pass).toBe(true);
-    expect(await lockedTestFiles(project.id)).toEqual([{ file: "tests/discount.test.ts", criteria: [`${code} AC-1`] }]);
+    expect(await lockedTestFiles(project.id)).toMatchObject([{ file: "tests/discount.test.ts", criteria: [`${code} AC-1`] }]);
     const edited = await runsService.gate(project.id, { [code]: "sha256:tree" }, { testFiles: { "tests/discount.test.ts": "sha256:weaker" } });
     expect(edited.requirements[code]?.agentCanFix.join(" ")).toContain("locked test changed: tests/discount.test.ts (AC-1)");
   });
@@ -206,5 +206,39 @@ describe("the latest evidence", () => {
     expect(now.gates[code]?.pass).toBe(true);
     const stages = await database().runStage.findMany({ where: { run: { projectId: project.id } }, include: { run: true } });
     expect(stages.every((s) => !s.run.finishedAt || s.startedAt <= s.run.finishedAt)).toBe(true);
+  });
+});
+
+describe("a seal on each test's own lines", () => {
+  const OTHER = "tests/discount.test.ts::shows the 8% line for 61 seats";
+  async function twoTests() {
+    const ctx = await building();
+    await criteriaService.linkTest(ctx.project.id, agent, ctx.code, "AC-1", OTHER);
+    return ctx;
+  }
+  const report = (code: string, blocks: Record<string, string[]>, fileLines: string[]) => {
+    const r = run(code, "passed", `sha256:${fileLines.join("")}`, fileLines);
+    const stage = r.stages[0];
+    if (stage) stage.results = [TEST_REF, OTHER].map((ref) => ({ ref, file: "tests/discount.test.ts", name: ref.split("::")[1] ?? "", status: "passed" as const, durationMs: 1, message: null }));
+    return { ...r, testBlocks: blocks };
+  };
+
+  it("is left alone by a change in another test of the same file, and caught when its own lines change", async () => {
+    const { project, code } = await twoTests();
+    await runsService.record(project.id, agent, report(code, { [TEST_REF]: ["a1", "a2"], [OTHER]: ["b1", "b2"] }, ["imp", "a1", "a2", "b1", "b2"]));
+    // The other test is rewritten and an import goes away: this one's lines did not change.
+    const other = await runsService.record(project.id, agent, report(code, { [TEST_REF]: ["a1", "a2"], [OTHER]: ["b1", "b2", "b3"] }, ["a1", "a2", "b1", "b2", "b3"]));
+    expect(other.gates[code]?.agentCanFix.join(" ")).not.toContain("locked test changed");
+    const own = await runsService.gate(project.id, { [code]: "sha256:tree" }, { testFiles: { "tests/discount.test.ts": "sha256:x" }, testBlocks: { [TEST_REF]: ["a1", "a2 weaker"], [OTHER]: ["b1", "b2", "b3"] } });
+    expect(own.requirements[code]?.agentCanFix.join(" ")).toContain(`locked test changed: ${TEST_REF} (AC-1)`);
+  });
+
+  it("takes over a whole-file seal from before when the test's own lines are still in it", async () => {
+    const { project, code } = await twoTests();
+    await runsService.record(project.id, agent, run(code, "passed", "sha256:old", ["imp", "a1", "a2", "b1", "b2"]));
+    await database().criterionTest.updateMany({ where: { testRef: TEST_REF }, data: { lockedHash: "sha256:old", sealedLines: ["imp", "a1", "a2", "b1", "b2"] } });
+    const now = await runsService.record(project.id, agent, report(code, { [TEST_REF]: ["a1", "a2"], [OTHER]: ["b1", "b9"] }, ["a1", "a2", "b1", "b9"]));
+    expect(now.gates[code]?.agentCanFix.join(" ")).not.toContain("locked test changed");
+    expect((await database().criterionTest.findFirstOrThrow({ where: { testRef: TEST_REF } })).lockedHash).toStartWith("block:");
   });
 });

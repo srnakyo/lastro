@@ -1,4 +1,5 @@
-import { needsTestQuality, TEST_QUALITY_STAGE, type ProjectConfig } from "@lastro/shared";
+import { needsTestQuality, onlyGrew, TEST_QUALITY_STAGE, type ProjectConfig } from "@lastro/shared";
+import { createHash } from "node:crypto";
 import type { Tx } from "../db";
 import { auditService } from "../audit/service";
 import { systemActor } from "../scope/actor";
@@ -31,6 +32,7 @@ export interface GateContext {
   commit?: string | null;
   testFiles?: Record<string, string>;
   testFileLines?: Record<string, string[]>;
+  testBlocks?: Record<string, string[]>;
 }
 
 function requiredStages(config: ProjectConfig, type: string) {
@@ -89,14 +91,26 @@ async function everPassed(tx: Tx, projectId: string, refs: string[]) {
   return new Set(rows.map((r) => r.test.ref));
 }
 
-/** Whether a sealed file only grew: every sealed line is still there, in the same order. */
-export function onlyGrew(sealed: string[], now: string[]): boolean {
-  let i = 0;
-  for (const line of now) if (i < sealed.length && line === sealed[i]) i += 1;
-  return i === sealed.length;
-}
+export { onlyGrew };
 
-type Files = { hashes: Record<string, string>; lines: Record<string, string[]> };
+type Files = { hashes: Record<string, string>; lines: Record<string, string[]>; blocks: Record<string, string[]> };
+
+const BLOCK = "block:";
+const blockSeal = (lines: string[]) => `${BLOCK}${createHash("sha256").update(lines.join("\n")).digest("hex")}`;
+
+type Sealed = { testRef: string; lockedHash: string | null; sealedLines: string[] };
+
+/**
+ * A test sealed on its own block: unchanged, or only grown (renewed), or changed. A seal of the whole file from
+ * before becomes a block seal when the test's own lines are still there in order, or the file only grew.
+ */
+function blockVerdict(t: Sealed, block: string[], fileNow: string[] | undefined, passing: boolean): "same" | "renew" | "changed" {
+  const now = blockSeal(block);
+  if (t.lockedHash === now) return "same";
+  if (t.lockedHash?.startsWith(BLOCK)) return onlyGrew(t.sealedLines, block) ? "renew" : "changed";
+  if (!t.sealedLines.length) return passing ? "renew" : "changed";
+  return onlyGrew(block, t.sealedLines) || (fileNow !== undefined && onlyGrew(t.sealedLines, fileNow)) ? "renew" : "changed";
+}
 
 /**
  * Rule 4: a locked test's file is sealed once the test has proven itself, on its first pass. Afterwards a
@@ -120,6 +134,16 @@ async function lockedTests(tx: Tx, graph: Awaited<ReturnType<typeof loadGraph>>,
       }
       if (!now) continue;
       const passing = latest.get(t.testRef) === "passed";
+      const block = files.blocks[t.testRef];
+      if (block) {
+        // The seal covers this test's own lines: a change in another test of the same file leaves it alone.
+        const verdict = t.lockedHash ? blockVerdict(t, block, lines, passing) : passing ? "renew" : "same";
+        if (verdict === "renew") {
+          await seal(blockSeal(block), block);
+          if (t.lockedHash) renewed.push(`${c.code} ${t.testRef}`);
+        } else if (verdict === "changed") out.push({ kind: "locked_changed", file: t.testRef, criterion: c.code });
+        continue;
+      }
       if (!t.lockedHash) {
         if (passing) await seal(now, lines);
       } else if (t.lockedHash === now) {
@@ -186,7 +210,7 @@ export async function evaluateGate(tx: Tx, config: ProjectConfig, requirementId:
     const status = latest.get(e.ref);
     if ((e.always || status) && status !== "passed") fix.push(e.kind === "regression" ? { kind: "regression", incident: e.code, test: e.ref, status: status ?? NOT_RUN } : { kind: "invariant", invariant: e.code, test: e.ref, status: status ?? NOT_RUN });
   }
-  await lockedTests(tx, graph, { hashes: ctx.testFiles ?? {}, lines: ctx.testFileLines ?? {} }, latest, fix);
+  await lockedTests(tx, graph, { hashes: ctx.testFiles ?? {}, lines: ctx.testFileLines ?? {}, blocks: ctx.testBlocks ?? {} }, latest, fix);
   if (config.tests.red_first) {
     // Only tests locked after the rule was turned on must have failed first, and not those of a behavior that
     // already existed (recorded as a decision the person may overturn).

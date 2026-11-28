@@ -47,6 +47,7 @@ export const runReportSchema = z.object({
   /** SHA-256 of each test file linked to a criterion, so a locked test cannot change unnoticed. */
   testFiles: z.record(z.string(), z.string()).default({}),
   testFileLines: z.record(z.string(), z.array(z.string())).default({}),
+  testBlocks: z.record(z.string(), z.array(z.string())).default({}),
   /**
    * A run that shows a criterion's tests fail without the code they test: on an earlier commit, or on this one
    * with the files of that behavior taken out (`without`). Its results count as the red of those tests, and it

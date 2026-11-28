@@ -77,11 +77,15 @@ export async function setTouches(projectId: string, actor: Actor, code: string, 
  * sealed). Before its first pass the agent may still fix its own test.
  */
 export async function lockedTestFiles(projectId: string) {
-  const links = await db().criterionTest.findMany({ where: { lockedHash: { not: null }, criterion: { lockedHash: { not: null }, requirement: { projectId, status: { notIn: ["dropped"] } } } }, select: { testRef: true, criterion: { select: { code: true, requirement: { select: { code: true } } } } } });
-  const files = new Map<string, string[]>();
+  const links = await db().criterionTest.findMany({ where: { lockedHash: { not: null }, criterion: { lockedHash: { not: null }, requirement: { projectId, status: { notIn: ["dropped"] } } } }, select: { testRef: true, lockedHash: true, sealedLines: true, criterion: { select: { code: true, requirement: { select: { code: true } } } } } });
+  const files = new Map<string, { criteria: string[]; tests: { ref: string; block: boolean; lines: string[] }[] }>();
   for (const l of links) {
     const file = l.testRef.split("::")[0] ?? l.testRef;
-    files.set(file, [...(files.get(file) ?? []), `${l.criterion.requirement.code} ${l.criterion.code}`]);
+    const entry = files.get(file) ?? { criteria: [], tests: [] };
+    entry.criteria.push(`${l.criterion.requirement.code} ${l.criterion.code}`);
+    // A seal on the test's own lines lets the file take other edits; a whole-file seal from before does not.
+    entry.tests.push({ ref: l.testRef, block: !!l.lockedHash?.startsWith("block:"), lines: l.sealedLines });
+    files.set(file, entry);
   }
-  return [...files.entries()].map(([file, criteria]) => ({ file, criteria }));
+  return [...files.entries()].map(([file, e]) => ({ file, criteria: e.criteria, tests: e.tests }));
 }
