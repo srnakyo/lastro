@@ -79,6 +79,21 @@ describe("a sealed test file that gets another test", () => {
   });
 });
 
+describe("a negative test that passed against a stub", () => {
+  it("counts as red once it fails after being made stronger, without anyone unlocking it", async () => {
+    const { project, code } = await building();
+    // The worker was an empty stub, so "a suspended tenant sends nothing" passed on the first run.
+    const stub = await runsService.record(project.id, agent, run(code, "passed", "sha256:one", ["l1", "l2"]));
+    expect(stub.gates[code]?.agentCanFix.join(" ")).toContain("never failed");
+    // The agent adds a positive control to the same test (lines added only, so the seal holds): it fails on the stub.
+    const stronger = await runsService.record(project.id, agent, run(code, "failed", "sha256:two", ["l1", "a tenant not suspended sends", "l2"]));
+    expect(stronger.gates[code]?.agentCanFix.join(" ")).not.toContain("locked test changed");
+    const built = await runsService.record(project.id, agent, run(code, "passed", "sha256:two", ["l1", "a tenant not suspended sends", "l2"]));
+    expect(built.gates[code]?.agentCanFix.join(" ")).not.toContain("never failed");
+    expect(built.gates[code]?.pass).toBe(true);
+  });
+});
+
 describe("a behavior that already existed", () => {
   it("is recorded as a decision the person sees, and its tests are not asked to fail first, until the person overturns it", async () => {
     const { project, actor, code } = await building();
