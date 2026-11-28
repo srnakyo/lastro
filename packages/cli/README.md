@@ -33,4 +33,17 @@ lastro init my-project            # creates the project when it does not exist, 
 
 In CI, set `LASTRO_URL` and `LASTRO_TOKEN` instead of `lastro login`.
 
+**Verify only what a requirement needs.** A command in `lastro.yml` may name the tests to run: `{files}` (the linked test files), `{dirs}` (their folders, `./pkg`) and `{names}` (their names as a regex, `A|B`), with `level` (only the linked tests at that level of `tests.levels`) and `dir` (the folder it runs in; paths are relative to it). `lastro verify REQ-…` then runs only that requirement's tests, and a stage with none of its tests is not run.
+
+```yaml
+commands:
+  integration:
+    run: go test {dirs} -run '^({names})$' -json | go-junit-report -parser gojson > ../.lastro/.out/integration.xml
+    dir: backend
+    level: integration
+    report: { junit: .lastro/.out/integration.xml }
+```
+
+**Tests link themselves.** A test whose name says its criterion, `TestX_REQ60KTK_AC1` or `… (REQ-60KTK AC-1)`, is linked to it the first time it runs.
+
 MIT license.

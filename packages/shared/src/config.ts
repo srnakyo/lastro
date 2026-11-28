@@ -16,7 +16,16 @@ export const stageSchema = z.union([
 export type Stage = z.infer<typeof stageSchema>;
 
 const commandSchema = z.object({
+  /**
+   * The command. It may name the tests of the requirements being verified, so a verify runs only those:
+   * {files} (their test files), {dirs} (their folders, "./pkg"), {names} (their test names as a regex, "A|B").
+   * Without these, the whole command runs.
+   */
   run: z.string(),
+  /** Folder the command runs in, relative to the repository; {files} and {dirs} are then relative to it. */
+  dir: z.string().optional(),
+  /** Only the linked tests at this level (tests.levels) are selected for {files}, {dirs} and {names}. */
+  level: z.string().optional(),
   env: z.record(z.string(), z.string()).optional(),
   report: z
     .object({

@@ -6,6 +6,7 @@ import { commitInfo, fileHashes, fileLines, treeHash } from "./git";
 import { mergeResults, parseJunit, type TestCaseResult } from "./junit";
 import { planStages } from "./plan";
 import { qualityStage, readCoverage } from "./quality";
+import { fillCommand, selectionFor, selects } from "./selection";
 import { parseSarif, type Finding } from "./sarif";
 
 export interface RequirementToVerify {
@@ -58,11 +59,21 @@ function readReport(cwd: string, path: string | undefined, parse: (text: string)
   return items;
 }
 
-async function runStage(cwd: string, config: ProjectConfig, name: string, condition: string | null): Promise<Omit<StageRun, "requirement">> {
+/** A stage with nothing to run for these requirements: its command selects tests and none of theirs is at its level. */
+const nothingToRun = (name: string, condition: string | null, env: Record<string, string>): Omit<StageRun, "requirement"> => ({
+  stage: name, condition, command: null, exitCode: null, status: "passed", durationMs: 0, output: "no linked test for this stage: not run", results: [], findings: [], env,
+});
+
+/** Runs one stage, once, for the linked tests of the requirements that need it (when its command selects tests). */
+async function runStage(cwd: string, config: ProjectConfig, name: string, condition: string | null, tests: string[]): Promise<Omit<StageRun, "requirement">> {
   const command = config.commands[name];
   const cond = condition ? config.conditions[condition] : undefined;
   const conditionEnv = cond?.env ?? {};
   if (!command) return { stage: name, condition, command: null, exitCode: null, status: "error", durationMs: 0, output: `no command named ${name} in lastro.yml`, results: [], findings: [], env: conditionEnv };
+  const selection = selects(command) ? selectionFor(command, config.tests.levels, tests) : null;
+  if (selection && selection.files.length === 0) return nothingToRun(name, condition, conditionEnv);
+  const line = selection ? fillCommand(command.run, selection) : command.run;
+  const where = command.dir ? join(cwd, command.dir) : cwd;
   const env = { ...(command.env ?? {}), ...(cond?.env ?? {}), ...(condition ? { LASTRO_CONDITION: condition } : {}) };
   for (const report of [command.report?.junit, command.report?.sarif]) if (report) rmSync(join(cwd, report), { force: true });
   if (cond?.setup) {
@@ -70,11 +81,11 @@ async function runStage(cwd: string, config: ProjectConfig, name: string, condit
     // A condition that cannot be set up fails its stage, with the setup output; the other conditions still run.
     if (setup.exitCode !== 0) return { stage: name, condition, command: cond.setup, exitCode: setup.exitCode, status: "failed", durationMs: setup.durationMs, output: `setup failed\n${setup.output}`, results: [], findings: [], env: conditionEnv };
   }
-  const run = await runCommand(command.run, cwd, env);
+  const run = await runCommand(line, where, env);
   const results = mergeResults(readReport(cwd, command.report?.junit, (xml) => parseJunit(xml, { root: cwd, prefix: command.report?.junit_prefix })) as TestCaseResult[]);
   const findings = readReport(cwd, command.report?.sarif, parseSarif) as Finding[];
   const failed = run.exitCode !== 0 || results.some((r) => r.status === "failed" || r.status === "error") || findings.some((f) => f.level === "error");
-  return { stage: name, condition, command: command.run, exitCode: run.exitCode, status: failed ? "failed" : "passed", durationMs: run.durationMs, output: run.output, results, findings, env: conditionEnv };
+  return { stage: name, condition, command: line, exitCode: run.exitCode, status: failed ? "failed" : "passed", durationMs: run.durationMs, output: run.output, results, findings, env: conditionEnv };
 }
 
 /**
@@ -82,7 +93,10 @@ async function runStage(cwd: string, config: ProjectConfig, name: string, condit
  * test results, so a failing test of another requirement does not fail it; by the exit code otherwise (a lint,
  * a build, a suite that wrote no report). Error findings fail it either way.
  */
-export function stageFor(stage: Omit<StageRun, "requirement">, req: RequirementToVerify): Omit<StageRun, "requirement"> {
+export function stageFor(stage: Omit<StageRun, "requirement">, req: RequirementToVerify, config?: ProjectConfig): Omit<StageRun, "requirement"> {
+  const command = config?.commands[stage.stage];
+  // The stage ran for other requirements' tests; this one has none at its level.
+  if (config && command && selects(command) && selectionFor(command, config.tests.levels, req.tests ?? []).files.length === 0) return nothingToRun(stage.stage, stage.condition, stage.env);
   if (stage.results.length === 0 || !req.tests?.length) return stage;
   const own = new Set(req.tests);
   const failed = stage.results.some((r) => own.has(r.ref) && (r.status === "failed" || r.status === "error")) || stage.findings.some((f) => f.level === "error");
@@ -92,16 +106,22 @@ export function stageFor(stage: Omit<StageRun, "requirement">, req: RequirementT
 /** The files a requirement's evidence is bound to: what it touches, or its test files until it touches anything. */
 export const boundFiles = (r: RequirementToVerify) => (r.touches.length ? r.touches : (r.testFiles ?? []));
 
-/** Runs every automatic stage each requirement needs, once per stage and condition, and builds the report. */
+/**
+ * Runs every automatic stage each requirement needs, once per stage and condition, and builds the report. A
+ * command that names the tests ({files}, {dirs}, {names}) runs only the linked tests of these requirements.
+ */
 export async function verify(cwd: string, config: ProjectConfig, requirements: RequirementToVerify[], trigger: RunReport["trigger"]): Promise<RunReport> {
   const started = Date.now();
+  const plans = requirements.map((req) => ({ req, stages: planStages(config, req.type).filter((s) => s.kind === "command") }));
+  const keyOf = (s: { stage: string; condition: string | null }) => `${s.stage}|${s.condition ?? ""}`;
+  const testsOf = (key: string) => plans.filter((p) => p.stages.some((s) => keyOf(s) === key)).flatMap((p) => p.req.tests ?? []);
   const done = new Map<string, Omit<StageRun, "requirement">>();
   const stages: StageRun[] = [];
-  for (const req of requirements) {
-    for (const planned of planStages(config, req.type).filter((s) => s.kind === "command")) {
-      const key = `${planned.stage}|${planned.condition ?? ""}`;
-      if (!done.has(key)) done.set(key, await runStage(cwd, config, planned.stage, planned.condition));
-      stages.push({ requirement: req.code, ...stageFor(done.get(key) as Omit<StageRun, "requirement">, req) });
+  for (const { req, stages: planned } of plans) {
+    for (const s of planned) {
+      const key = keyOf(s);
+      if (!done.has(key)) done.set(key, await runStage(cwd, config, s.stage, s.condition, testsOf(key)));
+      stages.push({ requirement: req.code, ...stageFor(done.get(key) as Omit<StageRun, "requirement">, req, config) });
     }
   }
   // After the commands, so the coverage report they write is there to read.

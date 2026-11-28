@@ -7,6 +7,7 @@ import { requireHuman, systemActor } from "../scope/actor";
 import { loadScope, type ProjectScope } from "../scope/project-scope";
 import { evaluateGate, type GateContext, type GateResult } from "./gate";
 import { latestCommit, latestStages } from "./latest";
+import { linkByName } from "./auto-link";
 import { compareWithPrevious } from "./compare";
 import { listRuns } from "./list";
 import { writeRun } from "./record";
@@ -31,6 +32,8 @@ export const runsService = {
     return transaction(async (tx) => {
       const scope = await loadScope(tx, projectId);
       const run = await writeRun(tx, projectId, report);
+      // Tests named after their criterion link themselves before the gate looks at the criteria.
+      const linked = await linkByName(tx, scope, actor, report);
       const codes = [...new Set(report.stages.map((s) => s.requirement).filter((c): c is string => !!c))];
       const gates: Record<string, GateResult> = {};
       for (const code of codes) {
@@ -38,7 +41,7 @@ export const runsService = {
         gates[code] = await settle(tx, scope, requirement, run.id, report.trees[code], { commit: report.commit, testFiles: report.testFiles, testFileLines: report.testFileLines });
       }
       await auditService.record(tx, { workspaceId: scope.workspaceId, projectId, actor, action: "run.record", entity: "run", entityId: run.id, data: { status: run.status } });
-      return { runId: run.id, status: run.status, gates };
+      return { runId: run.id, status: run.status, gates, linked };
     }, { timeout: 60_000 });
   },
 

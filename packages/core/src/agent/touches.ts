@@ -1,15 +1,33 @@
 import type { Actor } from "@lastro/shared";
 import { auditService } from "../audit/service";
-import { db, transaction } from "../db";
+import { testFile } from "@lastro/shared";
+import { db, transaction, type Tx } from "../db";
 import { notFound } from "../errors";
 
 const normalize = (file: string) => file.replace(/\\/g, "/").replace(/^\.\//, "");
 const ignored = (file: string) => file.startsWith(".lastro/") || file.startsWith(".git/") || file.includes("node_modules/");
 
+type Building = { id: string; code: string; touches: string[]; branch: string | null };
+
+const BRANCH_CODE = /REQ-?([0-9A-Z]{5})(?![0-9A-Za-z])/i;
+
+/**
+ * The requirement the agent is working on when it did not say: the one its branch is named after, or the only
+ * one whose linked tests are among the changed files.
+ */
+async function inferred(tx: Tx, building: Building[], files: string[], branch: string | null): Promise<Building[]> {
+  const named = branch ? BRANCH_CODE.exec(branch) : null;
+  const byBranch = named ? building.filter((r) => r.code === `REQ-${named[1]?.toUpperCase()}`) : [];
+  if (byBranch.length) return byBranch;
+  const links = await tx.criterionTest.findMany({ where: { criterion: { requirementId: { in: building.map((r) => r.id) } } }, select: { testRef: true, criterion: { select: { requirementId: true } } } });
+  const owners = new Set(links.filter((l) => files.includes(testFile(l.testRef))).map((l) => l.criterion.requirementId));
+  return owners.size === 1 ? building.filter((r) => owners.has(r.id)) : [];
+}
+
 /**
  * Adds files an agent changed to the requirements being built: the one it says it is working on (`lastro req
- * work`), else the ones started on this branch, or, when none matches, every requirement in building. Their
- * evidence is bound to these files.
+ * work`), else the ones started on this branch, else the one its branch name or the changed test files point
+ * to, or, when nothing tells, every requirement in building. Their evidence is bound to these files.
  */
 export async function addTouches(projectId: string, actor: Actor, files: string[], branch: string | null, requirement: string | null = null) {
   const clean = [...new Set(files.map(normalize).filter((f) => f && !ignored(f)))];
@@ -18,7 +36,9 @@ export async function addTouches(projectId: string, actor: Actor, files: string[
     const building = await tx.requirement.findMany({ where: { projectId, status: { in: ["building", "reopened"] } }, select: { id: true, code: true, touches: true, branch: true } });
     const current = requirement ? building.filter((r) => r.code === requirement) : [];
     const onBranch = branch ? building.filter((r) => r.branch === branch) : [];
-    const targets = current.length > 0 ? current : onBranch.length > 0 ? onBranch : building;
+    const told = current.length > 0 ? current : onBranch;
+    const guessed = told.length > 0 ? told : await inferred(tx, building, clean, branch);
+    const targets = guessed.length > 0 ? guessed : building;
     const updated: string[] = [];
     for (const r of targets) {
       const next = [...new Set([...r.touches, ...clean])].sort();
