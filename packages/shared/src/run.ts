@@ -47,6 +47,11 @@ export const runReportSchema = z.object({
   /** SHA-256 of each test file linked to a criterion, so a locked test cannot change unnoticed. */
   testFiles: z.record(z.string(), z.string()).default({}),
   testFileLines: z.record(z.string(), z.array(z.string())).default({}),
+  /**
+   * A run that shows a criterion's tests fail on an earlier commit, before the code they test existed: its
+   * results count as the red of those tests, and it settles no gate.
+   */
+  proof: z.object({ requirement: z.string(), criterion: z.string(), at: z.string() }).optional(),
 });
 
 export type RunReportInput = z.input<typeof runReportSchema>;

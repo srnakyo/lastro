@@ -2,6 +2,7 @@ import type { Command } from "commander";
 import { LastroClient } from "../api/client";
 import { findRoot, linkedProject } from "../config/project";
 import { HookState } from "../hooks/state";
+import { proveAtCommit } from "../prove/at-commit";
 import { json, table } from "../output";
 
 const project = () => linkedProject(findRoot());
@@ -39,6 +40,21 @@ export function requirementCommands(program: Command) {
       if (!o.set) return console.log(((await client.get<{ touches: string[] }>(`/projects/${project()}/requirements/${code}`)).touches ?? []).join("\n"));
       const res = await client.post<{ touches: string[]; removed: string[]; added: string[] }>(`/projects/${project()}/requirements/${code}/touches`, { files: o.set });
       console.log(`${code} touches ${res.touches.length} files (${res.removed.length} removed, ${res.added.length} added)`);
+    });
+  req
+    .command("prove")
+    .description("run a criterion's tests on an earlier commit, before the code existed: failing there is their red")
+    .argument("<code>")
+    .argument("<criterion>")
+    .requiredOption("--at <commit>", "a commit from before the code those tests check")
+    .action(async (code: string, criterion: string, o: { at: string }) => {
+      const proof = await proveAtCommit(new LastroClient(), findRoot(), project(), code, criterion, o.at);
+      if (proof.failed.length) console.log(`${code} ${criterion}: ${proof.failed.length} test(s) fail at ${proof.commit}, before the code: their red is recorded (run ${proof.runId})`);
+      if (proof.passed.length) {
+        console.log(`these pass at ${proof.commit} too, so they may not check that code; make them stronger:\n${proof.passed.map((t) => `  ${t}`).join("\n")}`);
+        process.exitCode = 1;
+      }
+      if (proof.notRun.length) console.log(`not run at ${proof.commit}:\n${proof.notRun.map((t) => `  ${t}`).join("\n")}`);
     });
   req
     .command("existing")

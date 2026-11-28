@@ -36,11 +36,12 @@ export const runsService = {
       const linked = await linkByName(tx, scope, actor, report);
       const codes = [...new Set(report.stages.map((s) => s.requirement).filter((c): c is string => !!c))];
       const gates: Record<string, GateResult> = {};
-      for (const code of codes) {
+      // A proof on an earlier commit only records the red of the tests; the requirement's evidence is on its own commit.
+      for (const code of report.proof ? [] : codes) {
         const requirement = await findRequirement(tx, projectId, code);
         gates[code] = await settle(tx, scope, requirement, run.id, report.trees[code], { commit: report.commit, testFiles: report.testFiles, testFileLines: report.testFileLines });
       }
-      await auditService.record(tx, { workspaceId: scope.workspaceId, projectId, actor, action: "run.record", entity: "run", entityId: run.id, data: { status: run.status } });
+      await auditService.record(tx, { workspaceId: scope.workspaceId, projectId, actor, action: report.proof ? "run.proof" : "run.record", entity: "run", entityId: run.id, data: { status: run.status, ...(report.proof ?? {}) } });
       return { runId: run.id, status: run.status, gates, linked };
     }, { timeout: 60_000 });
   },
