@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "bun:test";
-import { addTouches, decisionsService, lifecycleService, lockedTestFiles, requirementsService, runsService, setTouches, sourcesService, criteriaService } from "@lastro/core";
+import { addTouches, decisionsService, exportSnapshot, lifecycleService, lockedTestFiles, packagesService, requirementsService, runsService, setTouches, sourcesService, criteriaService } from "@lastro/core";
+import { planImport } from "../../packages/core/src/snapshot/plan";
 import { database } from "@lastro/database";
 import { projectConfigSchema, type RunReportInput } from "@lastro/shared";
 import { resetDatabase } from "../helpers/db";
@@ -152,5 +153,19 @@ describe("the files of the requirement being worked on", () => {
     expect(res).toEqual({ touches: ["backend/limite.go", "backend/limite_extra.go"], removed: ["backend/wabas.go", "front/app.ts"], added: ["backend/limite_extra.go"] });
     const audit = await database().auditEvent.findFirstOrThrow({ where: { projectId: project.id, action: "requirement.touches.set" } });
     expect(audit).toMatchObject({ actorType: "agent", data: { removed: ["backend/wabas.go", "front/app.ts"], added: ["backend/limite_extra.go"] } });
+  });
+});
+
+describe("planning an import of what the server already has", () => {
+  it("plans nothing for a package with the same title, report and sources", async () => {
+    const { project, actor } = await createProject();
+    const source = await createBriefSource(project.id, actor, true);
+    await packagesService.create(project.id, actor, { title: "Round 1", sources: [source.code] });
+    const snapshot = await exportSnapshot(project.id);
+    expect(snapshot.packages).toHaveLength(1);
+    const plan = await planImport(project.id, snapshot);
+    expect(plan.packages).toEqual([]);
+    const renamed = await planImport(project.id, { ...snapshot, packages: snapshot.packages.map((p) => ({ ...p, title: "Round 2" })) });
+    expect(renamed.packages).toEqual(snapshot.packages.map((p) => p.code));
   });
 });
