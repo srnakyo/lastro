@@ -11,7 +11,7 @@ export interface TestTotals {
 export async function latestTestResults(projectId: string) {
   const results = await db().testResult.findMany({
     where: { test: { projectId } },
-    orderBy: { runStage: { startedAt: "desc" } },
+    orderBy: [{ runStage: { run: { startedAt: "desc" } } }, { runStage: { startedAt: "desc" } }],
     select: { testId: true, status: true, test: { select: { ref: true } } },
   });
   const latest = new Map<string, { ref: string; status: string }>();

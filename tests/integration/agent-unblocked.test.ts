@@ -190,3 +190,21 @@ describe("planning an import of what the server already has", () => {
     expect(renamed.packages).toEqual(snapshot.packages.map((p) => p.code));
   });
 });
+
+describe("the latest evidence", () => {
+  it("is the latest run's, even when an earlier run shared a long suite among many requirements", async () => {
+    const { project, code } = await building();
+    // An earlier run: the same 18-minute suite listed for 30 requirements, this one last and failing.
+    const earlier = run(code, "failed", "sha256:one");
+    const failing = earlier.stages[0];
+    if (!failing) throw new Error("no stage");
+    earlier.stages = [...Array.from({ length: 29 }, () => ({ ...failing, requirement: null, durationMs: 18 * 60_000 })), { ...failing, durationMs: 18 * 60_000 }];
+    await runsService.record(project.id, agent, earlier);
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    const now = await runsService.record(project.id, agent, run(code, "passed", "sha256:one"));
+    expect(now.gates[code]?.agentCanFix).toEqual([]);
+    expect(now.gates[code]?.pass).toBe(true);
+    const stages = await database().runStage.findMany({ where: { run: { projectId: project.id } }, include: { run: true } });
+    expect(stages.every((s) => !s.run.finishedAt || s.startedAt <= s.run.finishedAt)).toBe(true);
+  });
+});

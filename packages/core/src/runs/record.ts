@@ -13,10 +13,16 @@ export async function writeRun(tx: Tx, projectId: string, report: RunReportData)
   const requirements = await tx.requirement.findMany({ where: { projectId, code: { in: report.stages.map((s) => s.requirement).filter((c): c is string => !!c) } }, select: { id: true, code: true } });
   const idOf = new Map(requirements.map((r) => [r.code, r.id]));
   const recorded = new Set<string>();
+  // A stage several requirements share ran once: it gets one start, and its time counts once.
+  const starts = new Map<string, Date>();
   let offset = 0;
   for (const s of report.stages) {
-    const startedAt = new Date(report.startedAt.getTime() + offset);
-    offset += s.durationMs;
+    const key = `${s.stage}|${s.condition ?? ""}`;
+    if (!starts.has(key)) {
+      starts.set(key, new Date(report.startedAt.getTime() + offset));
+      offset += s.durationMs;
+    }
+    const startedAt = starts.get(key) as Date;
     const stage = await tx.runStage.create({
       data: {
         runId: run.id, startedAt, requirementId: s.requirement ? (idOf.get(s.requirement) ?? null) : null, stage: s.stage, condition: s.condition, command: s.command,
@@ -25,7 +31,6 @@ export async function writeRun(tx: Tx, projectId: string, report: RunReportData)
         findings: { create: s.findings.map((f) => ({ tool: f.tool, ruleId: f.ruleId, level: f.level, file: f.file, line: f.line, message: f.message })) },
       },
     });
-    const key = `${s.stage}|${s.condition ?? ""}`;
     if (recorded.has(key)) continue;
     recorded.add(key);
     for (const r of s.results) {
