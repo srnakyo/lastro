@@ -136,6 +136,10 @@ async function lockedTests(tx: Tx, graph: Awaited<ReturnType<typeof loadGraph>>,
       if (!now) continue;
       const passing = latest.get(t.testRef) === "passed";
       const block = files.blocks[t.testRef];
+      // The file's tests were found one by one, but not this one: it is not in the file (renamed, merged, gone).
+      // Sealing the whole file under its name would seal other tests' lines for it.
+      const sameFile = Object.keys(files.blocks).some((ref) => ref.startsWith(`${file}::`));
+      if (!block && sameFile && !t.lockedHash) continue;
       if (block) {
         // The seal covers this test's own lines: a change in another test of the same file leaves it alone.
         const verdict = t.lockedHash ? blockVerdict(t, block, lines, passing) : passing ? "renew" : "same";

@@ -278,3 +278,19 @@ describe("taking a test off a criterion", () => {
     await criteriaService.unlinkTest(project.id, actor, code, "AC-1", TEST_REF);
   });
 });
+
+describe("a test that is no longer in its file", () => {
+  it("is not sealed on the whole file, when the file's other tests are found one by one", async () => {
+    const { project, code } = await building();
+    const MERGED = "tests/discount.test.ts::60 seats and 61 seats in one";
+    await criteriaService.linkTest(project.id, agent, code, "AC-1", MERGED);
+    const r = run(code, "passed", "sha256:file", ["m1", "m2"]);
+    const stage = r.stages[0];
+    if (stage) stage.results = [...stage.results, { ref: MERGED, file: "tests/discount.test.ts", name: "merged", status: "passed", durationMs: 1, message: null }];
+    // TEST_REF passed once before it was merged; the file now holds only the merged test.
+    await runsService.record(project.id, agent, { ...r, testBlocks: { [MERGED]: ["m1", "m2"] } });
+    const old = await database().criterionTest.findFirstOrThrow({ where: { testRef: TEST_REF } });
+    expect(old.lockedHash).toBeNull();
+    expect((await database().criterionTest.findFirstOrThrow({ where: { testRef: MERGED } })).lockedHash).toStartWith("block:");
+  });
+});
