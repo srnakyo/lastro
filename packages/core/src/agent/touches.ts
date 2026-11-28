@@ -1,7 +1,7 @@
 import type { Actor } from "@lastro/shared";
 import { auditService } from "../audit/service";
-import { testFile } from "@lastro/shared";
-import { db, transaction, type Tx } from "../db";
+import { projectConfigSchema, testLevel } from "@lastro/shared";
+import { db, transaction } from "../db";
 import { notFound } from "../errors";
 
 const normalize = (file: string) => file.replace(/\\/g, "/").replace(/^\.\//, "");
@@ -12,33 +12,34 @@ type Building = { id: string; code: string; touches: string[]; branch: string | 
 const BRANCH_CODE = /REQ-?([0-9A-Z]{5})(?![0-9A-Za-z])/i;
 
 /**
- * The requirement the agent is working on when it did not say: the one its branch is named after, or the only
- * one whose linked tests are among the changed files.
+ * Which requirements the changed files are for: the one the agent named (`lastro req work`), else those started
+ * on this branch, else the one the branch is named after, else the only one in building. When several are in
+ * building and nothing tells, none: guessing put other requirements' files in their coverage. The gate then
+ * asks for the files with `lastro req touches --set`.
  */
-async function inferred(tx: Tx, building: Building[], files: string[], branch: string | null): Promise<Building[]> {
-  const named = branch ? BRANCH_CODE.exec(branch) : null;
-  const byBranch = named ? building.filter((r) => r.code === `REQ-${named[1]?.toUpperCase()}`) : [];
-  if (byBranch.length) return byBranch;
-  const links = await tx.criterionTest.findMany({ where: { criterion: { requirementId: { in: building.map((r) => r.id) } } }, select: { testRef: true, criterion: { select: { requirementId: true } } } });
-  const owners = new Set(links.filter((l) => files.includes(testFile(l.testRef))).map((l) => l.criterion.requirementId));
-  return owners.size === 1 ? building.filter((r) => owners.has(r.id)) : [];
+function targetsOf(building: Building[], branch: string | null, requirement: string | null): Building[] {
+  const named = requirement ? building.filter((r) => r.code === requirement) : [];
+  if (named.length) return named;
+  const started = branch ? building.filter((r) => r.branch === branch) : [];
+  if (started.length) return started;
+  const code = branch ? BRANCH_CODE.exec(branch)?.[1]?.toUpperCase() : undefined;
+  const byName = code ? building.filter((r) => r.code === `REQ-${code}`) : [];
+  if (byName.length) return byName;
+  return building.length === 1 ? building : [];
 }
 
 /**
- * Adds files an agent changed to the requirements being built: the one it says it is working on (`lastro req
- * work`), else the ones started on this branch, else the one its branch name or the changed test files point
- * to, or, when nothing tells, every requirement in building. Their evidence is bound to these files.
+ * Adds files an agent changed to the requirement being built (see targetsOf). Test files are left out: they are
+ * bound to the requirement through its linked tests, and coverage is measured on the code they test.
  */
 export async function addTouches(projectId: string, actor: Actor, files: string[], branch: string | null, requirement: string | null = null) {
-  const clean = [...new Set(files.map(normalize).filter((f) => f && !ignored(f)))];
-  if (clean.length === 0) return { updated: [] as string[] };
   return transaction(async (tx) => {
+    const project = await tx.project.findUniqueOrThrow({ where: { id: projectId }, select: { config: true } });
+    const levels = projectConfigSchema.parse(project.config).tests.levels;
+    const clean = [...new Set(files.map(normalize).filter((f) => f && !ignored(f) && testLevel(f, levels) === null))];
+    if (clean.length === 0) return { updated: [] as string[] };
     const building = await tx.requirement.findMany({ where: { projectId, status: { in: ["building", "reopened"] } }, select: { id: true, code: true, touches: true, branch: true } });
-    const current = requirement ? building.filter((r) => r.code === requirement) : [];
-    const onBranch = branch ? building.filter((r) => r.branch === branch) : [];
-    const told = current.length > 0 ? current : onBranch;
-    const guessed = told.length > 0 ? told : await inferred(tx, building, clean, branch);
-    const targets = guessed.length > 0 ? guessed : building;
+    const targets = targetsOf(building, branch, requirement);
     const updated: string[] = [];
     for (const r of targets) {
       const next = [...new Set([...r.touches, ...clean])].sort();
@@ -47,8 +48,8 @@ export async function addTouches(projectId: string, actor: Actor, files: string[
       updated.push(r.code);
     }
     if (updated.length) {
-      const project = await tx.project.findUniqueOrThrow({ where: { id: projectId }, select: { workspaceId: true } });
-      await auditService.record(tx, { workspaceId: project.workspaceId, projectId, actor, action: "requirement.touches", entity: "requirement", entityId: updated.join(","), data: { files: clean } });
+      const workspace = await tx.project.findUniqueOrThrow({ where: { id: projectId }, select: { workspaceId: true } });
+      await auditService.record(tx, { workspaceId: workspace.workspaceId, projectId, actor, action: "requirement.touches", entity: "requirement", entityId: updated.join(","), data: { files: clean } });
     }
     return { updated };
   });

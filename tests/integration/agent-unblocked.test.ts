@@ -132,7 +132,7 @@ describe("a test named after its criterion", () => {
 });
 
 describe("the files of the requirement being worked on", () => {
-  it("go only to that requirement when the agent says which one, and to every one in building when it does not", async () => {
+  it("go only to the requirement the agent names, and to none when several are in building and nothing tells", async () => {
     const first = await building("REQ-AAAA1");
     const source = await createBriefSource(first.project.id, first.actor, true);
     const other = await requirementsService.create(first.project.id, first.actor, { ...discountRequirement(source.code), code: "REQ-BBBB2" });
@@ -143,10 +143,11 @@ describe("the files of the requirement being worked on", () => {
     expect(await touches("REQ-AAAA1")).toEqual(["backend/limite.go"]);
     expect(await touches("REQ-BBBB2")).toEqual([]);
     await addTouches(first.project.id, agent, ["backend/shared.go"], "main", null);
-    expect(await touches("REQ-BBBB2")).toEqual(["backend/shared.go"]);
+    expect(await touches("REQ-BBBB2")).toEqual([]);
+    expect(await touches("REQ-AAAA1")).toEqual(["backend/limite.go"]);
   });
 
-  it("go to the requirement the branch is named after, or whose test file changed, when the agent did not say", async () => {
+  it("go to the requirement the branch is named after, or to the only one in building, and never include test files", async () => {
     const first = await building("REQ-AAAA1");
     const source = await createBriefSource(first.project.id, first.actor, true);
     const other = await requirementsService.create(first.project.id, first.actor, { ...discountRequirement(source.code), code: "REQ-BBBB2", criteria: [{ code: "AC-1", text: "x", tests: ["tests/other.test.ts::other"] }] });
@@ -156,9 +157,14 @@ describe("the files of the requirement being worked on", () => {
     await addTouches(first.project.id, agent, ["backend/a.go"], "feat/REQ-AAAA1-limite", null);
     expect(await touches("REQ-AAAA1")).toEqual(["backend/a.go"]);
     expect(await touches("REQ-BBBB2")).toEqual([]);
+    // A changed test file of one requirement does not hand it every file of the turn.
     await addTouches(first.project.id, agent, ["tests/other.test.ts", "backend/b.go"], "main", null);
-    expect(await touches("REQ-BBBB2")).toEqual(["backend/b.go", "tests/other.test.ts"]);
+    expect(await touches("REQ-BBBB2")).toEqual([]);
     expect(await touches("REQ-AAAA1")).toEqual(["backend/a.go"]);
+    await lifecycleService.drop(first.project.id, first.actor, other.code, "split").catch(() => undefined);
+    await database().requirement.update({ where: { projectId_code: { projectId: first.project.id, code: other.code } }, data: { status: "dropped" } });
+    await addTouches(first.project.id, agent, ["tests/discount.test.ts", "backend/c.go"], "main", null);
+    expect(await touches("REQ-AAAA1")).toEqual(["backend/a.go", "backend/c.go"]);
   });
 
   it("can be replaced when a list got files of other requirements, and the audit keeps what changed", async () => {
